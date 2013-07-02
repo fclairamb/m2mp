@@ -8,6 +8,7 @@ import java.util.List;
 
 /**
  * Describes the changes to apply to the table.
+ *
  * @author florent
  */
 public interface TableIncrementalDefinition {
@@ -18,13 +19,27 @@ public interface TableIncrementalDefinition {
 			this.version = version;
 			this.cql = cql;
 		}
-		final int version;
-		final String cql;
+		public final int version;
+		public final String cql;
 	}
 
+	/**
+	 * Name of the table
+	 */
 	String getTableDefName();
 
-	public List<TableChange> getTableDefChanges();
+	/**
+	 * Succession of changes applied to this table
+	 */
+	List<TableChange> getTableDefChanges();
 
-	public int getTableDefVersion();
+	/**
+	 * Complete table definition
+	 */
+	String getTablesDefCql();
+
+	/**
+	 * Current version of the table
+	 */
+	int getTableDefVersion();
 }

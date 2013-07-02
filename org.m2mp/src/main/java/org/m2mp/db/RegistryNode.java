@@ -2,12 +2,12 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.m2mp.db.common;
+package org.m2mp.db;
 
 /**
  *
  * @author florent
  */
-public class DeviceSetting {
+public class RegistryNode {
 	
 }

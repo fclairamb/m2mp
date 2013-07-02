@@ -5,9 +5,7 @@
 package org.m2mp.db.common;
 
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Session;
-import java.util.concurrent.Future;
 
 /**
  *

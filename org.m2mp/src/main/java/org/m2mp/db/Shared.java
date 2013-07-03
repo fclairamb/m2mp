@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.m2mp.db;
 
 import com.datastax.driver.core.Cluster;
@@ -15,16 +11,18 @@ import org.m2mp.db.common.SessionWrapper;
  */
 public class Shared {
 
+	private static final String name = "ks";
+
 	static {
 		switchToProduction();
 	}
 
 	public static void switchToProduction() {
-		sessionWrapper = new SessionWrapper(Cluster.builder().addContactPoint("localhost").build(), "ks");
+		sessionWrapper = new SessionWrapper(Cluster.builder().addContactPoint("localhost").build(), name);
 	}
 
 	public static void switchToTest() {
-		sessionWrapper = new SessionWrapper(Cluster.builder().addContactPoint("localhost").build(), "ks_test");
+		sessionWrapper = new SessionWrapper(Cluster.builder().addContactPoint("localhost").build(), name + "_test");
 	}
 	public static SessionWrapper sessionWrapper;
 

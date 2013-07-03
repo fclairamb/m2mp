@@ -28,22 +28,17 @@ public class GeneralSettings {
 		try {
 			Shared.db().execute("drop table general_settings;");
 		} catch (Exception ex) {
-			Logger.getGlobal().throwing("GeneralSettings", "001", ex);
 		}
 		TableCreation.checkTable(GeneralSetting.DEFINITION);
 	}
 
 	@Test
-	public void test_050_save() {
+	public void test_save() {
 		String value = GeneralSetting.get("setting-1", "value-1");
 		Assert.assertEquals("value-1", value);
 
 		GeneralSetting.set("setting-1", "value-2");
 		value = GeneralSetting.get("setting-1", "value-1");
 		Assert.assertEquals("value-2", value);
-	}
-
-	@Test
-	public void test_051_save() {
 	}
 }

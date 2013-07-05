@@ -4,6 +4,9 @@
  */
 package org.m2mp.db.common;
 
+import java.util.Date;
+import org.m2mp.db.registry.RegistryNode;
+
 /**
  *
  * @author florent
@@ -11,4 +14,32 @@ package org.m2mp.db.common;
 public abstract class Entity {
 
 	protected RegistryNode node;
+
+	protected void setProperty(String name, String value) {
+		node.setProperty(name, value);
+	}
+
+	protected void setProperty(String name, long value) {
+		node.setProperty(name, value);
+	}
+
+	protected void setProperty(String name, Date value) {
+		node.setProperty(name, value);
+	}
+
+	protected String getProperty(String name, String value) {
+		return node.getProperty(name, value);
+	}
+
+	protected int getProperty(String name, int defaultValue) {
+		return node.getProperty(name, defaultValue);
+	}
+
+	protected long getProperty(String name, long defaultValue) {
+		return node.getProperty(name, defaultValue);
+	}
+
+	protected Date getPropertyDate(String name) {
+		return node.getPropertyDate(name);
+	}
 }

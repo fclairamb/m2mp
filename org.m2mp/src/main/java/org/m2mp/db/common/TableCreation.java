@@ -1,9 +1,7 @@
 package org.m2mp.db.common;
 
-import com.datastax.driver.core.ColumnMetadata;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Session;
 import com.datastax.driver.core.TableMetadata;
+import org.apache.log4j.Logger;
 import org.m2mp.db.Shared;
 
 /**
@@ -21,14 +19,14 @@ public class TableCreation {
 		}
 //		int lastVersion = version;
 		try {
-			if (version == -1) {
-				String cql = tableDef.getTablesDefCql();
-				Shared.db().execute(cql);
-				version = tableDef.getTableDefVersion();
-			}
 			for (TableIncrementalDefinition.TableChange tc : tableDef.getTableDefChanges()) {
 				if (tc.version > version) {
-					Shared.db().execute(tc.cql);
+					System.out.println("Executing \"" + tc.cql + "\"...");
+					try {
+						Shared.db().execute(tc.cql);
+					} catch (Exception ex) {
+						Logger.getRootLogger().warn("CQL execution issue", ex);
+					}
 					version = tc.version;
 				}
 			}

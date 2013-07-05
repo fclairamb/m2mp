@@ -34,11 +34,6 @@ public interface TableIncrementalDefinition {
 	List<TableChange> getTableDefChanges();
 
 	/**
-	 * Complete table definition
-	 */
-	String getTablesDefCql();
-
-	/**
 	 * Current version of the table
 	 */
 	int getTableDefVersion();

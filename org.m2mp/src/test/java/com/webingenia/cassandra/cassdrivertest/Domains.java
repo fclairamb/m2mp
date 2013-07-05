@@ -5,13 +5,11 @@
 package com.webingenia.cassandra.cassdrivertest;
 
 import java.util.UUID;
-import java.util.logging.Logger;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.m2mp.db.Domain;
 import org.m2mp.db.Shared;
-import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.common.TableCreation;
 
 /**
@@ -25,9 +23,12 @@ public class Domains {
 		BaseTest.setUpClass();
 		try {
 			Shared.db().execute("drop table Domain;");
+			Shared.db().execute("drop table RegistryNode;");
+			Shared.db().execute("drop table RegistryNodeChildren;");
+			Shared.db().execute("drop table RegistryNodeData;");
 		} catch (Exception ex) {
 		}
-		TableCreation.checkTable(Domain.DEFINITION);
+		Domain.prepareTable();
 	}
 
 	@Test(expected = IllegalArgumentException.class)

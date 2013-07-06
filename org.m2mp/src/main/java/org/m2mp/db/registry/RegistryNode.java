@@ -19,10 +19,12 @@ import org.m2mp.db.common.TableIncrementalDefinition;
 
 /**
  *
- * @author florent
+ * @author Florent Clairambault
  *
- * The registry node is a kind of "does it all" class. It's very convenient to
- * store pretty much anything.
+ * The registry is organized to allow fast access to any node by its name. The
+ * trade-off is that we can't easily move nodes. Move can only be implemented by
+ * copy. Which means we have to make sure to organized data in a "compatible
+ * way".
  */
 public class RegistryNode {
 
@@ -33,6 +35,10 @@ public class RegistryNode {
 			path += "/";
 		}
 		this.path = path;
+	}
+
+	public String getPath() {
+		return path;
 	}
 
 	public void check() {
@@ -48,15 +54,18 @@ public class RegistryNode {
 		RegistryNode parent = getParentNode();
 		if (parent != null) {
 			parent.check();
-			parent.addChild(convPathToName(path));
+			parent.addChild(getName());
 		}
 	}
 
 	public void delete() {
 		setStatus(STATUS_DELETED);
+		for (RegistryNode child : getChildren()) {
+			child.delete();
+		}
 		RegistryNode parent = getParentNode();
 		if (parent != null) {
-			parent.removeChild(path);
+			parent.removeChild(getName());
 		}
 	}
 
@@ -104,10 +113,6 @@ public class RegistryNode {
 		}
 
 		return name;
-	}
-
-	public String getBasePath() {
-		return convPathToBase(path);
 	}
 
 	public String getName() {
@@ -186,7 +191,7 @@ public class RegistryNode {
 
 					@Override
 					public String next() {
-						return iter.next().getString(1);
+						return iter.next().getString(0);
 					}
 
 					@Override
@@ -210,7 +215,7 @@ public class RegistryNode {
 
 					@Override
 					public RegistryNode next() {
-						return new RegistryNode(iter.next());
+						return new RegistryNode(path + iter.next() + "/");
 					}
 
 					@Override
@@ -219,6 +224,23 @@ public class RegistryNode {
 				};
 			}
 		};
+	}
+
+	/**
+	 * Get the number of children.
+	 *
+	 * @param withSubs Add the sub-children
+	 * @return Number of children.
+	 *
+	 * This method is *NOT* optimized at all. It's built for testing purpose
+	 * only at this stage purpose.
+	 */
+	public int getNbChildren(boolean withSubs) {
+		int nb = 0;
+		for (RegistryNode child : getChildren()) {
+			nb += 1 + (withSubs ? child.getNbChildren(true) : 0);
+		}
+		return nb;
 	}
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="Status management">
@@ -252,7 +274,7 @@ public class RegistryNode {
 		if (status == null) {
 			ResultSet rs = Shared.db().execute(reqGetStatus().bind(path));
 			for (Row row : rs) {
-				status = row.getInt(1);
+				status = row.getInt(0);
 			}
 		}
 		return status != null ? status : STATUS_UNDEFINED;

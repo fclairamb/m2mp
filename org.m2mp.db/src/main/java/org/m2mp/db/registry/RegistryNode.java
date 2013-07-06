@@ -115,7 +115,7 @@ public class RegistryNode {
 		return convPathToName(path);
 	}
 	// <editor-fold defaultstate="collapsed" desc="Column family preparation">
-	private static final String TABLE_REGISTRY = "RegistryNode";
+	public static final String TABLE_REGISTRY = "RegistryNode";
 
 	public static void prepareTable() {
 		TableCreation.checkTable(new TableIncrementalDefinition() {

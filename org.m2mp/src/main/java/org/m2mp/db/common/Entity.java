@@ -14,6 +14,10 @@ import org.m2mp.db.registry.RegistryNode;
 public abstract class Entity {
 
 	protected RegistryNode node;
+	
+	public void check() {
+		node.check();
+	}
 
 	protected void setProperty(String name, String value) {
 		node.setProperty(name, value);

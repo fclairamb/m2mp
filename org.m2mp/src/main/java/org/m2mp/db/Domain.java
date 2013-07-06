@@ -62,6 +62,7 @@ public class Domain extends Entity {
 		Shared.db().execute(reqInsertDomain().bind(name, domainId));
 
 		Domain d = new Domain(domainId);
+		d.check();
 		d.setProperty(PROP_NAME, name);
 		d.setProperty(PROP_CREATED_DATE, System.currentTimeMillis());
 		return d;

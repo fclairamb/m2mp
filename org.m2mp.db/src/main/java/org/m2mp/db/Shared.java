@@ -7,7 +7,7 @@ import org.m2mp.db.common.SessionWrapper;
 
 /**
  *
- * @author florent
+ * @author Florent Clairambault
  */
 public class Shared {
 

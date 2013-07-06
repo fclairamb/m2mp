@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Describes the changes to apply to the table.
  *
- * @author florent
+ * @author Florent Clairambault
  */
 public interface TableIncrementalDefinition {
 

@@ -6,7 +6,7 @@ import org.m2mp.db.Shared;
 
 /**
  *
- * @author florent
+ * @author Florent Clairambault
  */
 public class TableCreation {
 

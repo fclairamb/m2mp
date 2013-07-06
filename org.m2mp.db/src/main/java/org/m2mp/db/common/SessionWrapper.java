@@ -6,7 +6,7 @@ import com.datastax.driver.core.Session;
 
 /**
  *
- * @author florent
+ * @author Florent Clairambault
  */
 public class SessionWrapper {
 

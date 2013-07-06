@@ -17,7 +17,7 @@ import org.m2mp.db.common.TableIncrementalDefinition;
 
 /**
  *
- * @author florent
+ * @author Florent Clairambault
  */
 public class Domain extends Entity {
 

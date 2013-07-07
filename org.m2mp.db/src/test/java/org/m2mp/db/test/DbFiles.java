@@ -6,12 +6,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.m2mp.db.Shared;
 import org.m2mp.db.common.GeneralSetting;
-import org.m2mp.db.common.Hashing;
 import org.m2mp.db.file.DbFile;
 import org.m2mp.db.file.DbFileInputStream;
 import org.m2mp.db.file.DbFileOutputStream;
@@ -25,6 +29,37 @@ import org.m2mp.db.registry.RegistryNode;
  * recreates all the tables.
  */
 public class DbFiles {
+
+	public static class Hashing {
+
+		private static String bytes2String(byte[] bytes) {
+			StringBuilder string = new StringBuilder(40);
+			for (byte b : bytes) {
+				String hexString = Integer.toHexString(0x00FF & b);
+				string.append(hexString.length() == 1 ? "0" + hexString : hexString);
+			}
+			return string.toString();
+		}
+
+		private static byte[] hash(InputStream is, String hash) throws NoSuchAlgorithmException, IOException {
+			MessageDigest md = MessageDigest.getInstance(hash);
+			byte[] buffer = new byte[8192];
+			int read;
+			while ((read = is.read(buffer)) > 0) {
+				md.update(buffer, 0, read);
+			}
+			return md.digest();
+		}
+
+		public static String sha1(InputStream is) {
+			try {
+				return bytes2String(hash(is, "SHA-1"));
+			} catch (NoSuchAlgorithmException | IOException ex) {
+				Logger.getLogger(Hashing.class.getName()).log(Level.SEVERE, null, ex);
+				return null;
+			}
+		}
+	}
 
 	@BeforeClass
 	public static void setUpClass() {

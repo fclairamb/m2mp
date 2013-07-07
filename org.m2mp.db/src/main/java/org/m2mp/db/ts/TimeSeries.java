@@ -60,10 +60,12 @@ public class TimeSeries {
 		int period = dateToPeriod(date);
 		Session db = DB.sess();
 		db.execute(reqInsert().bind(td.getId(), period, td.getType(), date, td.getJson()));
-		db.execute(reqInsert().bind(td.getId() + "!" + td.getType(), period, td.getType(), date, td.getJson()));
+		if (td.getType() != null) {
+			db.execute(reqInsert().bind(td.getId() + "!" + td.getType(), period, td.getType(), date, td.getJson()));
+		}
 	}
 
-	Iterable<TimedData> getData(String id, String type, Date dateBegin, Date dateEnd, boolean reverse) {
-		return new GetDataIterable(type, type, dateBegin, dateEnd, reverse);
+	public static Iterable<TimedData> getData(String id, String type, Date dateBegin, Date dateEnd, boolean reverse) {
+		return new GetDataIterable(id, type, dateBegin, dateEnd, reverse);
 	}
 }

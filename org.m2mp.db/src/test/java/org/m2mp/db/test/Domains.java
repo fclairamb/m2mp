@@ -41,7 +41,6 @@ public class Domains {
 		Assert.assertNull(d1);
 
 		Domain d2 = Domain.create("d1");
-		UUID id = d2.getId();
 
 		Domain d3 = Domain.get("d1");
 

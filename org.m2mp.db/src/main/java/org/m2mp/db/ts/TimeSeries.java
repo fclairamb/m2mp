@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import org.m2mp.db.DB;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
@@ -16,7 +17,7 @@ import org.m2mp.db.common.TableIncrementalDefinition;
  */
 public class TimeSeries {
 
-	private static final String TABLE_TIMESERIES = "TimeSeries";
+	static final String TABLE_TIMESERIES = "TimeSeries";
 
 	public static void prepareTable() {
 		TableCreation.checkTable(new TableIncrementalDefinition() {
@@ -47,13 +48,22 @@ public class TimeSeries {
 	}
 	private static PreparedStatement reqInsert;
 
-	public static void save(TimedData td) {
-		Date date = td.getDate();
+	public static int dateToPeriod(Date date) {
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(date);
 		int period = cal.get(Calendar.YEAR) * 12 + (cal.get(Calendar.MONTH) + 1);
+		return period;
+	}
+
+	public static void save(TimedData td) {
+		Date date = td.getDate();
+		int period = dateToPeriod(date);
 		Session db = DB.sess();
 		db.execute(reqInsert().bind(td.getId(), period, td.getType(), date, td.getJson()));
 		db.execute(reqInsert().bind(td.getId() + "!" + td.getType(), period, td.getType(), date, td.getJson()));
+	}
+
+	Iterable<TimedData> getData(String id, String type, Date dateBegin, Date dateEnd, boolean reverse) {
+		return new GetDataIterable(type, type, dateBegin, dateEnd, reverse);
 	}
 }

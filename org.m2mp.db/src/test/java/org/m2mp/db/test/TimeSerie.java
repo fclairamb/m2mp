@@ -4,6 +4,10 @@
  */
 package org.m2mp.db.test;
 
+import com.google.common.collect.Lists;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
@@ -116,7 +120,7 @@ public class TimeSerie {
 	@Test
 	public void searchOneByOneDesc() {
 		String id = "dev-" + UUID.randomUUID();
-		System.out.println("ID: " + id);
+//		System.out.println("ID: " + id);
 		insertData(id);
 		searchOneByOne(id, true);
 	}
@@ -159,5 +163,39 @@ public class TimeSerie {
 			}
 		}
 		Assert.assertEquals(100, nb);
+	}
+
+	private void insertData(String id, String mark, Date date) {
+		Map<String, Object> map = new TreeMap<>();
+		map.put("mark", mark);
+		map.put("date", "" + date);
+		TimeSeries.save(new TimedData(id, null, date, map));
+	}
+
+	@Test
+	public void searchWithinRange() throws ParseException {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		String id = "dev-" + UUID.randomUUID();
+		insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
+		insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
+		insertData(id, "c", sdf.parse("2013-08-04 00:00:00"));
+		insertData(id, "d", sdf.parse("2013-08-05 00:00:00"));
+		insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
+		insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
+		{ // We want to test the complete range
+			ArrayList<TimedData> results = Lists.newArrayList(TimeSeries.getData(id, null, sdf.parse("2013-08-01 23:59:59"), sdf.parse("2013-08-07 00:00:01"), false));
+			Assert.assertEquals(6, results.size());
+		}
+
+		{ // And then only between start and end
+			ArrayList<TimedData> results = Lists.newArrayList(TimeSeries.getData(id, null, sdf.parse("2013-08-02 00:00:00"), sdf.parse("2013-08-07 00:00:00"), false));
+			Assert.assertEquals(4, results.size());
+		}
+
+		{ // And then only one
+			ArrayList<TimedData> results = Lists.newArrayList(TimeSeries.getData(id, null, sdf.parse("2013-08-01 23:59:59"), sdf.parse("2013-08-02 00:00:01"), false));
+			Assert.assertEquals(1, results.size());
+		}
 	}
 }

@@ -2,6 +2,9 @@ package org.m2mp.db;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.KeyspaceMetadata;
+import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.Query;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import org.m2mp.db.common.SessionWrapper;
 
@@ -32,5 +35,13 @@ public class DB {
 
 	public static KeyspaceMetadata meta() {
 		return sessionWrapper.getKs();
+	}
+
+	public static PreparedStatement prepare(String query) {
+		return session().prepare(query);
+	}
+
+	public static ResultSet execute(Query q) {
+		return session().execute(q);
 	}
 }

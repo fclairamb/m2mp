@@ -42,7 +42,7 @@ public class TimeSeries {
 
 	private static PreparedStatement reqInsert() {
 		if (reqInsert == null) {
-			reqInsert = DB.session().prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, period, type, date, data ) VALUES ( ?, ?, ?, ?, ? );");
+			reqInsert = DB.prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, period, type, date, data ) VALUES ( ?, ?, ?, ?, ? );");
 		}
 		return reqInsert;
 	}
@@ -58,10 +58,9 @@ public class TimeSeries {
 	public static void save(TimedData td) {
 		Date date = td.getDate();
 		int period = dateToPeriod(date);
-		Session db = DB.session();
-		db.execute(reqInsert().bind(td.getId(), period, td.getType(), date, td.getJson()));
+		DB.execute(reqInsert().bind(td.getId(), period, td.getType(), date, td.getJson()));
 		if (td.getType() != null) {
-			db.execute(reqInsert().bind(td.getId() + "!" + td.getType(), period, td.getType(), date, td.getJson()));
+			DB.execute(reqInsert().bind(td.getId() + "!" + td.getType(), period, td.getType(), date, td.getJson()));
 		}
 	}
 

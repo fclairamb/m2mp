@@ -94,16 +94,14 @@ public class Domain extends Entity {
 			}
 		});
 	}
-	
-	private static PreparedStatement _reqGetIdFromName;
 
 	private static PreparedStatement reqGetIdFromName() {
-		if (_reqGetIdFromName == null) {
-			_reqGetIdFromName = DB.sess().prepare("SELECT id FROM " + TABLE_DOMAIN + " WHERE name = ?;");
+		if (reqGetIdFromName == null) {
+			reqGetIdFromName = DB.sess().prepare("SELECT id FROM " + TABLE_DOMAIN + " WHERE name = ?;");
 		}
-		return _reqGetIdFromName;
+		return reqGetIdFromName;
 	}
-	private static PreparedStatement _reqInsertDomain;
+	private static PreparedStatement reqGetIdFromName;
 
 	protected static UUID getIdFromName(String name) {
 		ResultSet rs = DB.sess().execute(reqGetIdFromName().bind(name));
@@ -114,11 +112,12 @@ public class Domain extends Entity {
 	}
 
 	private static PreparedStatement reqInsertDomain() {
-		if (_reqInsertDomain == null) {
-			_reqInsertDomain = DB.sess().prepare("INSERT INTO " + TABLE_DOMAIN + " ( name, id ) VALUES ( ?, ? );");
+		if (reqInsertDomain == null) {
+			reqInsertDomain = DB.sess().prepare("INSERT INTO " + TABLE_DOMAIN + " ( name, id ) VALUES ( ?, ? );");
 		}
-		return _reqInsertDomain;
+		return reqInsertDomain;
 	}
+	private static PreparedStatement reqInsertDomain;
 
 	public UUID getId() {
 		return domainId;

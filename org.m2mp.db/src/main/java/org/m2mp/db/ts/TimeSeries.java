@@ -38,14 +38,14 @@ public class TimeSeries {
 			}
 		});
 	}
-	private static PreparedStatement _reqInsert;
 
 	private static PreparedStatement reqInsert() {
-		if (_reqInsert == null) {
-			_reqInsert = DB.sess().prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, period, type, date, data ) VALUES ( ?, ?, ?, ?, ? );");
+		if (reqInsert == null) {
+			reqInsert = DB.sess().prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, period, type, date, data ) VALUES ( ?, ?, ?, ?, ? );");
 		}
-		return _reqInsert;
+		return reqInsert;
 	}
+	private static PreparedStatement reqInsert;
 
 	public static void save(TimedData td) {
 		Date date = td.getDate();

@@ -18,21 +18,11 @@ import org.m2mp.db.DB;
 public class GeneralSetting {
 
 	private static final String TABLE_GENERAL_SETTINGS = "general_settings";
-	private static PreparedStatement _reqGet;
 
-	private static PreparedStatement reqGet() {
-		if (_reqGet == null) {
-			_reqGet = DB.sess().prepare("SELECT value FROM " + TABLE_GENERAL_SETTINGS + " WHERE name = ?;");
-		}
-		return _reqGet;
-	}
-	private static PreparedStatement _reqSet;
-
-	private static PreparedStatement reqSet() {
-		if (_reqSet == null) {
-			_reqSet = DB.sess().prepare("INSERT INTO " + TABLE_GENERAL_SETTINGS + " ( name, value ) VALUES ( ?, ? );");
-		}
-		return _reqSet;
+	// <editor-fold defaultstate="collapsed" desc="Get value">
+	public static int get(String name, int defaultValue) {
+		String value = get(name, (String) null);
+		return value != null ? Integer.parseInt(value) : defaultValue;
 	}
 
 	public static String get(String name, String defaultValue) {
@@ -43,19 +33,34 @@ public class GeneralSetting {
 		return defaultValue;
 	}
 
-	public static int get(String name, int defaultValue) {
-		String value = get(name, (String) null);
-		return value != null ? Integer.parseInt(value) : defaultValue;
+	private static PreparedStatement reqGet() {
+		if (reqGet == null) {
+			reqGet = DB.sess().prepare("SELECT value FROM " + TABLE_GENERAL_SETTINGS + " WHERE name = ?;");
+		}
+		return reqGet;
+	}
+	private static PreparedStatement reqGet;
+	// </editor-fold>
+
+	// <editor-fold defaultstate="collapsed" desc="Set value">
+	static void set(String name, int value) {
+		set(name, "" + value);
 	}
 
 	public static ResultSet set(String name, String value) {
 		return DB.sess().execute(reqSet().bind(name, value));
 	}
 
-	static void set(String name, int value) {
-		set(name, "" + value);
+	private static PreparedStatement reqSet() {
+		if (reqSet == null) {
+			reqSet = DB.sess().prepare("INSERT INTO " + TABLE_GENERAL_SETTINGS + " ( name, value ) VALUES ( ?, ? );");
+		}
+		return reqSet;
 	}
+	private static PreparedStatement reqSet;
+	// </editor-fold>
 
+	// <editor-fold defaultstate="collapsed" desc="Table creation">
 	public static void prepareTable() {
 		TableCreation.checkTable(new TableIncrementalDefinition() {
 			@Override
@@ -70,14 +75,11 @@ public class GeneralSetting {
 				return list;
 			}
 
-			public String getTablesDefCql() {
-				return "create table " + getTableDefName() + " ( name text primary key, value text );";
-			}
-
 			@Override
 			public int getTableDefVersion() {
 				return 1;
 			}
 		});
 	}
+	// </editor-fold>
 }

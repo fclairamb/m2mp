@@ -75,30 +75,30 @@ public class DbFile extends Entity {
 		setProperty(PROPERTY_BLOCK_SIZE, size);
 	}
 	// <editor-fold defaultstate="collapsed" desc="Raw block handling">
-	private static PreparedStatement _reqGetBlock;
 
 	private static PreparedStatement reqGetBlock() {
-		if (_reqGetBlock == null) {
-			_reqGetBlock = DB.sess().prepare("SELECT data FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
+		if (reqGetBlock == null) {
+			reqGetBlock = DB.sess().prepare("SELECT data FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
 		}
-		return _reqGetBlock;
+		return reqGetBlock;
 	}
-	private static PreparedStatement _reqSetBlock;
+	private static PreparedStatement reqGetBlock;
 
 	private static PreparedStatement reqSetBlock() {
-		if (_reqSetBlock == null) {
-			_reqSetBlock = DB.sess().prepare("INSERT INTO " + TABLE_REGISTRYDATA + " ( path, block, data ) VALUES ( ?, ?, ? );");
+		if (reqSetBlock == null) {
+			reqSetBlock = DB.sess().prepare("INSERT INTO " + TABLE_REGISTRYDATA + " ( path, block, data ) VALUES ( ?, ?, ? );");
 		}
-		return _reqSetBlock;
+		return reqSetBlock;
 	}
-	private static PreparedStatement _reqDelBlock;
+	private static PreparedStatement reqSetBlock;
 
 	private static PreparedStatement reqDelBlock() {
-		if (_reqDelBlock == null) {
-			_reqDelBlock = DB.sess().prepare("DELETE FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
+		if (reqDelBlock == null) {
+			reqDelBlock = DB.sess().prepare("DELETE FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
 		}
-		return _reqDelBlock;
+		return reqDelBlock;
 	}
+	private static PreparedStatement reqDelBlock;
 
 	public void delBlock(int blockNb) {
 		DB.sess().execute(reqDelBlock().bind(path, blockNb));

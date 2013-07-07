@@ -24,15 +24,15 @@ public class User extends Entity {
 		this.userId = userId;
 		node = new RegistryNode("/u/" + userId);
 	}
-	private static PreparedStatement _reqGetIdFromName;
 
+	
 	private static PreparedStatement reqGetFromName() {
-		if (_reqGetIdFromName == null) {
-			_reqGetIdFromName = DB.sess().prepare("SELECT id FROM " + TABLE_USER + " WHERE name = ?;");
+		if (reqGetIdFromName == null) {
+			reqGetIdFromName = DB.sess().prepare("SELECT id FROM " + TABLE_USER + " WHERE name = ?;");
 		}
-		return _reqGetIdFromName;
+		return reqGetIdFromName;
 	}
-	private static PreparedStatement _reqInsert;
+	private static PreparedStatement reqGetIdFromName;
 
 	protected static UUID getIdFromName(String name) {
 		ResultSet rs = DB.sess().execute(reqGetFromName().bind(name));
@@ -43,11 +43,12 @@ public class User extends Entity {
 	}
 
 	private static PreparedStatement reqInsert() {
-		if (_reqInsert == null) {
-			_reqInsert = DB.sess().prepare("INSERT INTO " + TABLE_USER + " ( name, id, domain ) VALUES ( ?, ?, ? );");
+		if (reqInsert == null) {
+			reqInsert = DB.sess().prepare("INSERT INTO " + TABLE_USER + " ( name, id, domain ) VALUES ( ?, ?, ? );");
 		}
-		return _reqInsert;
+		return reqInsert;
 	}
+	private static PreparedStatement reqInsert;
 
 	public UUID getId() {
 		return userId;

@@ -2,7 +2,7 @@ package org.m2mp.db.common;
 
 import com.datastax.driver.core.TableMetadata;
 import org.apache.log4j.Logger;
-import org.m2mp.db.Shared;
+import org.m2mp.db.DB;
 
 /**
  *
@@ -23,7 +23,7 @@ public class TableCreation {
 				if (tc.version > version) {
 					System.out.println("Executing \"" + tc.cql + "\"...");
 					try {
-						Shared.db().execute(tc.cql);
+						DB.sess().execute(tc.cql);
 					} catch (Exception ex) {
 						Logger.getRootLogger().warn("CQL execution issue", ex);
 					}
@@ -36,7 +36,7 @@ public class TableCreation {
 	}
 
 	public static boolean tableExists(String tableName) {
-		TableMetadata table = Shared.dbMgmt().getTable(tableName);
+		TableMetadata table = DB.meta().getTable(tableName);
 		return table != null;
 	}
 }

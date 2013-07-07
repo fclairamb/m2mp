@@ -33,14 +33,6 @@ public class Domain extends Entity {
 		}
 	}
 
-	protected static UUID getIdFromName(String name) {
-		ResultSet rs = Shared.db().execute(reqGetIdFromName().bind(name));
-		for (Row row : rs) {
-			return row.getUUID(0);
-		}
-		return null;
-	}
-
 	public static Domain get(String name) {
 		UUID domainId = getIdFromName(name);
 		return domainId != null ? new Domain(domainId) : null;
@@ -54,7 +46,7 @@ public class Domain extends Entity {
 			throw new IllegalArgumentException("The domain \"" + name + "\" already exists for domain \"" + domainId + "\"");
 		}
 		domainId = UUID.randomUUID();
-		Shared.db().execute(reqInsertDomain().bind(name, domainId));
+		DB.sess().execute(reqInsertDomain().bind(name, domainId));
 
 		Domain d = new Domain(domainId);
 		d.check();
@@ -101,19 +93,28 @@ public class Domain extends Entity {
 			}
 		});
 	}
+	
 	private static PreparedStatement _reqGetIdFromName;
 
 	private static PreparedStatement reqGetIdFromName() {
 		if (_reqGetIdFromName == null) {
-			_reqGetIdFromName = Shared.db().prepare("SELECT id FROM " + TABLE_DOMAIN + " WHERE name = ?;");
+			_reqGetIdFromName = DB.sess().prepare("SELECT id FROM " + TABLE_DOMAIN + " WHERE name = ?;");
 		}
 		return _reqGetIdFromName;
 	}
 	private static PreparedStatement _reqInsertDomain;
 
+	protected static UUID getIdFromName(String name) {
+		ResultSet rs = DB.sess().execute(reqGetIdFromName().bind(name));
+		for (Row row : rs) {
+			return row.getUUID(0);
+		}
+		return null;
+	}
+
 	private static PreparedStatement reqInsertDomain() {
 		if (_reqInsertDomain == null) {
-			_reqInsertDomain = Shared.db().prepare("INSERT INTO " + TABLE_DOMAIN + " ( name, id ) VALUES ( ?, ? );");
+			_reqInsertDomain = DB.sess().prepare("INSERT INTO " + TABLE_DOMAIN + " ( name, id ) VALUES ( ?, ? );");
 		}
 		return _reqInsertDomain;
 	}

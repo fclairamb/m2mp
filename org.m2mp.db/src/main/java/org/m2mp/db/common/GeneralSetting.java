@@ -9,7 +9,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import java.util.ArrayList;
 import java.util.List;
-import org.m2mp.db.Shared;
+import org.m2mp.db.DB;
 
 /**
  *
@@ -22,7 +22,7 @@ public class GeneralSetting {
 
 	private static PreparedStatement reqGet() {
 		if (_reqGet == null) {
-			_reqGet = Shared.db().prepare("SELECT value FROM " + TABLE_GENERAL_SETTINGS + " WHERE name = ?;");
+			_reqGet = DB.sess().prepare("SELECT value FROM " + TABLE_GENERAL_SETTINGS + " WHERE name = ?;");
 		}
 		return _reqGet;
 	}
@@ -30,13 +30,13 @@ public class GeneralSetting {
 
 	private static PreparedStatement reqSet() {
 		if (_reqSet == null) {
-			_reqSet = Shared.db().prepare("INSERT INTO " + TABLE_GENERAL_SETTINGS + " ( name, value ) VALUES ( ?, ? );");
+			_reqSet = DB.sess().prepare("INSERT INTO " + TABLE_GENERAL_SETTINGS + " ( name, value ) VALUES ( ?, ? );");
 		}
 		return _reqSet;
 	}
 
 	public static String get(String name, String defaultValue) {
-		ResultSet rs = Shared.db().execute(reqGet().bind(name));
+		ResultSet rs = DB.sess().execute(reqGet().bind(name));
 		for (Row r : rs) {
 			return r.getString(0);
 		}
@@ -49,7 +49,7 @@ public class GeneralSetting {
 	}
 
 	public static ResultSet set(String name, String value) {
-		return Shared.db().execute(reqSet().bind(name, value));
+		return DB.sess().execute(reqSet().bind(name, value));
 	}
 
 	static void set(String name, int value) {

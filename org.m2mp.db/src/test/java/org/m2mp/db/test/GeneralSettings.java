@@ -9,7 +9,7 @@ import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.common.TableCreation;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.m2mp.db.Shared;
+import org.m2mp.db.DB;
 
 /**
  *
@@ -21,7 +21,7 @@ public class GeneralSettings {
 	public static void setUpClass() {
 		BaseTest.setUpClass();
 		try {
-			Shared.db().execute("drop table general_settings;");
+			DB.sess().execute("drop table general_settings;");
 		} catch (Exception ex) {
 		}
 		GeneralSetting.prepareTable();

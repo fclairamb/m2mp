@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import org.m2mp.db.Shared;
+import org.m2mp.db.DB;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
 
@@ -42,7 +42,7 @@ public class TimeSeries {
 
 	private static PreparedStatement reqInsert() {
 		if (_reqInsert == null) {
-			_reqInsert = Shared.db().prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, period, type, date, data ) VALUES ( ?, ?, ?, ?, ? );");
+			_reqInsert = DB.sess().prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, period, type, date, data ) VALUES ( ?, ?, ?, ?, ? );");
 		}
 		return _reqInsert;
 	}
@@ -52,7 +52,7 @@ public class TimeSeries {
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(date);
 		int period = cal.get(Calendar.YEAR) * 12 + (cal.get(Calendar.MONTH) + 1);
-		Session db = Shared.db();
+		Session db = DB.sess();
 		db.execute(reqInsert().bind(td.getId(), period, td.getType(), date, td.getJson()));
 		db.execute(reqInsert().bind(td.getId() + "!" + td.getType(), period, td.getType(), date, td.getJson()));
 	}

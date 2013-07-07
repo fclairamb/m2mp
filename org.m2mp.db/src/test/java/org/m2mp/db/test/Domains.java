@@ -9,7 +9,7 @@ import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.m2mp.db.Domain;
-import org.m2mp.db.Shared;
+import org.m2mp.db.DB;
 
 /**
  *
@@ -21,10 +21,10 @@ public class Domains {
 	public static void setUpClass() {
 		BaseTest.setUpClass();
 		try {
-			Shared.db().execute("drop table Domain;");
-			Shared.db().execute("drop table RegistryNode;");
-			Shared.db().execute("drop table RegistryNodeChildren;");
-			Shared.db().execute("drop table RegistryNodeData;");
+			DB.sess().execute("drop table Domain;");
+			DB.sess().execute("drop table RegistryNode;");
+			DB.sess().execute("drop table RegistryNodeChildren;");
+			DB.sess().execute("drop table RegistryNodeData;");
 		} catch (Exception ex) {
 		}
 		Domain.prepareTable();

@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.m2mp.db.Shared;
+import org.m2mp.db.DB;
 import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.file.DbFile;
 import org.m2mp.db.file.DbFileInputStream;
@@ -65,9 +65,9 @@ public class DbFiles {
 	public static void setUpClass() {
 		BaseTest.setUpClass();
 		try {
-			Shared.db().execute("drop table RegistryNode;");
-			Shared.db().execute("drop table RegistryNodeChildren;");
-			Shared.db().execute("drop table RegistryNodeData;");
+			DB.sess().execute("drop table RegistryNode;");
+			DB.sess().execute("drop table RegistryNodeChildren;");
+			DB.sess().execute("drop table RegistryNodeData;");
 		} catch (Exception ex) {
 		}
 		GeneralSetting.prepareTable();

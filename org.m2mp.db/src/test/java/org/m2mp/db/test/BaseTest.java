@@ -4,7 +4,7 @@
  */
 package org.m2mp.db.test;
 
-import org.m2mp.db.Shared;
+import org.m2mp.db.DB;
 
 /**
  *
@@ -13,7 +13,7 @@ import org.m2mp.db.Shared;
 public class BaseTest {
 
 	public static void setUpClass() {
-		Shared.setKeySpace("ks");
-		Shared.switchToTest();
+		DB.setKeySpace("ks");
+		DB.switchToTest();
 	}
 }

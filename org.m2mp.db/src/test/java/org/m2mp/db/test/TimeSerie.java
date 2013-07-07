@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.UUID;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.m2mp.db.Shared;
+import org.m2mp.db.DB;
 import org.m2mp.db.ts.TimeSeries;
 import org.m2mp.db.ts.TimedData;
 import org.m2mp.db.common.GeneralSetting;
@@ -24,7 +24,7 @@ public class TimeSerie {
 	public static void setUpClass() {
 		BaseTest.setUpClass();
 		try {
-			Shared.db().execute("drop table TimeSeries;");
+			DB.sess().execute("drop table TimeSeries;");
 		} catch (Exception ex) {
 		}
 		TimeSeries.prepareTable();

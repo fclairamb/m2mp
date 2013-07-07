@@ -8,7 +8,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import org.m2mp.db.Shared;
+import org.m2mp.db.DB;
 import org.m2mp.db.common.Entity;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
@@ -79,7 +79,7 @@ public class DbFile extends Entity {
 
 	private static PreparedStatement reqGetBlock() {
 		if (_reqGetBlock == null) {
-			_reqGetBlock = Shared.db().prepare("SELECT data FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
+			_reqGetBlock = DB.sess().prepare("SELECT data FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
 		}
 		return _reqGetBlock;
 	}
@@ -87,7 +87,7 @@ public class DbFile extends Entity {
 
 	private static PreparedStatement reqSetBlock() {
 		if (_reqSetBlock == null) {
-			_reqSetBlock = Shared.db().prepare("INSERT INTO " + TABLE_REGISTRYDATA + " ( path, block, data ) VALUES ( ?, ?, ? );");
+			_reqSetBlock = DB.sess().prepare("INSERT INTO " + TABLE_REGISTRYDATA + " ( path, block, data ) VALUES ( ?, ?, ? );");
 		}
 		return _reqSetBlock;
 	}
@@ -95,7 +95,7 @@ public class DbFile extends Entity {
 
 	private static PreparedStatement reqDelBlock() {
 		if (_reqDelBlock == null) {
-			_reqDelBlock = Shared.db().prepare("DELETE FROM " + TABLE_REGISTRYDATA + " ( path, block, data ) VALUES ( ?, ?, ? );");
+			_reqDelBlock = DB.sess().prepare("DELETE FROM " + TABLE_REGISTRYDATA + " ( path, block, data ) VALUES ( ?, ?, ? );");
 		}
 		return _reqDelBlock;
 	}
@@ -106,11 +106,11 @@ public class DbFile extends Entity {
 
 	public void setBlock(int blockNb, ByteBuffer data) {
 		//System.out.println("Writing block " + path + ":" + blockNb);
-		Shared.db().execute(reqSetBlock().bind(path, blockNb, data));
+		DB.sess().execute(reqSetBlock().bind(path, blockNb, data));
 	}
 
 	public ByteBuffer getBlockBuffer(int blockNb) {
-		ResultSet rs = Shared.db().execute(reqGetBlock().bind(path, blockNb));
+		ResultSet rs = DB.sess().execute(reqGetBlock().bind(path, blockNb));
 		for (Row row : rs) {
 			return row.getBytes(0);
 		}

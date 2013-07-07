@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.m2mp.db.Shared;
+import org.m2mp.db.DB;
 import org.m2mp.db.registry.RegistryNode;
 
 /**
@@ -22,9 +22,9 @@ public class Registry {
 	public static void setUpClass() {
 		BaseTest.setUpClass();
 		try {
-			Shared.db().execute("drop table RegistryNode;");
-			Shared.db().execute("drop table RegistryNodeChildren;");
-			Shared.db().execute("drop table RegistryNodeData;");
+			DB.sess().execute("drop table RegistryNode;");
+			DB.sess().execute("drop table RegistryNodeChildren;");
+			DB.sess().execute("drop table RegistryNodeData;");
 		} catch (Exception ex) {
 		}
 		RegistryNode.prepareTable();

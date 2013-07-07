@@ -8,7 +8,7 @@ import java.util.UUID;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.m2mp.db.Domain;
+import org.m2mp.db.entity.Domain;
 import org.m2mp.db.DB;
 
 /**

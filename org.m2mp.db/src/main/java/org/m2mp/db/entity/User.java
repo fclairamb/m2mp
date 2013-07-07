@@ -1,4 +1,4 @@
-package org.m2mp.db;
+package org.m2mp.db.entity;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -6,7 +6,8 @@ import com.datastax.driver.core.Row;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import static org.m2mp.db.Domain.getIdFromName;
+import org.m2mp.db.DB;
+import static org.m2mp.db.entity.Domain.getIdFromName;
 import org.m2mp.db.common.Entity;
 import org.m2mp.db.common.TableIncrementalDefinition;
 import org.m2mp.db.registry.RegistryNode;
@@ -83,8 +84,6 @@ public class User extends Entity {
 	public void setPassword(String pass) {
 		setProperty(PROP_PASSWORD, pass);
 	}
-	
-	
 	private static final String TABLE_USER = "User";
 	public static final TableIncrementalDefinition DEFINITION = new TableIncrementalDefinition() {
 		@Override

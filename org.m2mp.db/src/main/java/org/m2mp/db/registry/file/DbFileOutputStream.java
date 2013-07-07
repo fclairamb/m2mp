@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.m2mp.db.file;
+package org.m2mp.db.registry.file;
 
 import java.io.IOException;
 import java.io.OutputStream;

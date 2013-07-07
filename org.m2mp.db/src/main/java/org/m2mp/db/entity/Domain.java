@@ -1,4 +1,4 @@
-package org.m2mp.db;
+package org.m2mp.db.entity;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -6,6 +6,7 @@ import com.datastax.driver.core.Row;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.m2mp.db.DB;
 import org.m2mp.db.common.Entity;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.registry.RegistryNode;

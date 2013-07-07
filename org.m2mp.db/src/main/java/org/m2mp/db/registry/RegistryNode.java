@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.m2mp.db.DB;
+import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
 
@@ -119,6 +120,7 @@ public class RegistryNode {
 	public static final String TABLE_REGISTRY = "RegistryNode";
 
 	public static void prepareTable() {
+		GeneralSetting.prepareTable();
 		TableCreation.checkTable(new TableIncrementalDefinition() {
 			@Override
 			public String getTableDefName() {

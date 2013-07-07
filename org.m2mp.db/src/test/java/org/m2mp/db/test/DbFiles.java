@@ -16,9 +16,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.m2mp.db.DB;
 import org.m2mp.db.common.GeneralSetting;
-import org.m2mp.db.file.DbFile;
-import org.m2mp.db.file.DbFileInputStream;
-import org.m2mp.db.file.DbFileOutputStream;
+import org.m2mp.db.registry.file.DbFile;
+import org.m2mp.db.registry.file.DbFileInputStream;
+import org.m2mp.db.registry.file.DbFileOutputStream;
 import org.m2mp.db.registry.RegistryNode;
 
 /**

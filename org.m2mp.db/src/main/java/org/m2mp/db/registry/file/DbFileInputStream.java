@@ -1,4 +1,4 @@
-package org.m2mp.db.file;
+package org.m2mp.db.registry.file;
 
 import java.io.IOException;
 import java.io.InputStream;

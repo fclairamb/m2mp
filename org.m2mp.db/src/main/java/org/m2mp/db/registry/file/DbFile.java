@@ -1,4 +1,4 @@
-package org.m2mp.db.file;
+package org.m2mp.db.registry.file;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
@@ -95,9 +95,13 @@ public class DbFile extends Entity {
 
 	private static PreparedStatement reqDelBlock() {
 		if (_reqDelBlock == null) {
-			_reqDelBlock = DB.sess().prepare("DELETE FROM " + TABLE_REGISTRYDATA + " ( path, block, data ) VALUES ( ?, ?, ? );");
+			_reqDelBlock = DB.sess().prepare("DELETE FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
 		}
 		return _reqDelBlock;
+	}
+
+	public void delBlock(int blockNb) {
+		DB.sess().execute(reqDelBlock().bind(path, blockNb));
 	}
 
 	public void setBlock(int blockNb, byte[] data) {

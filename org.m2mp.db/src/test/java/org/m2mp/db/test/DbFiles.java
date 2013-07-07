@@ -1,19 +1,28 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.m2mp.db.test;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.m2mp.db.Shared;
+import org.m2mp.db.common.GeneralSetting;
+import org.m2mp.db.common.Hashing;
 import org.m2mp.db.file.DbFile;
+import org.m2mp.db.file.DbFileInputStream;
+import org.m2mp.db.file.DbFileOutputStream;
 import org.m2mp.db.registry.RegistryNode;
 
 /**
  *
- * @author florent
+ * @author Florent Clairambault
+ *
+ * This test is very agressive for any cassandra cluster since it destroyes and
+ * recreates all the tables.
  */
 public class DbFiles {
 
@@ -26,23 +35,86 @@ public class DbFiles {
 			Shared.db().execute("drop table RegistryNodeData;");
 		} catch (Exception ex) {
 		}
+		GeneralSetting.prepareTable();
 		DbFile.prepareTable();
 	}
 
-	@Test
-	public void copy() throws Exception {
-		DbFile file = new DbFile(new RegistryNode("/this/is/my/file"));
-		file.check();
-		file.setChunkSize(512);
-		try (OutputStream os = file.openOutputStream()) {
-			for (int i = 0; i < 512; i++) {
-				byte[] data = new byte[1024];
-
-				for (int j = 0; j < data.length; j++) {
-					data[j] = (byte) (j % 100);
-				}
-				os.write(data);
+	private void writeFile(OutputStream os, int nbBlocks, int blockSize, int mod) throws IOException {
+		for (int i = 0; i < nbBlocks; i++) {
+			byte[] data = new byte[blockSize];
+			for (int j = 0; j < data.length; j++) {
+				data[j] = (byte) (j % mod);
 			}
+			os.write(data);
+		}
+	}
+
+	@Test
+	public void TinySize() throws Exception { // 20 bytes
+		realAndDbFilesComparison(1, 20, 4096);
+	}
+
+	@Test
+	public void SmallSize() throws Exception { // 1 MB
+		realAndDbFilesComparison(1, 20, 1024 * 512);
+	}
+
+	@Test
+	public void MediumSize() throws Exception { // 4 MB
+		realAndDbFilesComparison(1, 20, 1024 * 512);
+	}
+
+	@Test
+	public void BigSize512K() throws Exception { // 600 MB
+		realAndDbFilesComparison(600, 1024 * 1024, 1024 * 512);
+	}
+
+	private void realAndDbFilesComparison(int nbBlocks, int blockSize, int chunkSize) throws Exception {
+		File file1;
+		DbFile file2;
+		{ // File on disk
+			file1 = new File("/tmp/test-" + (nbBlocks * blockSize) + "-" + chunkSize);
+			file1.deleteOnExit();
+			try (OutputStream os = new FileOutputStream(file1)) {
+				writeFile(os, nbBlocks, blockSize, 256);
+			}
+		}
+		{ // File on DB
+			file2 = new DbFile(new RegistryNode("/this/is/my/file-" + (nbBlocks * blockSize) + "-" + chunkSize).check());
+			file2.setBlockSize(chunkSize);
+			try (OutputStream os = new DbFileOutputStream(file2)) {
+				writeFile(os, nbBlocks, blockSize, 256);
+			}
+		}
+//		This was useful for debugging but it turns out to be quite slow
+//		{ 
+//			try (InputStream is1 = new FileInputStream(file1)) {
+//				try (InputStream is2 = new DbFileInputStream(file2)) {
+//					long offset = 0;
+//					try {
+//						while (is1.available() > 0 && is2.available() > 0) {
+//							Assert.assertEquals(is1.read(), is2.read());
+//							offset += 1;
+//						}
+//					} finally {
+//						System.out.println("offset = " + offset);
+//					}
+//					Assert.assertEquals(0, is1.available());
+//					Assert.assertEquals(0, is2.available());
+//				}
+//			}
+//		}
+		Assert.assertEquals(file1.length(), file2.getSize());
+
+		{ // Hashing
+			String hash1, hash2;
+			try (InputStream is = new FileInputStream(file1)) {
+				hash1 = Hashing.sha1(is);
+			}
+			try (InputStream is = new DbFileInputStream(file2)) {
+				hash2 = Hashing.sha1(is);
+			}
+			Assert.assertEquals(hash1, hash2);
 		}
 	}
 }

@@ -1,12 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.m2mp.db.file;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  *
@@ -24,7 +19,7 @@ public class DbFileInputStream extends InputStream {
 
 	public DbFileInputStream(DbFile file) {
 		this.file = file;
-		this.chunkSize = file.getChunkSize();
+		this.chunkSize = file.getBlockSize();
 		this.size = file.getSize();
 	}
 

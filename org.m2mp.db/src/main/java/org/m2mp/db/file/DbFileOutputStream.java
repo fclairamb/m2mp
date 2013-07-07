@@ -25,7 +25,7 @@ public class DbFileOutputStream extends OutputStream {
 
 	public DbFileOutputStream(DbFile file) {
 		this.file = file;
-		this.chunkSize = file.getChunkSize();
+		this.chunkSize = file.getBlockSize();
 		this.size = file.getSize();
 		this.chunk = new byte[chunkSize];
 

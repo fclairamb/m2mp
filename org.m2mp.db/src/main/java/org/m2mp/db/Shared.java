@@ -3,6 +3,8 @@ package org.m2mp.db;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.KeyspaceMetadata;
 import com.datastax.driver.core.Session;
+import java.nio.ByteBuffer;
+import java.util.UUID;
 import org.m2mp.db.common.SessionWrapper;
 
 /**
@@ -11,10 +13,16 @@ import org.m2mp.db.common.SessionWrapper;
  */
 public class Shared {
 
-	private static final String name = "ks";
+	private static byte[] UUIDToBytes(UUID u) {
+		ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+		bb.putLong(u.getMostSignificantBits());
+		bb.putLong(u.getLeastSignificantBits());
+		return bb.array();
+	}
+	private static String name = "m2mp_v2";
 
-	static {
-		switchToProduction();
+	public static void setKeySpace(String name) {
+		Shared.name = name;
 	}
 
 	public static void switchToProduction() {

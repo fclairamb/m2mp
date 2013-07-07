@@ -34,7 +34,7 @@ public class User extends Entity {
 		}
 
 		public String getTablesDefCql() {
-			return "CREATE TABLE " + TABLE_USER + " name text PRIMARY KEY, id uuid, domain uuid );";
+			return "CREATE TABLE " + TABLE_USER + " ( name text PRIMARY KEY, id uuid, domain uuid );";
 		}
 
 		@Override

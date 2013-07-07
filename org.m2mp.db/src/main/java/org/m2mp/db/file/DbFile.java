@@ -15,15 +15,21 @@ import org.m2mp.db.common.TableIncrementalDefinition;
 import org.m2mp.db.registry.RegistryNode;
 
 /**
+ * File stored in database.
  *
- * @author florent
+ * @author Florent Clairambault
+ *
+ * <strong>Notes:</strong><br />
+ * <ul>
+ * <li>Requesting </li>
+ * </ul>
  */
 public class DbFile extends Entity {
 
 	private final static String PROPERTY_NAME = "fname";
 	private final static String PROPERTY_TYPE = "ftype";
 	private final static String PROPERTY_SIZE = "fsize";
-	private final static String PROPERTY_CHUNK_SIZE = "chunkSize";
+	private final static String PROPERTY_BLOCK_SIZE = "blsize";
 	final String path;
 
 	public DbFile(RegistryNode node) {
@@ -54,19 +60,19 @@ public class DbFile extends Entity {
 	public long getSize() {
 		return getProperty(PROPERTY_SIZE, (long) 0);
 	}
-	private static final int DEFAULT_CHUNK_SIZE = 256 * 1024;
+	private static final int DEFAULT_CHUNK_SIZE = 512 * 1024;
 
-	public int getChunkSize() {
-		int chunckSize = getProperty(PROPERTY_CHUNK_SIZE, -1);
+	public int getBlockSize() {
+		int chunckSize = getProperty(PROPERTY_BLOCK_SIZE, -1);
 		if (chunckSize == -1) {
 			chunckSize = DEFAULT_CHUNK_SIZE;
-			setProperty(PROPERTY_CHUNK_SIZE, chunckSize);
+			setProperty(PROPERTY_BLOCK_SIZE, chunckSize);
 		}
 		return chunckSize;
 	}
 
-	public void setChunkSize(int size) {
-		setProperty(PROPERTY_CHUNK_SIZE, size);
+	public void setBlockSize(int size) {
+		setProperty(PROPERTY_BLOCK_SIZE, size);
 	}
 	// <editor-fold defaultstate="collapsed" desc="Raw block handling">
 	private static PreparedStatement _reqGetBlock;
@@ -85,12 +91,21 @@ public class DbFile extends Entity {
 		}
 		return _reqSetBlock;
 	}
+	private static PreparedStatement _reqDelBlock;
+
+	private static PreparedStatement reqDelBlock() {
+		if (_reqDelBlock == null) {
+			_reqDelBlock = Shared.db().prepare("DELETE FROM " + TABLE_REGISTRYDATA + " ( path, block, data ) VALUES ( ?, ?, ? );");
+		}
+		return _reqDelBlock;
+	}
 
 	public void setBlock(int blockNb, byte[] data) {
 		setBlock(blockNb, ByteBuffer.wrap(data));
 	}
 
 	public void setBlock(int blockNb, ByteBuffer data) {
+		//System.out.println("Writing block " + path + ":" + blockNb);
 		Shared.db().execute(reqSetBlock().bind(path, blockNb, data));
 	}
 
@@ -103,8 +118,15 @@ public class DbFile extends Entity {
 	}
 
 	public byte[] getBlockBytes(int blockNb) {
+		//System.out.println("Reading block " + path + ":" + blockNb);
 		ByteBuffer buf = getBlockBuffer(blockNb);
-		return buf != null ? buf.array() : null;
+		if (buf == null) {
+			return null;
+		}
+		// This is crappy. It breaks the whole ByteBuffer idea
+		byte[] array = new byte[(buf.array().length - buf.position())];
+		System.arraycopy(buf.array(), buf.position(), array, 0, array.length);
+		return array;
 	}
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="Column family preparation">
@@ -121,7 +143,7 @@ public class DbFile extends Entity {
 			@Override
 			public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
 				List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
-				list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_REGISTRYDATA + " ( path text, block int, data blob, PRIMARY KEY( path, block ) ) WITH CLUSTERING ORDER BY ( block ASC );"));
+				list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_REGISTRYDATA + " ( path text, block int, data blob, PRIMARY KEY( path, block ) ) WITH CLUSTERING ORDER BY ( block ASC ) AND compression={'sstable_compression':''};"));
 				return list;
 			}
 
@@ -139,5 +161,9 @@ public class DbFile extends Entity {
 
 	public OutputStream openOutputStream() {
 		return new DbFileOutputStream(this);
+	}
+
+	public void delete() {
+		node.delete();
 	}
 }

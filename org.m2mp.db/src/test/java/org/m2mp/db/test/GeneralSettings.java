@@ -24,7 +24,7 @@ public class GeneralSettings {
 			Shared.db().execute("drop table general_settings;");
 		} catch (Exception ex) {
 		}
-		TableCreation.checkTable(GeneralSetting.DEFINITION);
+		GeneralSetting.prepareTable();
 	}
 
 	@Test

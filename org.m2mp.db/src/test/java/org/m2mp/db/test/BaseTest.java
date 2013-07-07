@@ -13,6 +13,7 @@ import org.m2mp.db.Shared;
 public class BaseTest {
 
 	public static void setUpClass() {
+		Shared.setKeySpace("ks");
 		Shared.switchToTest();
 	}
 }

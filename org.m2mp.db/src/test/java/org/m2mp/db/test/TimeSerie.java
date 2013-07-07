@@ -9,8 +9,8 @@ import java.util.UUID;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.m2mp.db.Shared;
-import org.m2mp.db.TimeSeries;
-import org.m2mp.db.TimedData;
+import org.m2mp.db.ts.TimeSeries;
+import org.m2mp.db.ts.TimedData;
 import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.registry.RegistryNode;
 

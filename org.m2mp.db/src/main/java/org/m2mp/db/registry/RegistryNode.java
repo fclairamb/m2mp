@@ -130,7 +130,6 @@ public class RegistryNode {
 				List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
 				list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_REGISTRY + " ( path text PRIMARY KEY, values map<text,text>, status int );"));
 				list.add(new TableIncrementalDefinition.TableChange(2, "CREATE TABLE " + TABLE_REGISTRY + "Children ( path text, name text, PRIMARY KEY( path, name ) ) WITH CLUSTERING ORDER BY ( name ASC );"));
-				list.add(new TableIncrementalDefinition.TableChange(3, "CREATE TABLE " + TABLE_REGISTRY + "Data ( path text, block int, data blob, PRIMARY KEY( path, block ) ) WITH CLUSTERING ORDER BY ( block ASC );"));
 				return list;
 			}
 

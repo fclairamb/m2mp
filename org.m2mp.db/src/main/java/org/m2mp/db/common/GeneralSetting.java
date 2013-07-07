@@ -55,23 +55,29 @@ public class GeneralSetting {
 	static void set(String name, int value) {
 		set(name, "" + value);
 	}
-	public static final TableIncrementalDefinition DEFINITION = new TableIncrementalDefinition() {
-		public String getTableDefName() {
-			return TABLE_GENERAL_SETTINGS;
-		}
 
-		public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
-			List<TableIncrementalDefinition.TableChange> list = new ArrayList<TableIncrementalDefinition.TableChange>();
-			list.add(new TableIncrementalDefinition.TableChange(1, "create table " + getTableDefName() + " ( name text primary key, value text );"));
-			return list;
-		}
+	public static void prepareTable() {
+		TableCreation.checkTable(new TableIncrementalDefinition() {
+			@Override
+			public String getTableDefName() {
+				return TABLE_GENERAL_SETTINGS;
+			}
 
-		public String getTablesDefCql() {
-			return "create table " + getTableDefName() + " ( name text primary key, value text );";
-		}
+			@Override
+			public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
+				List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
+				list.add(new TableIncrementalDefinition.TableChange(1, "create table " + getTableDefName() + " ( name text primary key, value text );"));
+				return list;
+			}
 
-		public int getTableDefVersion() {
-			return 1;
-		}
-	};
+			public String getTablesDefCql() {
+				return "create table " + getTableDefName() + " ( name text primary key, value text );";
+			}
+
+			@Override
+			public int getTableDefVersion() {
+				return 1;
+			}
+		});
+	}
 }

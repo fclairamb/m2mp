@@ -6,6 +6,7 @@ package org.m2mp.db.file;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  *

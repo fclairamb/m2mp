@@ -31,8 +31,14 @@ public class TimeSerie {
 	}
 
 	@Test
-	public void insert() throws InterruptedException {
-		String id = UUID.randomUUID().toString();
+	public void insertNoType() {
+		String id = "insert-without-type";
+		TimeSeries.save(new TimedData(id, null, "{\"lat\":48.8,\"lon\":2.5,\"_type\":\"loc\"}"));
+	}
+
+	@Test
+	public void insert10000() throws InterruptedException {
+		String id = "insert-with-type";
 		Date d = new Date();
 		for (int i = 0; i < 10000; i++) {
 			d.setTime(d.getTime() + 100);

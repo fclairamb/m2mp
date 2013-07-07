@@ -70,4 +70,14 @@ public class Registry {
 		new RegistryNode("/my/path/to").delete();
 		Assert.assertEquals(2, new RegistryNode("/").getNbChildren(true));
 	}
+
+	@Test
+	public void values() {
+		RegistryNode node = new RegistryNode("/my/path").check();
+		Assert.assertNull(node.getProperty("myprop", null));
+		node.setProperty("prop", "abc");
+
+		node = new RegistryNode("/my/path");
+		Assert.assertEquals("abc", node.getProperty("prop", "___"));
+	}
 }

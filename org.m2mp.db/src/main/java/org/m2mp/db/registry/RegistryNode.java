@@ -37,12 +37,13 @@ public class RegistryNode {
 		return path;
 	}
 
-	public void check() {
+	public RegistryNode check() {
 		switch (getStatus()) {
 			case STATUS_UNDEFINED:
 			case STATUS_DELETED:
 				create();
 		}
+		return this;
 	}
 
 	public void create() {
@@ -318,14 +319,8 @@ public class RegistryNode {
 	public Map<String, String> getValues() {
 		if (values == null) {
 			ResultSet rs = Shared.db().execute(reqGetValues().bind(path));
-
-
-
-
-
-
 			for (Row r : rs) {
-				values = r.getMap(1, String.class, String.class);
+				values = new HashMap<>(r.getMap(0, String.class, String.class));
 				return values;
 			}
 			values = new HashMap<>();

@@ -17,11 +17,12 @@ public class TimedData {
 	private final Date date;
 	private final String json;
 
+	public TimedData(String id, String json) {
+		this(id, null, json);
+	}
+
 	public TimedData(String id, String type, String json) {
-		this.id = id;
-		this.type = type;
-		this.date = new Date();
-		this.json = json;
+		this(id, type, new Date(), json);
 	}
 
 	public TimedData(String id, String type, Date date, String json) {

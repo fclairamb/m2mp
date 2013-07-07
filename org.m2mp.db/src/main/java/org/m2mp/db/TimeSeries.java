@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
 

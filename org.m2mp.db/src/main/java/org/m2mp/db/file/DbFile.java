@@ -1,12 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.m2mp.db.file;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +64,11 @@ public class DbFile extends Entity {
 		}
 		return chunckSize;
 	}
-	// <editor-fold defaultstate="collapsed" desc="Row block handling">
+
+	public void setChunkSize(int size) {
+		setProperty(PROPERTY_CHUNK_SIZE, size);
+	}
+	// <editor-fold defaultstate="collapsed" desc="Raw block handling">
 	private static PreparedStatement _reqGetBlock;
 
 	private static PreparedStatement reqGetBlock() {
@@ -85,7 +87,7 @@ public class DbFile extends Entity {
 	}
 
 	public void setBlock(int blockNb, byte[] data) {
-		Shared.db().execute(reqSetBlock().bind(path, blockNb, data));
+		setBlock(blockNb, ByteBuffer.wrap(data));
 	}
 
 	public void setBlock(int blockNb, ByteBuffer data) {
@@ -109,6 +111,7 @@ public class DbFile extends Entity {
 	private static final String TABLE_REGISTRYDATA = RegistryNode.TABLE_REGISTRY + "Data";
 
 	public static void prepareTable() {
+		RegistryNode.prepareTable();
 		TableCreation.checkTable(new TableIncrementalDefinition() {
 			@Override
 			public String getTableDefName() {
@@ -129,4 +132,12 @@ public class DbFile extends Entity {
 		});
 	}
 	// </editor-fold>
+
+	public InputStream openInputStream() {
+		return new DbFileInputStream(this);
+	}
+
+	public OutputStream openOutputStream() {
+		return new DbFileOutputStream(this);
+	}
 }

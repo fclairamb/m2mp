@@ -65,9 +65,9 @@ public class DbFiles {
 	public static void setUpClass() {
 		BaseTest.setUpClass();
 		try {
-			DB.sess().execute("drop table RegistryNode;");
-			DB.sess().execute("drop table RegistryNodeChildren;");
-			DB.sess().execute("drop table RegistryNodeData;");
+			DB.session().execute("drop table RegistryNode;");
+			DB.session().execute("drop table RegistryNodeChildren;");
+			DB.session().execute("drop table RegistryNodeData;");
 		} catch (Exception ex) {
 		}
 		GeneralSetting.prepareTable();

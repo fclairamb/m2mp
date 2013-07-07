@@ -21,7 +21,7 @@ public class GeneralSettings {
 	public static void setUpClass() {
 		BaseTest.setUpClass();
 		try {
-			DB.sess().execute("drop table general_settings;");
+			DB.session().execute("drop table general_settings;");
 		} catch (Exception ex) {
 		}
 		GeneralSetting.prepareTable();

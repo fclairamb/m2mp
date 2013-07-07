@@ -28,14 +28,14 @@ public class User extends Entity {
 	
 	private static PreparedStatement reqGetFromName() {
 		if (reqGetIdFromName == null) {
-			reqGetIdFromName = DB.sess().prepare("SELECT id FROM " + TABLE_USER + " WHERE name = ?;");
+			reqGetIdFromName = DB.session().prepare("SELECT id FROM " + TABLE_USER + " WHERE name = ?;");
 		}
 		return reqGetIdFromName;
 	}
 	private static PreparedStatement reqGetIdFromName;
 
 	protected static UUID getIdFromName(String name) {
-		ResultSet rs = DB.sess().execute(reqGetFromName().bind(name));
+		ResultSet rs = DB.session().execute(reqGetFromName().bind(name));
 		for (Row row : rs) {
 			return row.getUUID(0);
 		}
@@ -44,7 +44,7 @@ public class User extends Entity {
 
 	private static PreparedStatement reqInsert() {
 		if (reqInsert == null) {
-			reqInsert = DB.sess().prepare("INSERT INTO " + TABLE_USER + " ( name, id, domain ) VALUES ( ?, ?, ? );");
+			reqInsert = DB.session().prepare("INSERT INTO " + TABLE_USER + " ( name, id, domain ) VALUES ( ?, ?, ? );");
 		}
 		return reqInsert;
 	}
@@ -69,7 +69,7 @@ public class User extends Entity {
 			throw new IllegalArgumentException("The user \"" + name + "\" already exists with id \"" + userId + "\"");
 		}
 		userId = UUID.randomUUID();
-		DB.sess().execute(reqInsert().bind(name, userId, domain));
+		DB.session().execute(reqInsert().bind(name, userId, domain));
 		User u = new User(userId);
 		u.check();
 		u.setProperty(PROP_NAME, name);

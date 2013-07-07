@@ -23,7 +23,7 @@ public class TableCreation {
 				if (tc.version > version) {
 					System.out.println("Executing \"" + tc.cql + "\"...");
 					try {
-						DB.sess().execute(tc.cql);
+						DB.session().execute(tc.cql);
 					} catch (Exception ex) {
 						Logger.getRootLogger().warn("CQL execution issue", ex);
 					}

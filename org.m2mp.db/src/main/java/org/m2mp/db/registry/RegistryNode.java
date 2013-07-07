@@ -147,7 +147,7 @@ public class RegistryNode {
 
 	private static PreparedStatement reqInsertChildName() {
 		if (_reqInsertChildName == null) {
-			_reqInsertChildName = DB.sess().prepare("INSERT INTO " + TABLE_REGISTRY + "Children ( path, name ) VALUES ( ?, ? );");
+			_reqInsertChildName = DB.session().prepare("INSERT INTO " + TABLE_REGISTRY + "Children ( path, name ) VALUES ( ?, ? );");
 		}
 		return _reqInsertChildName;
 	}
@@ -155,7 +155,7 @@ public class RegistryNode {
 
 	private static PreparedStatement reqDeleteChildName() {
 		if (_reqDeleteChildName == null) {
-			_reqDeleteChildName = DB.sess().prepare("DELETE FROM " + TABLE_REGISTRY + "Children WHERE path = ? AND name = ?;");
+			_reqDeleteChildName = DB.session().prepare("DELETE FROM " + TABLE_REGISTRY + "Children WHERE path = ? AND name = ?;");
 		}
 		return _reqDeleteChildName;
 	}
@@ -163,21 +163,21 @@ public class RegistryNode {
 
 	private static PreparedStatement reqListChildrenNames() {
 		if (_reqListChildren == null) {
-			_reqListChildren = DB.sess().prepare("SELECT name FROM " + TABLE_REGISTRY + "Children WHERE path = ?;");
+			_reqListChildren = DB.session().prepare("SELECT name FROM " + TABLE_REGISTRY + "Children WHERE path = ?;");
 		}
 		return _reqListChildren;
 	}
 
 	private void addChild(String name) {
-		DB.sess().execute(reqInsertChildName().bind(path, name));
+		DB.session().execute(reqInsertChildName().bind(path, name));
 	}
 
 	private void removeChild(String name) {
-		DB.sess().execute(reqDeleteChildName().bind(path, name));
+		DB.session().execute(reqDeleteChildName().bind(path, name));
 	}
 
 	private Iterable<String> getChildrenNames() {
-		final Iterator<Row> iter = DB.sess().execute(reqListChildrenNames().bind(path)).iterator();
+		final Iterator<Row> iter = DB.session().execute(reqListChildrenNames().bind(path)).iterator();
 		return new Iterable<String>() {
 			@Override
 			public Iterator<String> iterator() {
@@ -249,7 +249,7 @@ public class RegistryNode {
 
 	private static PreparedStatement reqGetStatus() {
 		if (_reqGetStatus == null) {
-			_reqGetStatus = DB.sess().prepare("SELECT status FROM " + TABLE_REGISTRY + " WHERE path = ?;");
+			_reqGetStatus = DB.session().prepare("SELECT status FROM " + TABLE_REGISTRY + " WHERE path = ?;");
 		}
 		return _reqGetStatus;
 	}
@@ -257,20 +257,20 @@ public class RegistryNode {
 
 	private static PreparedStatement reqSetStatus() {
 		if (_reqSetStatus == null) {
-			_reqSetStatus = DB.sess().prepare("UPDATE " + TABLE_REGISTRY + " SET status = ? WHERE path = ?;");
+			_reqSetStatus = DB.session().prepare("UPDATE " + TABLE_REGISTRY + " SET status = ? WHERE path = ?;");
 		}
 		return _reqSetStatus;
 	}
 
 	protected void setStatus(int value) {
-		DB.sess().execute(reqSetStatus().bind(value, path));
+		DB.session().execute(reqSetStatus().bind(value, path));
 		status = value;
 	}
 	Integer status;
 
 	protected int getStatus() {
 		if (status == null) {
-			ResultSet rs = DB.sess().execute(reqGetStatus().bind(path));
+			ResultSet rs = DB.session().execute(reqGetStatus().bind(path));
 			for (Row row : rs) {
 				status = row.getInt(0);
 			}
@@ -284,7 +284,7 @@ public class RegistryNode {
 
 	private static PreparedStatement reqGetValues() {
 		if (_reqGetValues == null) {
-			_reqGetValues = DB.sess().prepare("SELECT values FROM " + TABLE_REGISTRY + " WHERE path = ?;");
+			_reqGetValues = DB.session().prepare("SELECT values FROM " + TABLE_REGISTRY + " WHERE path = ?;");
 		}
 		return _reqGetValues;
 	}
@@ -292,7 +292,7 @@ public class RegistryNode {
 
 	private static PreparedStatement reqSaveValue() {
 		if (_reqSaveValue == null) {
-			_reqSaveValue = DB.sess().prepare("UPDATE " + TABLE_REGISTRY + " SET values[ ? ] = ? WHERE path = ?;");
+			_reqSaveValue = DB.session().prepare("UPDATE " + TABLE_REGISTRY + " SET values[ ? ] = ? WHERE path = ?;");
 		}
 		return _reqSaveValue;
 	}
@@ -319,7 +319,7 @@ public class RegistryNode {
 
 	public Map<String, String> getValues() {
 		if (values == null) {
-			ResultSet rs = DB.sess().execute(reqGetValues().bind(path));
+			ResultSet rs = DB.session().execute(reqGetValues().bind(path));
 			for (Row r : rs) {
 				values = new HashMap<>(r.getMap(0, String.class, String.class));
 				return values;
@@ -330,7 +330,7 @@ public class RegistryNode {
 	}
 
 	public void setProperty(String name, String value) {
-		DB.sess().execute(reqSaveValue().bind(name, value, path));
+		DB.session().execute(reqSaveValue().bind(name, value, path));
 		if (values != null) {
 			values.put(name, value);
 		}

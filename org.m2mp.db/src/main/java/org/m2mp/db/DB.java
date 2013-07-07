@@ -26,7 +26,7 @@ public class DB {
 	}
 	public static SessionWrapper sessionWrapper;
 
-	public static Session sess() {
+	public static Session session() {
 		return sessionWrapper.getSession();
 	}
 

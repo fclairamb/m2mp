@@ -27,7 +27,7 @@ public class TimeSerie {
 	public static void setUpClass() {
 		BaseTest.setUpClass();
 		try {
-			DB.sess().execute("drop table TimeSeries;");
+			DB.session().execute("drop table TimeSeries;");
 		} catch (Exception ex) {
 		}
 		TimeSeries.prepareTable();

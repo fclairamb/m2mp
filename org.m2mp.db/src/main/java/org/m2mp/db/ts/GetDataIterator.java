@@ -39,7 +39,7 @@ public class GetDataIterator implements Iterator<TimedData> {
 
 	private PreparedStatement reqSelectOrderAsc() {
 		if (reqSelectOrderAsc == null) {
-			reqSelectOrderAsc = DB.sess().prepare(SELECT_COMMON + " ASC;");
+			reqSelectOrderAsc = DB.session().prepare(SELECT_COMMON + " ASC;");
 		}
 		return reqSelectOrderAsc;
 	}
@@ -47,7 +47,7 @@ public class GetDataIterator implements Iterator<TimedData> {
 
 	private PreparedStatement reqSelectOrderDesc() {
 		if (reqSelectOrderDesc == null) {
-			reqSelectOrderDesc = DB.sess().prepare(SELECT_COMMON + " DESC;");
+			reqSelectOrderDesc = DB.session().prepare(SELECT_COMMON + " DESC;");
 		}
 		return reqSelectOrderDesc;
 	}
@@ -56,7 +56,7 @@ public class GetDataIterator implements Iterator<TimedData> {
 	private void setPeriod(int period) {
 		this.period = period;
 		PreparedStatement ps = inverted ? reqSelectOrderDesc() : reqSelectOrderAsc();
-		ResultSet rs = DB.sess().execute(ps.bind(key, period, dateBegin, dateEnd));
+		ResultSet rs = DB.session().execute(ps.bind(key, period, dateBegin, dateEnd));
 		iter = rs.iterator();
 	}
 

@@ -78,7 +78,7 @@ public class DbFile extends Entity {
 
 	private static PreparedStatement reqGetBlock() {
 		if (reqGetBlock == null) {
-			reqGetBlock = DB.sess().prepare("SELECT data FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
+			reqGetBlock = DB.session().prepare("SELECT data FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
 		}
 		return reqGetBlock;
 	}
@@ -86,7 +86,7 @@ public class DbFile extends Entity {
 
 	private static PreparedStatement reqSetBlock() {
 		if (reqSetBlock == null) {
-			reqSetBlock = DB.sess().prepare("INSERT INTO " + TABLE_REGISTRYDATA + " ( path, block, data ) VALUES ( ?, ?, ? );");
+			reqSetBlock = DB.session().prepare("INSERT INTO " + TABLE_REGISTRYDATA + " ( path, block, data ) VALUES ( ?, ?, ? );");
 		}
 		return reqSetBlock;
 	}
@@ -94,14 +94,14 @@ public class DbFile extends Entity {
 
 	private static PreparedStatement reqDelBlock() {
 		if (reqDelBlock == null) {
-			reqDelBlock = DB.sess().prepare("DELETE FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
+			reqDelBlock = DB.session().prepare("DELETE FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
 		}
 		return reqDelBlock;
 	}
 	private static PreparedStatement reqDelBlock;
 
 	public void delBlock(int blockNb) {
-		DB.sess().execute(reqDelBlock().bind(path, blockNb));
+		DB.session().execute(reqDelBlock().bind(path, blockNb));
 	}
 
 	public void setBlock(int blockNb, byte[] data) {
@@ -110,11 +110,11 @@ public class DbFile extends Entity {
 
 	public void setBlock(int blockNb, ByteBuffer data) {
 		//System.out.println("Writing block " + path + ":" + blockNb);
-		DB.sess().execute(reqSetBlock().bind(path, blockNb, data));
+		DB.session().execute(reqSetBlock().bind(path, blockNb, data));
 	}
 
 	public ByteBuffer getBlockBuffer(int blockNb) {
-		ResultSet rs = DB.sess().execute(reqGetBlock().bind(path, blockNb));
+		ResultSet rs = DB.session().execute(reqGetBlock().bind(path, blockNb));
 		for (Row row : rs) {
 			return row.getBytes(0);
 		}

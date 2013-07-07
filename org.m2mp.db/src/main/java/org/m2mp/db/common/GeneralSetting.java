@@ -26,7 +26,7 @@ public class GeneralSetting {
 	}
 
 	public static String get(String name, String defaultValue) {
-		ResultSet rs = DB.sess().execute(reqGet().bind(name));
+		ResultSet rs = DB.session().execute(reqGet().bind(name));
 		for (Row r : rs) {
 			return r.getString(0);
 		}
@@ -35,7 +35,7 @@ public class GeneralSetting {
 
 	private static PreparedStatement reqGet() {
 		if (reqGet == null) {
-			reqGet = DB.sess().prepare("SELECT value FROM " + TABLE_GENERAL_SETTINGS + " WHERE name = ?;");
+			reqGet = DB.session().prepare("SELECT value FROM " + TABLE_GENERAL_SETTINGS + " WHERE name = ?;");
 		}
 		return reqGet;
 	}
@@ -48,12 +48,12 @@ public class GeneralSetting {
 	}
 
 	public static ResultSet set(String name, String value) {
-		return DB.sess().execute(reqSet().bind(name, value));
+		return DB.session().execute(reqSet().bind(name, value));
 	}
 
 	private static PreparedStatement reqSet() {
 		if (reqSet == null) {
-			reqSet = DB.sess().prepare("INSERT INTO " + TABLE_GENERAL_SETTINGS + " ( name, value ) VALUES ( ?, ? );");
+			reqSet = DB.session().prepare("INSERT INTO " + TABLE_GENERAL_SETTINGS + " ( name, value ) VALUES ( ?, ? );");
 		}
 		return reqSet;
 	}

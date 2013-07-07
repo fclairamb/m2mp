@@ -67,30 +67,30 @@ public class TimeSerie {
 	}
 	private long PERIOD = 47 * 3600 * 1000;
 
-	@Test
-	public void searchDesc() {
-		String id = "d-" + UUID.randomUUID();
-		System.out.println("ID: " + id);
-		long begin, end;
-		{
-			int COUNT = 100;
-			begin = System.currentTimeMillis();
-			end = System.currentTimeMillis() - (COUNT * PERIOD);
-			for (long i = 1; i <= COUNT; i++) {
-				long t = begin - (i * PERIOD);
-				Date d = new Date(t);
-				Map<String, Object> map = new TreeMap<>();
-				map.put("time", t);
-				map.put("date", "" + d);
-				TimeSeries.save(new TimedData(id, null, d, map));
-			}
+	private void insertData(String id) {
+		int COUNT = 100;
+		long begin = System.currentTimeMillis();
+		for (long i = 1; i <= COUNT; i++) {
+			long t = begin - (i * PERIOD);
+			Date d = new Date(t);
+			Map<String, Object> map = new TreeMap<>();
+			map.put("time", t);
+			map.put("date", "" + d);
+			TimeSeries.save(new TimedData(id, null, d, map));
 		}
+	}
+
+	@Test
+	public void searchAll() {
+		String id = "dev-" + UUID.randomUUID();
+//		System.out.println("ID: " + id);
+		insertData(id);
 		{
 			int nb = 0;
 			Date lastDate = null;
 			for (TimedData td : TimeSeries.getData(id, null, null, null, true)) {
 				nb++;
-				System.out.println("[DESC] --> " + td.getJson());
+//				System.out.println("[DESC] --> " + td.getJson());
 				if (lastDate != null) {
 					Assert.assertTrue(lastDate.after(td.getDate()));
 				}
@@ -103,7 +103,7 @@ public class TimeSerie {
 			Date lastDate = null;
 			for (TimedData td : TimeSeries.getData(id, null, null, null, false)) {
 				nb++;
-				System.out.println("[ASC] --> " + td.getJson());
+//				System.out.println("[ASC] --> " + td.getJson());
 				if (lastDate != null) {
 					Assert.assertTrue(lastDate.before(td.getDate()));
 				}
@@ -111,5 +111,53 @@ public class TimeSerie {
 			}
 			Assert.assertEquals(100, nb);
 		}
+	}
+
+	@Test
+	public void searchOneByOneDesc() {
+		String id = "dev-" + UUID.randomUUID();
+		System.out.println("ID: " + id);
+		insertData(id);
+		searchOneByOne(id, true);
+	}
+
+	@Test
+	public void searchOneByOneAsc() {
+		String id = "dev-" + UUID.randomUUID();
+//		System.out.println("ID: " + id);
+		insertData(id);
+		searchOneByOne(id, false);
+	}
+
+	public void searchOneByOne(String id, boolean inverted) {
+		TimedData td = null;
+		boolean ok = true;
+		int nb = 0;
+		for (TimedData td2 : TimeSeries.getData(id, null, null, null, inverted)) {
+			td = td2;
+			nb++;
+			break;
+		}
+//		System.out.println("First: " + td.getJson());
+		Date lastDate = null;
+		while (ok) {
+			ok = false;
+			for (TimedData td2 : TimeSeries.getData(id, null, inverted ? null : td.getDate(), inverted ? td.getDate() : null, inverted)) {
+//				System.out.println("Previous: " + td.getJson());
+				td = td2;
+				ok = true;
+				nb++;
+				if (lastDate != null) {
+					if (inverted) {
+						Assert.assertTrue(lastDate.after(td.getDate()));
+					} else {
+						Assert.assertTrue(lastDate.before(td.getDate()));
+					}
+				}
+				lastDate = td.getDate();
+				break;
+			}
+		}
+		Assert.assertEquals(100, nb);
 	}
 }

@@ -46,4 +46,51 @@ public class Messages {
 			Assert.assertEquals(2.5, loc.get("lon"));
 		}
 	}
+
+	class SampleMessage {
+
+		public static final String SUBJECT = "sample";
+		private final Message msg;
+
+		public SampleMessage(String from, String to) {
+			msg = new Message(from, to, SUBJECT);
+		}
+
+		public SampleMessage(Message msg) {
+			this.msg = msg;
+		}
+		private static final String PROP_NAME = "name";
+
+		public void setName(String name) {
+			msg.getContent().put(PROP_NAME, name);
+		}
+
+		public String getName() {
+			return (String) msg.getContent().get("name");
+		}
+
+		public String serialize() {
+			return msg.serialize();
+		}
+	}
+
+	@Test
+	public void messageSerDeser() {
+		String serialized;
+		{ // We create the message
+			SampleMessage sm = new SampleMessage("me", "you");
+			sm.setName("Micheline");
+			serialized = sm.serialize();
+		}
+
+		{ // We test it
+			Message msg = new Message(serialized);
+			if (msg.getSubject().equals(SampleMessage.SUBJECT)) {
+				SampleMessage sm = new SampleMessage(msg);
+				Assert.assertEquals("Micheline", sm.getName());
+			} else {
+				throw new RuntimeException("Type " + msg.getSubject() + " is unknown !");
+			}
+		}
+	}
 }

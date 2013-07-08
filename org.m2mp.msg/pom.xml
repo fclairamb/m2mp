@@ -35,9 +35,10 @@
       <type>jar</type>
     </dependency>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>org.m2mp.db</artifactId>
-      <version>${project.version}</version>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>1.1</version>
+      <type>jar</type>
     </dependency>
   </dependencies>
 </project>

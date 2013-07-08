@@ -20,8 +20,7 @@ import org.m2mp.db.common.TableIncrementalDefinition;
  *
  * The registry is organized to allow fast access to any node by its name. The
  * trade-off is that we can't easily move nodes. Move can only be implemented by
- * copy. Which means we have to make sure to organized data in a "compatible
- * way".
+ * copy (thus should be avoid avoid).
  */
 public class RegistryNode {
 

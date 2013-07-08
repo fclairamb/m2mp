@@ -49,6 +49,10 @@ public class Message {
 		return to;
 	}
 
+	public String getSubject() {
+		return subject;
+	}
+
 	public Date getDate() {
 		return date;
 	}

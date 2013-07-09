@@ -7,6 +7,7 @@ package org.m2mp.msg.base;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -16,18 +17,10 @@ import org.json.simple.JSONValue;
  */
 public class Message {
 
-	private final String from, to, subject;
+	private String from, to;
+	private final String subject;
 	private final Date date;
 	private final Map<String, Object> content;
-
-	public Message(String serialized) {
-		Map<String, Object> obj = (Map<String, Object>) JSONValue.parse(serialized);
-		from = (String) obj.remove(PROP_FROM);
-		to = (String) obj.remove(PROP_TO);
-		subject = (String) obj.remove(PROP_SUBJECT);
-		date = new Date((long) obj.remove(PROP_DATE));
-		content = obj;
-	}
 
 	public Message(String from, String to, Date date, String subject, Map<String, Object> content) {
 		this.from = from;
@@ -41,8 +34,32 @@ public class Message {
 		this(from, to, new Date(), subject, new HashMap<String, Object>());
 	}
 
+	public Message(String subject) {
+		this(null, null, subject);
+	}
+
+	public static Message deserialize(String serialized) {
+		Map<String, Object> obj = (Map<String, Object>) JSONValue.parse(serialized);
+		String from = (String) obj.remove(PROP_FROM);
+		String to = (String) obj.remove(PROP_TO);
+		String subject = (String) obj.remove(PROP_SUBJECT);
+		Date date = new Date((long) obj.remove(PROP_DATE));
+		Map<String, Object> content = obj;
+		return new Message(from, to, date, subject, content);
+	}
+
+	public Message setFrom(String f) {
+		from = f;
+		return this;
+	}
+
 	public String getFrom() {
 		return from;
+	}
+
+	public Message setTo(String t) {
+		to = t;
+		return this;
 	}
 
 	public String getTo() {
@@ -57,6 +74,20 @@ public class Message {
 		return date;
 	}
 
+	public void setContext(String context) {
+		if (context != null) {
+			getContent().put(PROP_CONTEXT, context);
+		}
+	}
+
+	public void setContext() {
+		setContext(UUID.randomUUID().toString());
+	}
+
+	public String getContext() {
+		return (String) getContent().get(PROP_CONTEXT);
+	}
+
 	public Map<String, Object> getContent() {
 		return content;
 	}
@@ -64,6 +95,7 @@ public class Message {
 	private static final String PROP_FROM = "__from";
 	private static final String PROP_SUBJECT = "__subject";
 	private static final String PROP_DATE = "__date";
+	private static final String PROP_CONTEXT = "__CONTEXT";
 
 	public String serialize() {
 		Map<String, Object> obj = new HashMap<>();

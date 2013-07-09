@@ -34,7 +34,7 @@ public class Messages {
 		}
 
 		{ // We test it
-			Message msg = new Message(serialized);
+			Message msg = Message.deserialize(serialized);
 			Assert.assertEquals("me", msg.getFrom());
 			Assert.assertEquals("you", msg.getTo());
 			Assert.assertEquals("my-love", msg.getSubject());
@@ -84,7 +84,7 @@ public class Messages {
 		}
 
 		{ // We test it
-			Message msg = new Message(serialized);
+			Message msg = Message.deserialize(serialized);
 			if (msg.getSubject().equals(SampleMessage.SUBJECT)) {
 				SampleMessage sm = new SampleMessage(msg);
 				Assert.assertEquals("Micheline", sm.getName());

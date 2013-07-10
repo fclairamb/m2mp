@@ -34,7 +34,7 @@ public class TimedData {
 	public TimedData(String id, String type, Date date, String json) {
 		this.id = id;
 		this.type = type;
-		this.date = UUIDs.startOf(date.getTime());
+		this.date = new UUID(UUIDs.startOf(date.getTime()).getMostSignificantBits(), System.nanoTime());
 		this.json = json;
 	}
 

@@ -6,6 +6,7 @@ package org.m2mp.db.ts;
 
 import java.util.Date;
 import java.util.Iterator;
+import java.util.UUID;
 
 /**
  *
@@ -15,11 +16,11 @@ public class GetDataIterable implements Iterable<TimedData> {
 
 	private final String id;
 	private final String type;
-	private final Date dateBegin;
-	private final Date dateEnd;
+	private final UUID dateBegin;
+	private final UUID dateEnd;
 	private final boolean orderAsc;
 
-	public GetDataIterable(String id, String type, Date dateBegin, Date dateEnd, boolean orderAsc) {
+	public GetDataIterable(String id, String type, UUID dateBegin, UUID dateEnd, boolean orderAsc) {
 		this.id = id;
 		this.type = type;
 		this.dateBegin = dateBegin;

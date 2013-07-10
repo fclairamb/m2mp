@@ -1,12 +1,13 @@
 package org.m2mp.db.ts;
 
 import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.Session;
+import com.datastax.driver.core.utils.UUIDs;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import org.apache.cassandra.utils.UUIDGen;
 import org.m2mp.db.DB;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
@@ -29,7 +30,7 @@ public class TimeSeries {
 			@Override
 			public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
 				List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
-				list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_TIMESERIES + " ( id text, period int, type text, date timestamp, data text, PRIMARY KEY ((id, period), date) ) WITH CLUSTERING ORDER BY (date DESC);"));
+				list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_TIMESERIES + " ( id text, period int, type text, date timeuuid, data text, PRIMARY KEY ((id, period), date) ) WITH CLUSTERING ORDER BY (date DESC);"));
 				return list;
 			}
 
@@ -48,6 +49,10 @@ public class TimeSeries {
 	}
 	private static PreparedStatement reqInsert;
 
+	public static int dateToPeriod(UUID date) {
+		return dateToPeriod(new Date(UUIDs.unixTimestamp(date)));
+	}
+
 	public static int dateToPeriod(Date date) {
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(date);
@@ -56,15 +61,20 @@ public class TimeSeries {
 	}
 
 	public static void save(TimedData td) {
+		UUID dateUuid = td.getDateUUID();
 		Date date = td.getDate();
 		int period = dateToPeriod(date);
-		DB.execute(reqInsert().bind(td.getId(), period, td.getType(), date, td.getJson()));
+		DB.execute(reqInsert().bind(td.getId(), period, td.getType(), dateUuid, td.getJson()));
 		if (td.getType() != null) {
-			DB.execute(reqInsert().bind(td.getId() + "!" + td.getType(), period, td.getType(), date, td.getJson()));
+			DB.execute(reqInsert().bind(td.getId() + "!" + td.getType(), period, td.getType(), dateUuid, td.getJson()));
 		}
 	}
 
 	public static Iterable<TimedData> getData(String id, String type, Date dateBegin, Date dateEnd, boolean reverse) {
+		return getData(id, type, dateBegin != null ? UUIDs.startOf(dateBegin.getTime()) : null, dateEnd != null ? UUIDs.endOf(dateEnd.getTime()) : null, reverse);
+	}
+
+	public static Iterable<TimedData> getData(String id, String type, UUID dateBegin, UUID dateEnd, boolean reverse) {
 		return new GetDataIterable(id, type, dateBegin, dateEnd, reverse);
 	}
 }

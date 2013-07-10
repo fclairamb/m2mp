@@ -4,8 +4,10 @@
  */
 package org.m2mp.db.ts;
 
+import com.datastax.driver.core.utils.UUIDs;
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -17,7 +19,7 @@ public class TimedData {
 
 	private final String id;
 	private final String type;
-	private final Date date;
+	private final UUID date;
 	private final String json;
 
 	// <editor-fold defaultstate="collapsed" desc="JSON constructors">
@@ -32,11 +34,18 @@ public class TimedData {
 	public TimedData(String id, String type, Date date, String json) {
 		this.id = id;
 		this.type = type;
+		this.date = UUIDs.startOf(date.getTime());
+		this.json = json;
+	}
+
+	public TimedData(String id, String type, UUID date, String json) {
+		this.id = id;
+		this.type = type;
 		this.date = date;
 		this.json = json;
 	}
-	// </editor-fold>
 
+	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="Map constructors">
 	public TimedData(String id, Map<String, Object> map) {
 		this(id, null, map);
@@ -60,8 +69,12 @@ public class TimedData {
 		return type;
 	}
 
-	public Date getDate() {
+	public UUID getDateUUID() {
 		return date;
+	}
+
+	public Date getDate() {
+		return new Date(UUIDs.unixTimestamp(date));
 	}
 
 	public String getJson() {

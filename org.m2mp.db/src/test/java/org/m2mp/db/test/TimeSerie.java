@@ -92,7 +92,7 @@ public class TimeSerie {
 		{
 			int nb = 0;
 			Date lastDate = null;
-			for (TimedData td : TimeSeries.getData(id, null, null, null, true)) {
+			for (TimedData td : TimeSeries.getData(id, null, (Date) null, (Date) null, true)) {
 				nb++;
 //				System.out.println("[DESC] --> " + td.getJson());
 				if (lastDate != null) {
@@ -105,7 +105,7 @@ public class TimeSerie {
 		{
 			int nb = 0;
 			Date lastDate = null;
-			for (TimedData td : TimeSeries.getData(id, null, null, null, false)) {
+			for (TimedData td : TimeSeries.getData(id, null, (Date) null, (Date) null, false)) {
 				nb++;
 //				System.out.println("[ASC] --> " + td.getJson());
 				if (lastDate != null) {
@@ -137,7 +137,7 @@ public class TimeSerie {
 		TimedData td = null;
 		boolean ok = true;
 		int nb = 0;
-		for (TimedData td2 : TimeSeries.getData(id, null, null, null, inverted)) {
+		for (TimedData td2 : TimeSeries.getData(id, null, (Date) null, (Date) null, inverted)) {
 			td = td2;
 			nb++;
 			break;
@@ -146,7 +146,7 @@ public class TimeSerie {
 		Date lastDate = null;
 		while (ok) {
 			ok = false;
-			for (TimedData td2 : TimeSeries.getData(id, null, inverted ? null : td.getDate(), inverted ? td.getDate() : null, inverted)) {
+			for (TimedData td2 : TimeSeries.getData(id, null, inverted ? null : td.getDateUUID(), inverted ? td.getDateUUID(): null, inverted)) {
 //				System.out.println("Previous: " + td.getJson());
 				td = td2;
 				ok = true;
@@ -191,6 +191,7 @@ public class TimeSerie {
 		{ // And then only between start and end
 			ArrayList<TimedData> results = Lists.newArrayList(TimeSeries.getData(id, null, sdf.parse("2013-08-02 00:00:00"), sdf.parse("2013-08-07 00:00:00"), false));
 			Assert.assertEquals(4, results.size());
+			// it's 5 instead of 4 because the first value is the same as the begin range (because they both use the startOf method)
 		}
 
 		{ // And then only one

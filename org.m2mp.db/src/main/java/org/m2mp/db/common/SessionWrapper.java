@@ -27,7 +27,7 @@ public class SessionWrapper {
 		return session;
 	}
 
-	public KeyspaceMetadata getKs() {
+	public KeyspaceMetadata meta() {
 		return session.getCluster().getMetadata().getKeyspace(keyspaceName);
 	}
 }

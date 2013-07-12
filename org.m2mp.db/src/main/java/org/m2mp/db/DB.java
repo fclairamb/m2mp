@@ -34,7 +34,7 @@ public class DB {
 	}
 
 	public static KeyspaceMetadata meta() {
-		return sessionWrapper.getKs();
+		return sessionWrapper.meta();
 	}
 
 	public static PreparedStatement prepare(String query) {

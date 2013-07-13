@@ -7,7 +7,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import org.m2mp.db.DB;
+import org.m2mp.db.DBAccess;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
 
@@ -18,7 +18,7 @@ import org.m2mp.db.common.TableIncrementalDefinition;
 public class TimeSeries {
 
 //	static final String TABLE_TIMESERIES = "TimeSeries";
-	public static void prepareTable(DB db) {
+	public static void prepareTable(DBAccess db) {
 		TableCreation.checkTable(db, new TableIncrementalDefinition() {
 			@Override
 			public String getTableDefName() {
@@ -50,7 +50,7 @@ public class TimeSeries {
 		return period;
 	}
 
-	public static void save(DB db, TimedData td) {
+	public static void save(DBAccess db, TimedData td) {
 		UUID dateUuid = td.getDateUUID();
 		Date date = td.getDate();
 		int period = dateToPeriod(date);
@@ -61,15 +61,15 @@ public class TimeSeries {
 		}
 	}
 
-	public static Iterable<TimedData> getData(DB db, String id, String type) {
+	public static Iterable<TimedData> getData(DBAccess db, String id, String type) {
 		return getData(db, id, type, (Date) null, null, true);
 	}
 
-	public static Iterable<TimedData> getData(DB db, String id, String type, Date dateBegin, Date dateEnd, boolean reverse) {
+	public static Iterable<TimedData> getData(DBAccess db, String id, String type, Date dateBegin, Date dateEnd, boolean reverse) {
 		return getData(db, id, type, dateBegin != null ? UUIDs.startOf(dateBegin.getTime()) : null, dateEnd != null ? UUIDs.endOf(dateEnd.getTime()) : null, reverse);
 	}
 
-	public static Iterable<TimedData> getData(DB db, String id, String type, UUID dateBegin, UUID dateEnd, boolean reverse) {
+	public static Iterable<TimedData> getData(DBAccess db, String id, String type, UUID dateBegin, UUID dateEnd, boolean reverse) {
 		return new GetDataIterable(db, id, type, dateBegin, dateEnd, reverse);
 	}
 	public static final String TABLE_TIMESERIES = "TimeSeries";

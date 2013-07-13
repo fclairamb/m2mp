@@ -9,7 +9,7 @@ import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.common.TableCreation;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.m2mp.db.DB;
+import org.m2mp.db.DBAccess;
 
 /**
  *
@@ -17,11 +17,11 @@ import org.m2mp.db.DB;
  */
 public class GeneralSettings {
 
-	static DB db;
+	static DBAccess db;
 
 	@BeforeClass
 	public static void setUpClass() {
-		db = new DB("ks_test");
+		db = new DBAccess("ks_test");
 		try {
 			db.execute("drop table general_settings;");
 		} catch (Exception ex) {

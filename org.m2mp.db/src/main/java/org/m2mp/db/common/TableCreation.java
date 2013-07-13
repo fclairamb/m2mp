@@ -2,7 +2,7 @@ package org.m2mp.db.common;
 
 import com.datastax.driver.core.TableMetadata;
 import org.apache.log4j.Logger;
-import org.m2mp.db.DB;
+import org.m2mp.db.DBAccess;
 
 /**
  *
@@ -10,7 +10,7 @@ import org.m2mp.db.DB;
  */
 public class TableCreation {
 
-	public static void checkTable(DB db, TableIncrementalDefinition tableDef) {
+	public static void checkTable(DBAccess db, TableIncrementalDefinition tableDef) {
 		int version;
 		
 //		GeneralSetting gs = new GeneralSetting(db);
@@ -38,7 +38,7 @@ public class TableCreation {
 		}
 	}
 
-	public static boolean tableExists(DB db, String tableName) {
+	public static boolean tableExists(DBAccess db, String tableName) {
 		TableMetadata table = db.meta().getTable(tableName);
 		return table != null;
 	}

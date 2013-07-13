@@ -6,7 +6,7 @@ import com.datastax.driver.core.Row;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import org.m2mp.db.DB;
+import org.m2mp.db.DBAccess;
 import static org.m2mp.db.entity.Domain.getIdFromName;
 import org.m2mp.db.common.Entity;
 import org.m2mp.db.common.TableIncrementalDefinition;
@@ -18,16 +18,16 @@ import org.m2mp.db.registry.RegistryNode;
  */
 public class User extends Entity {
 
-	private DB db;
+	private DBAccess db;
 	private UUID userId;
 
-	public User(DB db, UUID userId) {
+	public User(DBAccess db, UUID userId) {
 		this.db = db;
 		this.userId = userId;
 		node = new RegistryNode(db, "/u/" + userId);
 	}
 
-	protected static UUID getIdFromName(DB db, String name) {
+	protected static UUID getIdFromName(DBAccess db, String name) {
 		ResultSet rs = db.execute(db.prepare("SELECT id FROM " + TABLE_USER + " WHERE name = ?;").bind(name));
 		for (Row row : rs) {
 			return row.getUUID(0);
@@ -39,7 +39,7 @@ public class User extends Entity {
 		return userId;
 	}
 
-	public static Domain get(DB db, String name) {
+	public static Domain get(DBAccess db, String name) {
 		UUID domainId = getIdFromName(db, name);
 		return domainId != null ? new Domain(db, domainId) : null;
 	}
@@ -48,7 +48,7 @@ public class User extends Entity {
 	private static final String PROP_CREATED_DATE = "created";
 	private static final String PROP_PASSWORD = "password";
 
-	public static User create(DB db, String name, Domain domain) {
+	public static User create(DBAccess db, String name, Domain domain) {
 		UUID userId = getIdFromName(db, name);
 		if (userId != null) {
 			throw new IllegalArgumentException("The user \"" + name + "\" already exists with id \"" + userId + "\"");

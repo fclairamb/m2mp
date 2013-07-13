@@ -8,7 +8,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import org.m2mp.db.DB;
+import org.m2mp.db.DBAccess;
 import org.m2mp.db.common.Entity;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
@@ -112,7 +112,7 @@ public class DbFile extends Entity {
 	// <editor-fold defaultstate="collapsed" desc="Column family preparation">
 	private static final String TABLE_REGISTRYDATA = RegistryNode.TABLE_REGISTRY + "Data";
 
-	public static void prepareTable(DB db) {
+	public static void prepareTable(DBAccess db) {
 		RegistryNode.prepareTable(db);
 		TableCreation.checkTable(db, new TableIncrementalDefinition() {
 			@Override

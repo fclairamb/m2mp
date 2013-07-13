@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.m2mp.db.DB;
+import org.m2mp.db.DBAccess;
 import org.m2mp.db.registry.RegistryNode;
 
 /**
@@ -18,11 +18,11 @@ import org.m2mp.db.registry.RegistryNode;
  */
 public class Registry {
 
-	private static DB db;
+	private static DBAccess db;
 
 	@BeforeClass
 	public static void setUpClass() {
-		db = new DB("ks_test");
+		db = new DBAccess("ks_test");
 		try {
 			db.execute("drop table RegistryNode;");
 			db.execute("drop table RegistryNodeChildren;");

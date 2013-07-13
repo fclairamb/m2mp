@@ -17,12 +17,12 @@ import java.util.logging.Logger;
  *
  * @author Florent Clairambault
  */
-public class DB {
+public class DBAccess {
 
 	private final String keyspaceName;
 	private final Session session;
 
-	public DB(String name) {
+	public DBAccess(String name) {
 		keyspaceName = name;
 		session = Cluster.builder().addContactPoint("localhost").build().connect(keyspaceName);
 	}
@@ -46,7 +46,7 @@ public class DB {
 		try {
 			return psCache.get(query);
 		} catch (ExecutionException ex) {
-			Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(DBAccess.class.getName()).log(Level.SEVERE, null, ex);
 			return session().prepare(query);
 		}
 	}

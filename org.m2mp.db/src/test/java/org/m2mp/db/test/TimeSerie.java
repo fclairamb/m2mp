@@ -15,7 +15,7 @@ import java.util.UUID;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.m2mp.db.DB;
+import org.m2mp.db.DBAccess;
 import org.m2mp.db.ts.TimeSeries;
 import org.m2mp.db.ts.TimedData;
 import org.m2mp.db.common.GeneralSetting;
@@ -26,11 +26,11 @@ import org.m2mp.db.registry.RegistryNode;
  * @author florent
  */
 public class TimeSerie {
-	private static DB db;
+	private static DBAccess db;
 
 	@BeforeClass
 	public static void setUpClass() {
-		db = new DB("ks_test");
+		db = new DBAccess("ks_test");
 		try {
 			db.execute("drop table TimeSeries;");
 		} catch (Exception ex) {

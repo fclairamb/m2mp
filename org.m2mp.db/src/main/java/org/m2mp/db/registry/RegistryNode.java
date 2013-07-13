@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import org.m2mp.db.DB;
+import org.m2mp.db.DBAccess;
 import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
@@ -24,10 +24,10 @@ import org.m2mp.db.common.TableIncrementalDefinition;
  */
 public class RegistryNode {
 
-	protected DB db;
+	protected DBAccess db;
 	protected String path;
 
-	public RegistryNode(DB db, String path) {
+	public RegistryNode(DBAccess db, String path) {
 		if (!path.endsWith("/")) {
 			path += "/";
 		}
@@ -35,7 +35,7 @@ public class RegistryNode {
 		this.path = path;
 	}
 
-	public DB getDb() {
+	public DBAccess getDb() {
 		return db;
 	}
 
@@ -124,7 +124,7 @@ public class RegistryNode {
 	// <editor-fold defaultstate="collapsed" desc="Column family preparation">
 	public static final String TABLE_REGISTRY = "RegistryNode";
 
-	public static void prepareTable(DB db) {
+	public static void prepareTable(DBAccess db) {
 		GeneralSetting.prepareTable(db);
 		TableCreation.checkTable(db, new TableIncrementalDefinition() {
 			@Override

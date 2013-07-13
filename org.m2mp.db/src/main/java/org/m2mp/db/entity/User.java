@@ -28,7 +28,7 @@ public class User extends Entity {
 	}
 
 	protected static UUID getIdFromName(DB db, String name) {
-		ResultSet rs = db.execute(db.user.reqGetFromName().bind(name));
+		ResultSet rs = db.execute(db.prepare("SELECT id FROM " + TABLE_USER + " WHERE name = ?;").bind(name));
 		for (Row row : rs) {
 			return row.getUUID(0);
 		}
@@ -54,7 +54,7 @@ public class User extends Entity {
 			throw new IllegalArgumentException("The user \"" + name + "\" already exists with id \"" + userId + "\"");
 		}
 		userId = UUID.randomUUID();
-		db.execute(db.user.reqInsert().bind(name, userId, domain));
+		db.execute(db.prepare("INSERT INTO " + TABLE_USER + " ( name, id, domain ) VALUES ( ?, ?, ? );").bind(name, userId, domain));
 		User u = new User(db, userId);
 		u.check();
 		u.setProperty(PROP_NAME, name);

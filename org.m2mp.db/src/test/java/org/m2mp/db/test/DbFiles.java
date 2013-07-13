@@ -100,7 +100,7 @@ public class DbFiles {
 	}
 
 	@Test
-	public void BigSize512K() throws Exception { // 600 MB
+	public void BigSize() throws Exception { // 600 MB
 		realAndDbFilesComparison(600, 1024 * 1024, 1024 * 512);
 	}
 

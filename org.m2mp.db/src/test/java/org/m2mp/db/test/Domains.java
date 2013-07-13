@@ -4,7 +4,6 @@
  */
 package org.m2mp.db.test;
 
-import java.util.UUID;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;

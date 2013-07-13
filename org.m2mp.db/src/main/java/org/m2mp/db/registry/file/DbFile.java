@@ -77,7 +77,7 @@ public class DbFile extends Entity {
 	// <editor-fold defaultstate="collapsed" desc="Raw block handling">
 
 	public void delBlock(int blockNb) {
-		node.getDb().execute(node.getDb().files.reqDelBlock().bind(path, blockNb));
+		node.getDb().execute(reqDelBlock().bind(path, blockNb));
 	}
 
 	public void setBlock(int blockNb, byte[] data) {
@@ -86,11 +86,11 @@ public class DbFile extends Entity {
 
 	public void setBlock(int blockNb, ByteBuffer data) {
 		//System.out.println("Writing block " + path + ":" + blockNb);
-		node.getDb().execute(node.getDb().files.reqSetBlock().bind(path, blockNb, data));
+		node.getDb().execute(reqSetBlock().bind(path, blockNb, data));
 	}
 
 	public ByteBuffer getBlockBuffer(int blockNb) {
-		ResultSet rs = node.getDb().execute(node.getDb().files.reqGetBlock().bind(path, blockNb));
+		ResultSet rs = node.getDb().execute(reqGetBlock().bind(path, blockNb));
 		for (Row row : rs) {
 			return row.getBytes(0);
 		}
@@ -146,4 +146,28 @@ public class DbFile extends Entity {
 	public void delete() {
 		node.delete();
 	}
+
+	public PreparedStatement reqGetBlock() {
+		if (reqGetBlock == null) {
+			reqGetBlock = node.getDb().prepare("SELECT data FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
+		}
+		return reqGetBlock;
+	}
+	private PreparedStatement reqGetBlock;
+
+	public PreparedStatement reqSetBlock() {
+		if (reqSetBlock == null) {
+			reqSetBlock = node.getDb().prepare("INSERT INTO " + TABLE_REGISTRYDATA + " ( path, block, data ) VALUES ( ?, ?, ? );");
+		}
+		return reqSetBlock;
+	}
+	private PreparedStatement reqSetBlock;
+
+	public PreparedStatement reqDelBlock() {
+		if (reqDelBlock == null) {
+			reqDelBlock = node.getDb().prepare("DELETE FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
+		}
+		return reqDelBlock;
+	}
+	private PreparedStatement reqDelBlock;
 }

@@ -4,7 +4,6 @@
  */
 package org.m2mp.db.common;
 
-import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import java.util.ArrayList;
@@ -17,15 +16,16 @@ import org.m2mp.db.DB;
  */
 public class GeneralSetting {
 
-//	private static final String TABLE_GENERAL_SETTINGS = "general_settings";
+	private static final String TABLE_GENERAL_SETTINGS = "general_settings";
 	// <editor-fold defaultstate="collapsed" desc="Get value">
+
 	public static int get(DB db, String name, int defaultValue) {
 		String value = get(db, name, (String) null);
 		return value != null ? Integer.parseInt(value) : defaultValue;
 	}
 
 	public static String get(DB db, String name, String defaultValue) {
-		ResultSet rs = db.execute(db.generalSetting.reqGet().bind(name));
+		ResultSet rs = db.execute(db.prepare("SELECT value FROM " + TABLE_GENERAL_SETTINGS + " WHERE name = ?;").bind(name));
 		for (Row r : rs) {
 			return r.getString(0);
 		}
@@ -39,7 +39,7 @@ public class GeneralSetting {
 	}
 
 	public static ResultSet set(DB db, String name, String value) {
-		return db.execute(db.generalSetting.reqSet().bind(name, value));
+		return db.execute(db.prepare("INSERT INTO " + TABLE_GENERAL_SETTINGS + " ( name, value ) VALUES ( ?, ? );").bind(name, value));
 	}
 
 	// </editor-fold>
@@ -48,7 +48,7 @@ public class GeneralSetting {
 		TableCreation.checkTable(db, new TableIncrementalDefinition() {
 			@Override
 			public String getTableDefName() {
-				return DB.GeneralSetting.TABLE_GENERAL_SETTINGS;
+				return TABLE_GENERAL_SETTINGS;
 			}
 
 			@Override

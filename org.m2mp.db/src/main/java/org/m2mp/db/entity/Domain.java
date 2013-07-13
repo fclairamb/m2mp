@@ -50,7 +50,7 @@ public class Domain extends Entity {
 			throw new IllegalArgumentException("The domain \"" + name + "\" already exists for domain \"" + domainId + "\"");
 		}
 		domainId = UUID.randomUUID();
-		db.execute(db.domain.reqInsertDomain().bind(name, domainId));
+		db.execute(db.prepare("INSERT INTO " + TABLE_DOMAIN + " ( name, id ) VALUES ( ?, ? );").bind(name, domainId));
 
 		Domain d = new Domain(db, domainId);
 		d.check();
@@ -62,7 +62,19 @@ public class Domain extends Entity {
 	public String getName() {
 		return getProperty(PROP_NAME, null);
 	}
-	private static final String TABLE_DOMAIN = "Domain";
+	public static final String TABLE_DOMAIN = "Domain";
+
+	protected static UUID getIdFromName(DB db, String name) {
+		ResultSet rs = db.execute(db.prepare("SELECT id FROM " + TABLE_DOMAIN + " WHERE name = ?;").bind(name));
+		for (Row row : rs) {
+			return row.getUUID(0);
+		}
+		return null;
+	}
+
+	public UUID getId() {
+		return domainId;
+	}
 
 	public static void prepareTable(DB db) {
 		RegistryNode.prepareTable(db);
@@ -96,17 +108,5 @@ public class Domain extends Entity {
 				return 1;
 			}
 		});
-	}
-
-	protected static UUID getIdFromName(DB db, String name) {
-		ResultSet rs = db.execute(db.domain.reqGetIdFromName().bind(name));
-		for (Row row : rs) {
-			return row.getUUID(0);
-		}
-		return null;
-	}
-
-	public UUID getId() {
-		return domainId;
 	}
 }

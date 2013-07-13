@@ -6,6 +6,7 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.utils.UUIDs;
 import java.util.*;
 import org.m2mp.db.DB;
+import static org.m2mp.db.ts.TimeSeries.TABLE_TIMESERIES;
 
 /**
  *
@@ -38,7 +39,7 @@ public class GetDataIterator implements Iterator<TimedData> {
 
 	private void setPeriod(int period) {
 		this.period = period;
-		PreparedStatement ps = inverted ? db.timeSerie.reqSelectOrderDesc() : db.timeSerie.reqSelectOrderAsc();
+		PreparedStatement ps = inverted ? reqSelectOrderDesc() : reqSelectOrderAsc();
 		ResultSet rs = db.execute(ps.bind(key, period, dateBegin, dateEnd));
 		iter = rs.iterator();
 	}
@@ -63,4 +64,21 @@ public class GetDataIterator implements Iterator<TimedData> {
 	@Override
 	public void remove() {
 	}
+	private static final String SELECT_COMMON = "SELECT id, type, date, data FROM " + TABLE_TIMESERIES + " WHERE id = ? AND period = ? AND date > ? AND date < ? ORDER BY date";
+
+	public PreparedStatement reqSelectOrderAsc() {
+		if (reqSelectOrderAsc == null) {
+			reqSelectOrderAsc = db.prepare(SELECT_COMMON + " ASC;");
+		}
+		return reqSelectOrderAsc;
+	}
+	private PreparedStatement reqSelectOrderAsc;
+
+	public PreparedStatement reqSelectOrderDesc() {
+		if (reqSelectOrderDesc == null) {
+			reqSelectOrderDesc = db.prepare(SELECT_COMMON + " DESC;");
+		}
+		return reqSelectOrderDesc;
+	}
+	private PreparedStatement reqSelectOrderDesc;
 }

@@ -18,22 +18,24 @@ import org.m2mp.db.registry.RegistryNode;
  */
 public class Registry {
 
+	private static DB db;
+
 	@BeforeClass
 	public static void setUpClass() {
-		BaseTest.setUpClass();
+		db = new DB("ks_test");
 		try {
-			DB.session().execute("drop table RegistryNode;");
-			DB.session().execute("drop table RegistryNodeChildren;");
-			DB.session().execute("drop table RegistryNodeData;");
+			db.execute("drop table RegistryNode;");
+			db.execute("drop table RegistryNodeChildren;");
+			db.execute("drop table RegistryNodeData;");
 		} catch (Exception ex) {
 		}
-		RegistryNode.prepareTable();
+		RegistryNode.prepareTable(db);
 	}
 
 	@Test
 	public void existence() {
 		// We select "n1" and check that it doesn't exists
-		RegistryNode n1 = new RegistryNode("/my/path/to/node/1");
+		RegistryNode n1 = new RegistryNode(db, "/my/path/to/node/1");
 		Assert.assertFalse(n1.exists());
 		Assert.assertFalse(n1.existed());
 
@@ -65,19 +67,19 @@ public class Registry {
 			Assert.assertEquals(list.size(), 1);
 		}
 
-		Assert.assertEquals(5, new RegistryNode("/").getNbChildren(true));
+		Assert.assertEquals(5, new RegistryNode(db, "/").getNbChildren(true));
 
-		new RegistryNode("/my/path/to").delete();
-		Assert.assertEquals(2, new RegistryNode("/").getNbChildren(true));
+		new RegistryNode(db, "/my/path/to").delete();
+		Assert.assertEquals(2, new RegistryNode(db, "/").getNbChildren(true));
 	}
 
 	@Test
 	public void values() {
-		RegistryNode node = new RegistryNode("/my/path").check();
+		RegistryNode node = new RegistryNode(db, "/my/path").check();
 		Assert.assertNull(node.getProperty("myprop", null));
 		node.setProperty("prop", "abc");
 
-		node = new RegistryNode("/my/path");
+		node = new RegistryNode(db, "/my/path");
 		Assert.assertEquals("abc", node.getProperty("prop", "___"));
 	}
 }

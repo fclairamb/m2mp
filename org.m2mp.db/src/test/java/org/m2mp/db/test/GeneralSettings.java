@@ -17,23 +17,25 @@ import org.m2mp.db.DB;
  */
 public class GeneralSettings {
 
+	static DB db;
+
 	@BeforeClass
 	public static void setUpClass() {
-		BaseTest.setUpClass();
+		db = new DB("ks_test");
 		try {
-			DB.session().execute("drop table general_settings;");
+			db.execute("drop table general_settings;");
 		} catch (Exception ex) {
 		}
-		GeneralSetting.prepareTable();
+		GeneralSetting.prepareTable(db);
 	}
 
 	@Test
 	public void test_save() {
-		String value = GeneralSetting.get("setting-1", "value-1");
+		String value = GeneralSetting.get(db, "setting-1", "value-1");
 		Assert.assertEquals("value-1", value);
 
-		GeneralSetting.set("setting-1", "value-2");
-		value = GeneralSetting.get("setting-1", "value-1");
+		GeneralSetting.set(db, "setting-1", "value-2");
+		value = GeneralSetting.get(db, "setting-1", "value-1");
 		Assert.assertEquals("value-2", value);
 	}
 }

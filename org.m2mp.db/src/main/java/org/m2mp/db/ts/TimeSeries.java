@@ -18,19 +18,19 @@ import org.m2mp.db.common.TableIncrementalDefinition;
  */
 public class TimeSeries {
 
-	static final String TABLE_TIMESERIES = "TimeSeries";
+//	static final String TABLE_TIMESERIES = "TimeSeries";
 
-	public static void prepareTable() {
-		TableCreation.checkTable(new TableIncrementalDefinition() {
+	public static void prepareTable(DB db) {
+		TableCreation.checkTable(db, new TableIncrementalDefinition() {
 			@Override
 			public String getTableDefName() {
-				return TABLE_TIMESERIES;
+				return DB.TimeSerie.TABLE_TIMESERIES;
 			}
 
 			@Override
 			public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
 				List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
-				list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_TIMESERIES + " ( id text, period int, type text, date timeuuid, data text, PRIMARY KEY ((id, period), date) ) WITH CLUSTERING ORDER BY (date DESC);"));
+				list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + DB.TimeSerie.TABLE_TIMESERIES + " ( id text, period int, type text, date timeuuid, data text, PRIMARY KEY ((id, period), date) ) WITH CLUSTERING ORDER BY (date DESC);"));
 				return list;
 			}
 
@@ -40,14 +40,6 @@ public class TimeSeries {
 			}
 		});
 	}
-
-	private static PreparedStatement reqInsert() {
-		if (reqInsert == null) {
-			reqInsert = DB.prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, period, type, date, data ) VALUES ( ?, ?, ?, ?, ? );");
-		}
-		return reqInsert;
-	}
-	private static PreparedStatement reqInsert;
 
 	public static int dateToPeriod(UUID date) {
 		return dateToPeriod(new Date(UUIDs.unixTimestamp(date)));
@@ -60,21 +52,25 @@ public class TimeSeries {
 		return period;
 	}
 
-	public static void save(TimedData td) {
+	public static void save(DB db, TimedData td) {
 		UUID dateUuid = td.getDateUUID();
 		Date date = td.getDate();
 		int period = dateToPeriod(date);
-		DB.execute(reqInsert().bind(td.getId(), period, td.getType(), dateUuid, td.getJson()));
+		db.execute(db.timeSerie.reqInsert().bind(td.getId(), period, td.getType(), dateUuid, td.getJson()));
 		if (td.getType() != null) {
-			DB.execute(reqInsert().bind(td.getId() + "!" + td.getType(), period, td.getType(), dateUuid, td.getJson()));
+			db.execute(db.timeSerie.reqInsert().bind(td.getId() + "!" + td.getType(), period, td.getType(), dateUuid, td.getJson()));
 		}
 	}
 
-	public static Iterable<TimedData> getData(String id, String type, Date dateBegin, Date dateEnd, boolean reverse) {
-		return getData(id, type, dateBegin != null ? UUIDs.startOf(dateBegin.getTime()) : null, dateEnd != null ? UUIDs.endOf(dateEnd.getTime()) : null, reverse);
+	public static Iterable<TimedData> getData(DB db, String id, String type) {
+		return getData(db, id, type, (Date) null, null, true);
 	}
 
-	public static Iterable<TimedData> getData(String id, String type, UUID dateBegin, UUID dateEnd, boolean reverse) {
-		return new GetDataIterable(id, type, dateBegin, dateEnd, reverse);
+	public static Iterable<TimedData> getData(DB db, String id, String type, Date dateBegin, Date dateEnd, boolean reverse) {
+		return getData(db, id, type, dateBegin != null ? UUIDs.startOf(dateBegin.getTime()) : null, dateEnd != null ? UUIDs.endOf(dateEnd.getTime()) : null, reverse);
+	}
+
+	public static Iterable<TimedData> getData(DB db, String id, String type, UUID dateBegin, UUID dateEnd, boolean reverse) {
+		return new GetDataIterable(db, id, type, dateBegin, dateEnd, reverse);
 	}
 }

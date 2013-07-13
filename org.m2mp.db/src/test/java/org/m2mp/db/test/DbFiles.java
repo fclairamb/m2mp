@@ -59,18 +59,19 @@ public class DbFiles {
 			}
 		}
 	}
+	private static DB db;
 
 	@BeforeClass
 	public static void setUpClass() {
-		BaseTest.setUpClass();
+		db = new DB("ks_test");
 		try {
-			DB.session().execute("drop table RegistryNode;");
-			DB.session().execute("drop table RegistryNodeChildren;");
-			DB.session().execute("drop table RegistryNodeData;");
+			db.execute("drop table RegistryNode;");
+			db.execute("drop table RegistryNodeChildren;");
+			db.execute("drop table RegistryNodeData;");
 		} catch (Exception ex) {
 		}
-		GeneralSetting.prepareTable();
-		DbFile.prepareTable();
+		GeneralSetting.prepareTable(db);
+		DbFile.prepareTable(db);
 	}
 
 	private void writeFile(OutputStream os, int nbBlocks, int blockSize, int mod) throws IOException {
@@ -114,7 +115,7 @@ public class DbFiles {
 			}
 		}
 		{ // File on DB
-			file2 = new DbFile(new RegistryNode("/this/is/my/file-" + (nbBlocks * blockSize) + "-" + chunkSize).check());
+			file2 = new DbFile(new RegistryNode(db, "/this/is/my/file-" + (nbBlocks * blockSize) + "-" + chunkSize).check());
 			file2.setBlockSize(chunkSize);
 			try (OutputStream os = new DbFileOutputStream(file2)) {
 				writeFile(os, nbBlocks, blockSize, 256);

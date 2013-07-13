@@ -13,13 +13,15 @@ import org.m2mp.db.DB;
  */
 public class GetDataIterator implements Iterator<TimedData> {
 
+	private final DB db;
 	private final String key;
 	private final UUID dateBegin, dateEnd;
 	private int period;
 	private final int periodBegin, periodEnd;
 	private final boolean inverted;
 
-	public GetDataIterator(String id, String type, UUID dateBegin, UUID dateEnd, boolean inverted) {
+	public GetDataIterator(DB db, String id, String type, UUID dateBegin, UUID dateEnd, boolean inverted) {
+		this.db = db;
 		this.key = id + (type != null ? "!" + type : "");
 		this.dateBegin = dateBegin != null ? dateBegin : UUIDs.startOf(System.currentTimeMillis() - (1000L * 3600 * 24 * 365 * 2)); // By default, 2 years back, at most 25 empty periods
 		this.dateEnd = dateEnd != null ? dateEnd : UUIDs.endOf(System.currentTimeMillis() + (1000L * 3600 * 24 * 7)); // By default, 7 days ahead, at most 1 empty period
@@ -33,28 +35,11 @@ public class GetDataIterator implements Iterator<TimedData> {
 		setPeriod(inverted ? periodEnd : periodBegin);
 	}
 	private Iterator<Row> iter;
-	private static final String SELECT_COMMON = "SELECT id, type, date, data FROM " + TimeSeries.TABLE_TIMESERIES + " WHERE id = ? AND period = ? AND date > ? AND date < ? ORDER BY date";
-
-	private PreparedStatement reqSelectOrderAsc() {
-		if (reqSelectOrderAsc == null) {
-			reqSelectOrderAsc = DB.session().prepare(SELECT_COMMON + " ASC;");
-		}
-		return reqSelectOrderAsc;
-	}
-	private PreparedStatement reqSelectOrderAsc;
-
-	private PreparedStatement reqSelectOrderDesc() {
-		if (reqSelectOrderDesc == null) {
-			reqSelectOrderDesc = DB.session().prepare(SELECT_COMMON + " DESC;");
-		}
-		return reqSelectOrderDesc;
-	}
-	private PreparedStatement reqSelectOrderDesc;
 
 	private void setPeriod(int period) {
 		this.period = period;
-		PreparedStatement ps = inverted ? reqSelectOrderDesc() : reqSelectOrderAsc();
-		ResultSet rs = DB.session().execute(ps.bind(key, period, dateBegin, dateEnd));
+		PreparedStatement ps = inverted ? db.timeSerie.reqSelectOrderDesc() : db.timeSerie.reqSelectOrderAsc();
+		ResultSet rs = db.execute(ps.bind(key, period, dateBegin, dateEnd));
 		iter = rs.iterator();
 	}
 

@@ -76,32 +76,8 @@ public class DbFile extends Entity {
 	}
 	// <editor-fold defaultstate="collapsed" desc="Raw block handling">
 
-	private static PreparedStatement reqGetBlock() {
-		if (reqGetBlock == null) {
-			reqGetBlock = DB.session().prepare("SELECT data FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
-		}
-		return reqGetBlock;
-	}
-	private static PreparedStatement reqGetBlock;
-
-	private static PreparedStatement reqSetBlock() {
-		if (reqSetBlock == null) {
-			reqSetBlock = DB.session().prepare("INSERT INTO " + TABLE_REGISTRYDATA + " ( path, block, data ) VALUES ( ?, ?, ? );");
-		}
-		return reqSetBlock;
-	}
-	private static PreparedStatement reqSetBlock;
-
-	private static PreparedStatement reqDelBlock() {
-		if (reqDelBlock == null) {
-			reqDelBlock = DB.session().prepare("DELETE FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
-		}
-		return reqDelBlock;
-	}
-	private static PreparedStatement reqDelBlock;
-
 	public void delBlock(int blockNb) {
-		DB.session().execute(reqDelBlock().bind(path, blockNb));
+		node.getDb().execute(node.getDb().files.reqDelBlock().bind(path, blockNb));
 	}
 
 	public void setBlock(int blockNb, byte[] data) {
@@ -110,11 +86,11 @@ public class DbFile extends Entity {
 
 	public void setBlock(int blockNb, ByteBuffer data) {
 		//System.out.println("Writing block " + path + ":" + blockNb);
-		DB.session().execute(reqSetBlock().bind(path, blockNb, data));
+		node.getDb().execute(node.getDb().files.reqSetBlock().bind(path, blockNb, data));
 	}
 
 	public ByteBuffer getBlockBuffer(int blockNb) {
-		ResultSet rs = DB.session().execute(reqGetBlock().bind(path, blockNb));
+		ResultSet rs = node.getDb().execute(node.getDb().files.reqGetBlock().bind(path, blockNb));
 		for (Row row : rs) {
 			return row.getBytes(0);
 		}
@@ -136,9 +112,9 @@ public class DbFile extends Entity {
 	// <editor-fold defaultstate="collapsed" desc="Column family preparation">
 	private static final String TABLE_REGISTRYDATA = RegistryNode.TABLE_REGISTRY + "Data";
 
-	public static void prepareTable() {
-		RegistryNode.prepareTable();
-		TableCreation.checkTable(new TableIncrementalDefinition() {
+	public static void prepareTable(DB db) {
+		RegistryNode.prepareTable(db);
+		TableCreation.checkTable(db, new TableIncrementalDefinition() {
 			@Override
 			public String getTableDefName() {
 				return TABLE_REGISTRYDATA;

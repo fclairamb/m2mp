@@ -24,13 +24,19 @@ import org.m2mp.db.common.TableIncrementalDefinition;
  */
 public class RegistryNode {
 
+	protected DB db;
 	protected String path;
 
-	public RegistryNode(String path) {
+	public RegistryNode(DB db, String path) {
 		if (!path.endsWith("/")) {
 			path += "/";
 		}
+		this.db = db;
 		this.path = path;
+	}
+
+	public DB getDb() {
+		return db;
 	}
 
 	public String getPath() {
@@ -79,7 +85,7 @@ public class RegistryNode {
 		if (parentPath == null) {
 			return null;
 		}
-		return new RegistryNode(parentPath);
+		return new RegistryNode(db, parentPath);
 	}
 
 	private static String convPathToBase(String path) {
@@ -118,9 +124,9 @@ public class RegistryNode {
 	// <editor-fold defaultstate="collapsed" desc="Column family preparation">
 	public static final String TABLE_REGISTRY = "RegistryNode";
 
-	public static void prepareTable() {
-		GeneralSetting.prepareTable();
-		TableCreation.checkTable(new TableIncrementalDefinition() {
+	public static void prepareTable(DB db) {
+		GeneralSetting.prepareTable(db);
+		TableCreation.checkTable(db, new TableIncrementalDefinition() {
 			@Override
 			public String getTableDefName() {
 				return TABLE_REGISTRY;
@@ -142,41 +148,41 @@ public class RegistryNode {
 	}
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="Children management">
-	private static PreparedStatement _reqInsertChildName;
+	private PreparedStatement _reqInsertChildName;
 
-	private static PreparedStatement reqInsertChildName() {
+	private PreparedStatement reqInsertChildName() {
 		if (_reqInsertChildName == null) {
-			_reqInsertChildName = DB.session().prepare("INSERT INTO " + TABLE_REGISTRY + "Children ( path, name ) VALUES ( ?, ? );");
+			_reqInsertChildName = db.prepare("INSERT INTO " + TABLE_REGISTRY + "Children ( path, name ) VALUES ( ?, ? );");
 		}
 		return _reqInsertChildName;
 	}
-	private static PreparedStatement _reqDeleteChildName;
+	private PreparedStatement _reqDeleteChildName;
 
-	private static PreparedStatement reqDeleteChildName() {
+	private PreparedStatement reqDeleteChildName() {
 		if (_reqDeleteChildName == null) {
-			_reqDeleteChildName = DB.session().prepare("DELETE FROM " + TABLE_REGISTRY + "Children WHERE path = ? AND name = ?;");
+			_reqDeleteChildName = db.prepare("DELETE FROM " + TABLE_REGISTRY + "Children WHERE path = ? AND name = ?;");
 		}
 		return _reqDeleteChildName;
 	}
-	private static PreparedStatement _reqListChildren;
+	private PreparedStatement _reqListChildren;
 
-	private static PreparedStatement reqListChildrenNames() {
+	private PreparedStatement reqListChildrenNames() {
 		if (_reqListChildren == null) {
-			_reqListChildren = DB.session().prepare("SELECT name FROM " + TABLE_REGISTRY + "Children WHERE path = ?;");
+			_reqListChildren = db.prepare("SELECT name FROM " + TABLE_REGISTRY + "Children WHERE path = ?;");
 		}
 		return _reqListChildren;
 	}
 
 	private void addChild(String name) {
-		DB.session().execute(reqInsertChildName().bind(path, name));
+		db.execute(reqInsertChildName().bind(path, name));
 	}
 
 	private void removeChild(String name) {
-		DB.session().execute(reqDeleteChildName().bind(path, name));
+		db.execute(reqDeleteChildName().bind(path, name));
 	}
 
 	private Iterable<String> getChildrenNames() {
-		final Iterator<Row> iter = DB.session().execute(reqListChildrenNames().bind(path)).iterator();
+		final Iterator<Row> iter = db.execute(reqListChildrenNames().bind(path)).iterator();
 		return new Iterable<String>() {
 			@Override
 			public Iterator<String> iterator() {
@@ -212,7 +218,7 @@ public class RegistryNode {
 
 					@Override
 					public RegistryNode next() {
-						return new RegistryNode(path + iter.next() + "/");
+						return new RegistryNode(db, path + iter.next() + "/");
 					}
 
 					@Override
@@ -244,32 +250,32 @@ public class RegistryNode {
 	private static final int STATUS_UNDEFINED = -1;
 	private static final int STATUS_DELETED = 5;
 	private static final int STATUS_CREATED = 100;
-	private static PreparedStatement _reqGetStatus;
+	private PreparedStatement reqGetStatus;
 
-	private static PreparedStatement reqGetStatus() {
-		if (_reqGetStatus == null) {
-			_reqGetStatus = DB.session().prepare("SELECT status FROM " + TABLE_REGISTRY + " WHERE path = ?;");
+	private PreparedStatement reqGetStatus() {
+		if (reqGetStatus == null) {
+			reqGetStatus = db.prepare("SELECT status FROM " + TABLE_REGISTRY + " WHERE path = ?;");
 		}
-		return _reqGetStatus;
+		return reqGetStatus;
 	}
-	private static PreparedStatement _reqSetStatus;
+	private PreparedStatement _reqSetStatus;
 
-	private static PreparedStatement reqSetStatus() {
+	private PreparedStatement reqSetStatus() {
 		if (_reqSetStatus == null) {
-			_reqSetStatus = DB.session().prepare("UPDATE " + TABLE_REGISTRY + " SET status = ? WHERE path = ?;");
+			_reqSetStatus = db.prepare("UPDATE " + TABLE_REGISTRY + " SET status = ? WHERE path = ?;");
 		}
 		return _reqSetStatus;
 	}
 
 	protected void setStatus(int value) {
-		DB.session().execute(reqSetStatus().bind(value, path));
+		db.execute(reqSetStatus().bind(value, path));
 		status = value;
 	}
 	Integer status;
 
 	protected int getStatus() {
 		if (status == null) {
-			ResultSet rs = DB.session().execute(reqGetStatus().bind(path));
+			ResultSet rs = db.execute(reqGetStatus().bind(path));
 			for (Row row : rs) {
 				status = row.getInt(0);
 			}
@@ -279,21 +285,21 @@ public class RegistryNode {
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="Properties management">
 	private Map<String, String> values;
-	private static PreparedStatement _reqGetValues;
+	private PreparedStatement reqGetValues;
 
-	private static PreparedStatement reqGetValues() {
-		if (_reqGetValues == null) {
-			_reqGetValues = DB.session().prepare("SELECT values FROM " + TABLE_REGISTRY + " WHERE path = ?;");
+	private PreparedStatement reqGetValues() {
+		if (reqGetValues == null) {
+			reqGetValues = db.prepare("SELECT values FROM " + TABLE_REGISTRY + " WHERE path = ?;");
 		}
-		return _reqGetValues;
+		return reqGetValues;
 	}
-	private static PreparedStatement _reqSaveValue;
+	private PreparedStatement reqSaveValue;
 
-	private static PreparedStatement reqSaveValue() {
-		if (_reqSaveValue == null) {
-			_reqSaveValue = DB.session().prepare("UPDATE " + TABLE_REGISTRY + " SET values[ ? ] = ? WHERE path = ?;");
+	private PreparedStatement reqSaveValue() {
+		if (reqSaveValue == null) {
+			reqSaveValue = db.prepare("UPDATE " + TABLE_REGISTRY + " SET values[ ? ] = ? WHERE path = ?;");
 		}
-		return _reqSaveValue;
+		return reqSaveValue;
 	}
 
 	public String getProperty(String name, String defaultValue) {
@@ -318,7 +324,7 @@ public class RegistryNode {
 
 	public Map<String, String> getValues() {
 		if (values == null) {
-			ResultSet rs = DB.session().execute(reqGetValues().bind(path));
+			ResultSet rs = db.execute(reqGetValues().bind(path));
 			for (Row r : rs) {
 				values = new HashMap<>(r.getMap(0, String.class, String.class));
 				return values;
@@ -329,7 +335,7 @@ public class RegistryNode {
 	}
 
 	public void setProperty(String name, String value) {
-		DB.session().execute(reqSaveValue().bind(name, value, path));
+		db.execute(reqSaveValue().bind(name, value, path));
 		if (values != null) {
 			values.put(name, value);
 		}

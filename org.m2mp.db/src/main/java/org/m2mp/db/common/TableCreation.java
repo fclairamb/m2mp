@@ -10,12 +10,15 @@ import org.m2mp.db.DB;
  */
 public class TableCreation {
 
-	public static void checkTable(TableIncrementalDefinition tableDef) {
+	public static void checkTable(DB db, TableIncrementalDefinition tableDef) {
 		int version;
-		if (!tableExists(tableDef.getTableDefName())) {
+		
+//		GeneralSetting gs = new GeneralSetting(db);
+		
+		if (!tableExists(db, tableDef.getTableDefName())) {
 			version = -1;
 		} else {
-			version = GeneralSetting.get("table_version_" + tableDef.getTableDefName(), 0);
+			version = GeneralSetting.get(db, "table_version_" + tableDef.getTableDefName(), 0);
 		}
 //		int lastVersion = version;
 		try {
@@ -23,7 +26,7 @@ public class TableCreation {
 				if (tc.version > version) {
 					System.out.println("Executing \"" + tc.cql + "\"...");
 					try {
-						DB.session().execute(tc.cql);
+						db.execute(tc.cql);
 					} catch (Exception ex) {
 						Logger.getRootLogger().warn("CQL execution issue", ex);
 					}
@@ -31,12 +34,12 @@ public class TableCreation {
 				}
 			}
 		} finally {
-			GeneralSetting.set("table_version_" + tableDef.getTableDefName(), version);
+			GeneralSetting.set(db, "table_version_" + tableDef.getTableDefName(), version);
 		}
 	}
 
-	public static boolean tableExists(String tableName) {
-		TableMetadata table = DB.meta().getTable(tableName);
+	public static boolean tableExists(DB db, String tableName) {
+		TableMetadata table = db.meta().getTable(tableName);
 		return table != null;
 	}
 }

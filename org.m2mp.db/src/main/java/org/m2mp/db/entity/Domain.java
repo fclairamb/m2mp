@@ -18,38 +18,41 @@ import org.m2mp.db.common.TableIncrementalDefinition;
  */
 public class Domain extends Entity {
 
+	private final DB db;
 	private UUID domainId;
 
-	public Domain(UUID id) {
+	public Domain(DB db, UUID id) {
+		this.db = db;
 		domainId = id;
-		node = new RegistryNode("/d/" + id);
+		node = new RegistryNode(db, "/d/" + id);
 	}
 
-	public Domain(String name) {
-		domainId = getIdFromName(name);
+	public Domain(DB db, String name) {
+		this.db = db;
+		domainId = getIdFromName(db, name);
 		if (domainId != null) {
-			node = new RegistryNode("/d/" + domainId);
+			node = new RegistryNode(db, "/d/" + domainId);
 		} else {
 			throw new IllegalArgumentException("The domain \"" + name + "\" could not be found !");
 		}
 	}
 
-	public static Domain get(String name) {
-		UUID domainId = getIdFromName(name);
-		return domainId != null ? new Domain(domainId) : null;
+	public static Domain get(DB db, String name) {
+		UUID domainId = getIdFromName(db, name);
+		return domainId != null ? new Domain(db, domainId) : null;
 	}
 	private static final String PROP_NAME = "name";
 	private static final String PROP_CREATED_DATE = "created";
 
-	public static Domain create(String name) {
-		UUID domainId = getIdFromName(name);
+	public static Domain create(DB db, String name) {
+		UUID domainId = getIdFromName(db, name);
 		if (domainId != null) {
 			throw new IllegalArgumentException("The domain \"" + name + "\" already exists for domain \"" + domainId + "\"");
 		}
 		domainId = UUID.randomUUID();
-		DB.session().execute(reqInsertDomain().bind(name, domainId));
+		db.execute(db.domain.reqInsertDomain().bind(name, domainId));
 
-		Domain d = new Domain(domainId);
+		Domain d = new Domain(db, domainId);
 		d.check();
 		d.setProperty(PROP_NAME, name);
 		d.setProperty(PROP_CREATED_DATE, System.currentTimeMillis());
@@ -61,9 +64,9 @@ public class Domain extends Entity {
 	}
 	private static final String TABLE_DOMAIN = "Domain";
 
-	public static void prepareTable() {
-		RegistryNode.prepareTable();
-		TableCreation.checkTable(new TableIncrementalDefinition() {
+	public static void prepareTable(DB db) {
+		RegistryNode.prepareTable(db);
+		TableCreation.checkTable(db, new TableIncrementalDefinition() {
 			@Override
 			public String getTableDefName() {
 				return TABLE_DOMAIN;
@@ -95,29 +98,13 @@ public class Domain extends Entity {
 		});
 	}
 
-	private static PreparedStatement reqGetIdFromName() {
-		if (reqGetIdFromName == null) {
-			reqGetIdFromName = DB.session().prepare("SELECT id FROM " + TABLE_DOMAIN + " WHERE name = ?;");
-		}
-		return reqGetIdFromName;
-	}
-	private static PreparedStatement reqGetIdFromName;
-
-	protected static UUID getIdFromName(String name) {
-		ResultSet rs = DB.session().execute(reqGetIdFromName().bind(name));
+	protected static UUID getIdFromName(DB db, String name) {
+		ResultSet rs = db.execute(db.domain.reqGetIdFromName().bind(name));
 		for (Row row : rs) {
 			return row.getUUID(0);
 		}
 		return null;
 	}
-
-	private static PreparedStatement reqInsertDomain() {
-		if (reqInsertDomain == null) {
-			reqInsertDomain = DB.session().prepare("INSERT INTO " + TABLE_DOMAIN + " ( name, id ) VALUES ( ?, ? );");
-		}
-		return reqInsertDomain;
-	}
-	private static PreparedStatement reqInsertDomain;
 
 	public UUID getId() {
 		return domainId;

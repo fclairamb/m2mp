@@ -18,59 +18,44 @@ import org.m2mp.db.registry.RegistryNode;
  */
 public class User extends Entity {
 
+	private DB db;
 	private UUID userId;
 
-	public User(UUID userId) {
+	public User(DB db, UUID userId) {
+		this.db = db;
 		this.userId = userId;
-		node = new RegistryNode("/u/" + userId);
+		node = new RegistryNode(db, "/u/" + userId);
 	}
 
-	
-	private static PreparedStatement reqGetFromName() {
-		if (reqGetIdFromName == null) {
-			reqGetIdFromName = DB.session().prepare("SELECT id FROM " + TABLE_USER + " WHERE name = ?;");
-		}
-		return reqGetIdFromName;
-	}
-	private static PreparedStatement reqGetIdFromName;
-
-	protected static UUID getIdFromName(String name) {
-		ResultSet rs = DB.session().execute(reqGetFromName().bind(name));
+	protected static UUID getIdFromName(DB db, String name) {
+		ResultSet rs = db.execute(db.user.reqGetFromName().bind(name));
 		for (Row row : rs) {
 			return row.getUUID(0);
 		}
 		return null;
 	}
 
-	private static PreparedStatement reqInsert() {
-		if (reqInsert == null) {
-			reqInsert = DB.session().prepare("INSERT INTO " + TABLE_USER + " ( name, id, domain ) VALUES ( ?, ?, ? );");
-		}
-		return reqInsert;
-	}
-	private static PreparedStatement reqInsert;
-
 	public UUID getId() {
 		return userId;
 	}
 
-	public static Domain get(String name) {
-		UUID domainId = getIdFromName(name);
-		return domainId != null ? new Domain(domainId) : null;
+	public static Domain get(DB db, String name) {
+		UUID domainId = getIdFromName(db, name);
+		return domainId != null ? new Domain(db, domainId) : null;
 	}
 	private static final String PROP_NAME = "name";
 	private static final String PROP_DOMAIN = "domain";
 	private static final String PROP_CREATED_DATE = "created";
 	private static final String PROP_PASSWORD = "password";
 
-	public static User create(String name, Domain domain) {
-		UUID userId = getIdFromName(name);
+	public static User create(DB db, String name, Domain domain) {
+		UUID userId = getIdFromName(db, name);
 		if (userId != null) {
 			throw new IllegalArgumentException("The user \"" + name + "\" already exists with id \"" + userId + "\"");
 		}
 		userId = UUID.randomUUID();
-		DB.session().execute(reqInsert().bind(name, userId, domain));
-		User u = new User(userId);
+		db.execute(db.user.reqInsert().bind(name, userId, domain));
+		User u = new User(db, userId);
 		u.check();
 		u.setProperty(PROP_NAME, name);
 		u.setProperty(PROP_CREATED_DATE, System.currentTimeMillis());

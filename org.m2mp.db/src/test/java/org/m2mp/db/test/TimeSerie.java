@@ -26,21 +26,22 @@ import org.m2mp.db.registry.RegistryNode;
  * @author florent
  */
 public class TimeSerie {
+	private static DB db;
 
 	@BeforeClass
 	public static void setUpClass() {
-		BaseTest.setUpClass();
+		db = new DB("ks_test");
 		try {
-			DB.session().execute("drop table TimeSeries;");
+			db.execute("drop table TimeSeries;");
 		} catch (Exception ex) {
 		}
-		TimeSeries.prepareTable();
+		TimeSeries.prepareTable(db);
 	}
 
 	@Test
 	public void insertStringNoType() {
 		String id = "insert-without-type";
-		TimeSeries.save(new TimedData(id, null, "{\"lat\":48.8,\"lon\":2.5,\"_type\":\"loc\"}"));
+		TimeSeries.save(db, new TimedData(id, null, "{\"lat\":48.8,\"lon\":2.5,\"_type\":\"loc\"}"));
 	}
 
 	@Test
@@ -49,7 +50,7 @@ public class TimeSerie {
 		Date d = new Date();
 		for (int i = 0; i < 1000; i++) {
 			d.setTime(d.getTime() + 100);
-			TimeSeries.save(new TimedData(id, "loc", "{\"lat\":48.8,\"lon\":2.5}"));
+			TimeSeries.save(db, new TimedData(id, "loc", "{\"lat\":48.8,\"lon\":2.5}"));
 		}
 	}
 
@@ -61,13 +62,13 @@ public class TimeSerie {
 		Map<String, Object> map = new TreeMap<>();
 		map.put("lat", 48.8);
 		map.put("lon", 2.5);
-		TimeSeries.save(new TimedData(id, "loc", d1, map));
+		TimeSeries.save(db, new TimedData(id, "loc", d1, map));
 
 		Map<String, Object> map2 = new TreeMap<>();
 		map2.put("previous", map);
 		map2.put("lat", 45.8);
 		map2.put("lon", 1.5);
-		TimeSeries.save(new TimedData(id, "loc", d2, map2));
+		TimeSeries.save(db, new TimedData(id, "loc", d2, map2));
 	}
 	private long PERIOD = 47 * 3600 * 1000;
 
@@ -80,7 +81,7 @@ public class TimeSerie {
 			Map<String, Object> map = new TreeMap<>();
 			map.put("time", t);
 			map.put("date", "" + d);
-			TimeSeries.save(new TimedData(id, null, d, map));
+			TimeSeries.save(db, new TimedData(id, null, d, map));
 		}
 	}
 
@@ -92,7 +93,7 @@ public class TimeSerie {
 		{
 			int nb = 0;
 			Date lastDate = null;
-			for (TimedData td : TimeSeries.getData(id, null, (Date) null, (Date) null, true)) {
+			for (TimedData td : TimeSeries.getData(db, id, null, (Date) null, (Date) null, true)) {
 				nb++;
 //				System.out.println("[DESC] --> " + td.getJson());
 				if (lastDate != null) {
@@ -105,7 +106,7 @@ public class TimeSerie {
 		{
 			int nb = 0;
 			Date lastDate = null;
-			for (TimedData td : TimeSeries.getData(id, null, (Date) null, (Date) null, false)) {
+			for (TimedData td : TimeSeries.getData(db, id, null, (Date) null, (Date) null, false)) {
 				nb++;
 //				System.out.println("[ASC] --> " + td.getJson());
 				if (lastDate != null) {
@@ -137,7 +138,7 @@ public class TimeSerie {
 		TimedData td = null;
 		boolean ok = true;
 		int nb = 0;
-		for (TimedData td2 : TimeSeries.getData(id, null, (Date) null, (Date) null, inverted)) {
+		for (TimedData td2 : TimeSeries.getData(db, id, null, (Date) null, (Date) null, inverted)) {
 			td = td2;
 			nb++;
 			break;
@@ -146,7 +147,7 @@ public class TimeSerie {
 		Date lastDate = null;
 		while (ok) {
 			ok = false;
-			for (TimedData td2 : TimeSeries.getData(id, null, inverted ? null : td.getDateUUID(), inverted ? td.getDateUUID() : null, inverted)) {
+			for (TimedData td2 : TimeSeries.getData(db, id, null, inverted ? null : td.getDateUUID(), inverted ? td.getDateUUID() : null, inverted)) {
 //				System.out.println("Previous: " + td.getJson());
 				td = td2;
 				ok = true;
@@ -170,7 +171,7 @@ public class TimeSerie {
 		map.put("mark", mark);
 		map.put("date", "" + date);
 		TimedData td = new TimedData(id, null, date, map);
-		TimeSeries.save(td);
+		TimeSeries.save(db, td);
 		return td;
 	}
 
@@ -187,22 +188,22 @@ public class TimeSerie {
 		insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
 		last = insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
 		{ // We want to test the complete range
-			ArrayList<TimedData> results = Lists.newArrayList(TimeSeries.getData(id, null, sdf.parse("2013-08-01 23:59:59"), sdf.parse("2013-08-07 00:00:01"), false));
+			ArrayList<TimedData> results = Lists.newArrayList(TimeSeries.getData(db, id, null, sdf.parse("2013-08-01 23:59:59"), sdf.parse("2013-08-07 00:00:01"), false));
 			Assert.assertEquals(6, results.size());
 		}
 
 		{ // And then between start and end (included)
-			ArrayList<TimedData> results = Lists.newArrayList(TimeSeries.getData(id, null, sdf.parse("2013-08-02 00:00:00"), sdf.parse("2013-08-07 00:00:00"), false));
+			ArrayList<TimedData> results = Lists.newArrayList(TimeSeries.getData(db, id, null, sdf.parse("2013-08-02 00:00:00"), sdf.parse("2013-08-07 00:00:00"), false));
 			Assert.assertEquals(6, results.size());
 		}
 
 		{ // And then between start and end (excluded)
-			ArrayList<TimedData> results = Lists.newArrayList(TimeSeries.getData(id, null, first.getDateUUID(), last.getDateUUID(), false));
+			ArrayList<TimedData> results = Lists.newArrayList(TimeSeries.getData(db, id, null, first.getDateUUID(), last.getDateUUID(), false));
 			Assert.assertEquals(4, results.size());
 		}
 
 		{ // And then only one
-			ArrayList<TimedData> results = Lists.newArrayList(TimeSeries.getData(id, null, sdf.parse("2013-08-01 23:59:59"), sdf.parse("2013-08-02 00:00:01"), false));
+			ArrayList<TimedData> results = Lists.newArrayList(TimeSeries.getData(db, id, null, sdf.parse("2013-08-01 23:59:59"), sdf.parse("2013-08-02 00:00:01"), false));
 			Assert.assertEquals(1, results.size());
 		}
 	}

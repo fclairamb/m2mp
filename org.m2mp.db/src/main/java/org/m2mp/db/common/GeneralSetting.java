@@ -17,61 +17,44 @@ import org.m2mp.db.DB;
  */
 public class GeneralSetting {
 
-	private static final String TABLE_GENERAL_SETTINGS = "general_settings";
-
+//	private static final String TABLE_GENERAL_SETTINGS = "general_settings";
 	// <editor-fold defaultstate="collapsed" desc="Get value">
-	public static int get(String name, int defaultValue) {
-		String value = get(name, (String) null);
+	public static int get(DB db, String name, int defaultValue) {
+		String value = get(db, name, (String) null);
 		return value != null ? Integer.parseInt(value) : defaultValue;
 	}
 
-	public static String get(String name, String defaultValue) {
-		ResultSet rs = DB.session().execute(reqGet().bind(name));
+	public static String get(DB db, String name, String defaultValue) {
+		ResultSet rs = db.execute(db.generalSetting.reqGet().bind(name));
 		for (Row r : rs) {
 			return r.getString(0);
 		}
 		return defaultValue;
 	}
-
-	private static PreparedStatement reqGet() {
-		if (reqGet == null) {
-			reqGet = DB.session().prepare("SELECT value FROM " + TABLE_GENERAL_SETTINGS + " WHERE name = ?;");
-		}
-		return reqGet;
-	}
-	private static PreparedStatement reqGet;
 	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="Set value">
-	static void set(String name, int value) {
-		set(name, "" + value);
+	public static void set(DB db, String name, int value) {
+		set(db, name, "" + value);
 	}
 
-	public static ResultSet set(String name, String value) {
-		return DB.session().execute(reqSet().bind(name, value));
+	public static ResultSet set(DB db, String name, String value) {
+		return db.execute(db.generalSetting.reqSet().bind(name, value));
 	}
 
-	private static PreparedStatement reqSet() {
-		if (reqSet == null) {
-			reqSet = DB.session().prepare("INSERT INTO " + TABLE_GENERAL_SETTINGS + " ( name, value ) VALUES ( ?, ? );");
-		}
-		return reqSet;
-	}
-	private static PreparedStatement reqSet;
 	// </editor-fold>
-
 	// <editor-fold defaultstate="collapsed" desc="Table creation">
-	public static void prepareTable() {
-		TableCreation.checkTable(new TableIncrementalDefinition() {
+	public static void prepareTable(DB db) {
+		TableCreation.checkTable(db, new TableIncrementalDefinition() {
 			@Override
 			public String getTableDefName() {
-				return TABLE_GENERAL_SETTINGS;
+				return DB.GeneralSetting.TABLE_GENERAL_SETTINGS;
 			}
 
 			@Override
 			public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
 				List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
-				list.add(new TableIncrementalDefinition.TableChange(1, "create table " + getTableDefName() + " ( name text primary key, value text );"));
+				list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + getTableDefName() + " ( name text PRIMARY KEY, value text );"));
 				return list;
 			}
 

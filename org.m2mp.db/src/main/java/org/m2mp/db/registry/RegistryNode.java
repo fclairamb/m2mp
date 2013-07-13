@@ -148,41 +148,17 @@ public class RegistryNode {
 	}
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="Children management">
-	private PreparedStatement _reqInsertChildName;
-
-	private PreparedStatement reqInsertChildName() {
-		if (_reqInsertChildName == null) {
-			_reqInsertChildName = db.prepare("INSERT INTO " + TABLE_REGISTRY + "Children ( path, name ) VALUES ( ?, ? );");
-		}
-		return _reqInsertChildName;
-	}
-	private PreparedStatement _reqDeleteChildName;
-
-	private PreparedStatement reqDeleteChildName() {
-		if (_reqDeleteChildName == null) {
-			_reqDeleteChildName = db.prepare("DELETE FROM " + TABLE_REGISTRY + "Children WHERE path = ? AND name = ?;");
-		}
-		return _reqDeleteChildName;
-	}
-	private PreparedStatement _reqListChildren;
-
-	private PreparedStatement reqListChildrenNames() {
-		if (_reqListChildren == null) {
-			_reqListChildren = db.prepare("SELECT name FROM " + TABLE_REGISTRY + "Children WHERE path = ?;");
-		}
-		return _reqListChildren;
-	}
 
 	private void addChild(String name) {
-		db.execute(reqInsertChildName().bind(path, name));
+		db.execute(db.prepare("INSERT INTO " + TABLE_REGISTRY + "Children ( path, name ) VALUES ( ?, ? );").bind(path, name));
 	}
 
 	private void removeChild(String name) {
-		db.execute(reqDeleteChildName().bind(path, name));
+		db.execute(db.prepare("DELETE FROM " + TABLE_REGISTRY + "Children WHERE path = ? AND name = ?;").bind(path, name));
 	}
 
 	private Iterable<String> getChildrenNames() {
-		final Iterator<Row> iter = db.execute(reqListChildrenNames().bind(path)).iterator();
+		final Iterator<Row> iter = db.execute(db.prepare("SELECT name FROM " + TABLE_REGISTRY + "Children WHERE path = ?;").bind(path)).iterator();
 		return new Iterable<String>() {
 			@Override
 			public Iterator<String> iterator() {

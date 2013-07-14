@@ -43,7 +43,6 @@ public class StatusMessage extends MessageWrapper {
 	public void setStatus(Status status) {
 		msg.getContent().put(PROP_STATUS, status.name());
 	}
-//	private final Message msg;
 
 	public StatusMessage(Message msg) {
 		super(msg);

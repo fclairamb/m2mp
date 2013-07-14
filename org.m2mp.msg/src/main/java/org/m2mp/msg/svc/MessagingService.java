@@ -1,7 +1,7 @@
 package org.m2mp.msg.svc;
 
 import java.io.IOException;
-import java.util.Timer;
+import java.util.logging.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.m2mp.msg.base.Message;
@@ -16,8 +16,7 @@ import org.m2mp.msg.base.MessagingClientAsync;
  */
 public abstract class MessagingService implements MessageReceiver {
 
-	private final Object quitWaiter = new Object();
-	protected final Timer timer = new Timer(true);
+	protected final Object quitWaiter = new Object();
 	protected MessagingClientAsync client;
 	protected final Logger log = LogManager.getLogger(getClass());
 
@@ -46,16 +45,18 @@ public abstract class MessagingService implements MessageReceiver {
 		log.warn("{} / Started !", getMyQueueName());
 	}
 
-	public void send(String queueName, Message msg) throws Exception {
-		client.sendAsync(queueName, msg);
+	public void stop() throws IOException {
+		try {
+			client.stop();
+		} finally {
+			synchronized (quitWaiter) {
+				quitWaiter.notify();
+			}
+		}
 	}
 
-	protected final void quit() throws IOException {
-
-		synchronized (quitWaiter) {
-			quitWaiter.notify();
-		}
-		client.stop();
+	public void send(String queueName, Message msg) throws Exception {
+		client.sendAsync(queueName, msg);
 	}
 
 	public final void waitForQuit() throws InterruptedException {
@@ -78,5 +79,11 @@ public abstract class MessagingService implements MessageReceiver {
 
 	@Override
 	public void ended(boolean disconnected) {
+		log.warn("Messaging queue around \"{}\" ended / disconnected={}", getMyQueueName(), disconnected);
+		try {
+			stop();
+		} catch (IOException ex) {
+			log.catching(ex);
+		}
 	}
 }

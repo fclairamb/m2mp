@@ -2,6 +2,7 @@ package org.m2mp.msg.base;
 
 import com.rabbitmq.client.*;
 import java.io.IOException;
+import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -37,24 +38,38 @@ public final class MessagingClient {
 	}
 
 	public synchronized void send(Message msg) throws IOException {
-		if (msg.getFrom() == null) {
-			msg.setFrom(myQueueName);
+		log.debug("{} --> {}", this, msg);
+		synchronized (channel) {
+			channel.basicPublish("", msg.getTo(), MessageProperties.PERSISTENT_BASIC, msg.serialize().getBytes());
 		}
-		channel.basicPublish("", msg.getTo(), MessageProperties.PERSISTENT_BASIC, msg.serialize().getBytes());
 	}
 
-	public synchronized Message recv() throws IOException, InterruptedException {
+	public void send(List<Message> list) throws IOException {
+		for (Message m : list) {
+			send(m);
+		}
+	}
+
+	public Message recv() throws IOException, InterruptedException {
 		QueueingConsumer.Delivery delivery = receivingConsumer.nextDelivery();
 		try {
 			// We might throw something here...
-			return Message.deserialize(new String(delivery.getBody()));
+			Message msg = Message.deserialize(new String(delivery.getBody()));
+			log.debug("{} <-- {}", this, msg);
+			return msg;
 		} finally { // But we don't want to keep this bogus message for ever
-			channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+			synchronized (channel) {
+				channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+			}
 		}
 	}
 
 	public String getQueueName() {
 		return myQueueName;
+	}
+
+	public Message getMessage(String to, String subject) {
+		return new Message(getQueueName(), to, subject);
 	}
 
 	@Override

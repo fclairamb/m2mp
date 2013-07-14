@@ -1,7 +1,6 @@
 package org.m2mp.msg.svc;
 
 import java.io.IOException;
-import java.util.logging.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.m2mp.msg.base.Message;
@@ -16,7 +15,6 @@ import org.m2mp.msg.base.MessagingClientAsync;
  */
 public abstract class MessagingService implements MessageReceiver {
 
-	protected final Object quitWaiter = new Object();
 	protected MessagingClientAsync client;
 	protected final Logger log = LogManager.getLogger(getClass());
 
@@ -42,27 +40,15 @@ public abstract class MessagingService implements MessageReceiver {
 	public void start() throws Exception {
 		client = new MessagingClientAsync(new MessagingClient(getServerQueueName(), getMyQueueName()), this);
 		client.start();
-		log.warn("{} / Started !", getMyQueueName());
+		log.debug("Messaging service around queue \"{}\" Started !", getMyQueueName());
 	}
 
 	public void stop() throws IOException {
-		try {
-			client.stop();
-		} finally {
-			synchronized (quitWaiter) {
-				quitWaiter.notify();
-			}
-		}
+		client.stop();
 	}
 
-	public void send(String queueName, Message msg) throws Exception {
-		client.sendAsync(queueName, msg);
-	}
-
-	public final void waitForQuit() throws InterruptedException {
-		synchronized (quitWaiter) {
-			quitWaiter.wait();
-		}
+	public void send(Message msg) {
+		client.send(msg);
 	}
 
 	protected boolean defaultMessageHandling(Message msg) throws Exception {
@@ -70,7 +56,7 @@ public abstract class MessagingService implements MessageReceiver {
 			case StatusMessage.SUBJECT:
 				StatusMessage m = new StatusMessage(msg);
 				if (m.getType() == StatusMessage.Type.request) {
-					client.sendAsync(m.reply(StatusMessage.Status.ok).getMessage());
+					client.send(m.reply(StatusMessage.Status.ok).getMessage());
 					return true;
 				}
 		}

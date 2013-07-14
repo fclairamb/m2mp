@@ -16,12 +16,13 @@ import org.apache.logging.log4j.Logger;
 public class MessagingClientAsync implements Runnable {
 
 	private final MessagingClient client;
-	private MessageReceiver receiver;
+	private final MessageReceiver receiver;
 	private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(1);
 	protected final Logger log = LogManager.getLogger(getClass());
 
 	public MessagingClientAsync(MessagingClient client, MessageReceiver receiver) {
 		this.client = client;
+		this.receiver = receiver;
 	}
 
 	public void start() throws IOException {
@@ -30,6 +31,7 @@ public class MessagingClientAsync implements Runnable {
 		Thread thread = new Thread(this);
 		thread.setPriority(Thread.MIN_PRIORITY);
 		thread.setDaemon(true);
+		thread.start();
 	}
 
 	public void stop() throws IOException {
@@ -42,15 +44,12 @@ public class MessagingClientAsync implements Runnable {
 		boolean disconnected = false;
 		try {
 			while (true) {
-				try {
-					receiver.received(client.recv());
-				} catch (ShutdownSignalException ex) {
-					disconnected = true;
-				} catch (Exception ex) {
-					log.catching(ex);
-				}
+				receiver.received(client.recv());
 			}
 		} catch (Exception ex) {
+			if (ex instanceof ShutdownSignalException) {
+				disconnected = true;
+			}
 			log.catching(ex);
 		} finally {
 			try {
@@ -62,31 +61,20 @@ public class MessagingClientAsync implements Runnable {
 		}
 	}
 
-	public void sendAsync(String queueName, Message msg) throws Exception {
-		executor.submit(new SendMessageTask(queueName, msg), 0);
+	public void send(Message msg) {
+		executor.schedule(new SendMessageTask(msg), 0, TimeUnit.SECONDS);
 	}
 
-	public void sendAsync(Message msg) {
-		executor.submit(new SendMessageTask(msg));
-	}
+	private class SendMessageTask implements Runnable {
 
-	private class SendMessageTask extends TimerTask {
-
-		private final String queueName;
 		private final Message msg;
 		private final int attemptNb;
 
 		public SendMessageTask(Message msg) {
-			this(null, msg, 0);
+			this(msg, 0);
 		}
 
-		public SendMessageTask(String queueName, Message msg) {
-			this(queueName, msg, 0);
-		}
-
-		public SendMessageTask(String queueName, Message msg, int attemptNb) {
-			assert (queueName != null);
-			this.queueName = queueName;
+		private SendMessageTask(Message msg, int attemptNb) {
 			this.msg = msg;
 			this.attemptNb = attemptNb;
 		}
@@ -94,11 +82,11 @@ public class MessagingClientAsync implements Runnable {
 		@Override
 		public void run() {
 			try {
-				client.send(msg.setTo(queueName));
+				client.send(msg);
 			} catch (Exception ex) {
 				int att = attemptNb + 1;
 				if (att < 5) {
-					executor.schedule(new SendMessageTask(queueName, msg, att), att * 2, TimeUnit.SECONDS);
+					executor.schedule(new SendMessageTask(msg, att), att * 2, TimeUnit.SECONDS);
 				}
 			}
 		}

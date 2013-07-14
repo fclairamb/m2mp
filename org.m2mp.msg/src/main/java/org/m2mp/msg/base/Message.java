@@ -1,7 +1,9 @@
 package org.m2mp.msg.base;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.json.simple.JSONObject;
@@ -76,8 +78,9 @@ public class Message {
 		}
 	}
 
-	public void setContext() {
+	public Message setContext() {
 		setContext(UUID.randomUUID().toString());
+		return this;
 	}
 
 	public String getContext() {
@@ -86,6 +89,12 @@ public class Message {
 
 	public Map<String, Object> getContent() {
 		return content;
+	}
+
+	public Message setContent(Map<String, Object> c) {
+		content.clear();
+		content.putAll(c);
+		return this;
 	}
 	private static final String PROP_TO = "__to";
 	private static final String PROP_FROM = "__from";
@@ -107,5 +116,23 @@ public class Message {
 		Message reply = new Message(getTo(), getFrom(), getSubject());
 		reply.setContext(getContext());
 		return reply;
+	}
+
+	@Override
+	protected Message clone() throws CloneNotSupportedException {
+		return new Message(from, to, date, subject, content);
+	}
+
+	protected List<Message> clone(List<String> tos) {
+		List<Message> msgs = new ArrayList<>(tos.size());
+		for (String t : tos) {
+			msgs.add(new Message(from, t, date, subject, content));
+		}
+		return msgs;
+	}
+
+	@Override
+	public String toString() {
+		return "FROM: " + getFrom() + ", TO: " + getTo() + ", SUBJECT: " + getSubject() + ", DATE: " + getDate() + ", CONTENT: " + getContent();
 	}
 }

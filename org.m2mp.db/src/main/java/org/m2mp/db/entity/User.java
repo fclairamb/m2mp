@@ -20,11 +20,12 @@ public class User extends Entity {
 
 	private DBAccess db;
 	private UUID userId;
+	private static final String PREFIX = "/user/";
 
 	public User(DBAccess db, UUID userId) {
 		this.db = db;
 		this.userId = userId;
-		node = new RegistryNode(db, "/u/" + userId);
+		node = new RegistryNode(db, PREFIX + userId);
 	}
 
 	protected static UUID getIdFromName(DBAccess db, String name) {

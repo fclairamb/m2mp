@@ -20,18 +20,19 @@ public class Domain extends Entity {
 
 	private final DBAccess db;
 	private UUID domainId;
+	private static final String PREFIX = "/domain/";
 
 	public Domain(DBAccess db, UUID id) {
 		this.db = db;
 		domainId = id;
-		node = new RegistryNode(db, "/d/" + id);
+		node = new RegistryNode(db, PREFIX + id);
 	}
 
 	public Domain(DBAccess db, String name) {
 		this.db = db;
 		domainId = getIdFromName(db, name);
 		if (domainId != null) {
-			node = new RegistryNode(db, "/d/" + domainId);
+			node = new RegistryNode(db, PREFIX + domainId);
 		} else {
 			throw new IllegalArgumentException("The domain \"" + name + "\" could not be found !");
 		}

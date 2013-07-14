@@ -16,10 +16,8 @@ public class MessageWrapper {
 		this.msg = msg;
 	}
 
-	public Message prepareReply() {
-		Message reply = new Message(msg.getTo(), msg.getFrom(), msg.getSubject());
-		reply.setContext(msg.getContext());
-		return msg;
+	public MessageWrapper prepareReply() {
+		return new MessageWrapper(msg.prepareReply());
 	}
 
 	public Message getMessage() {

@@ -9,6 +9,7 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.m2mp.msg.base.Message;
+import org.m2mp.msg.base.MessageWrapper;
 
 /**
  *
@@ -87,6 +88,48 @@ public class Messages {
 			Message msg = Message.deserialize(serialized);
 			if (msg.getSubject().equals(SampleMessage.SUBJECT)) {
 				SampleMessage sm = new SampleMessage(msg);
+				Assert.assertEquals("Micheline", sm.getName());
+			} else {
+				throw new RuntimeException("Type " + msg.getSubject() + " is unknown !");
+			}
+		}
+	}
+
+	class SampleMessage2 extends MessageWrapper {
+
+		public static final String SUBJECT = "sample";
+
+		public SampleMessage2(String from, String to) {
+			this(new Message(from, to, SUBJECT));
+		}
+
+		public SampleMessage2(Message msg) {
+			super(msg);
+		}
+		private static final String PROP_NAME = "name";
+
+		public void setName(String name) {
+			msg.getContent().put(PROP_NAME, name);
+		}
+
+		public String getName() {
+			return (String) msg.getContent().get("name");
+		}
+	}
+
+	@Test
+	public void messageWrapperSerDeser() {
+		String serialized;
+		{ // We create the message
+			SampleMessage2 sm = new SampleMessage2("me", "you");
+			sm.setName("Micheline");
+			serialized = sm.serialize();
+		}
+
+		{ // We test it
+			Message msg = Message.deserialize(serialized);
+			if (msg.getSubject().equals(SampleMessage.SUBJECT)) {
+				SampleMessage2 sm = new SampleMessage2(msg);
 				Assert.assertEquals("Micheline", sm.getName());
 			} else {
 				throw new RuntimeException("Type " + msg.getSubject() + " is unknown !");

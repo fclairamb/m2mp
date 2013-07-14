@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.m2mp.msg.base;
 
 import java.util.Date;
@@ -95,7 +91,7 @@ public class Message {
 	private static final String PROP_FROM = "__from";
 	private static final String PROP_SUBJECT = "__subject";
 	private static final String PROP_DATE = "__date";
-	private static final String PROP_CONTEXT = "__CONTEXT";
+	private static final String PROP_CONTEXT = "__context";
 
 	public String serialize() {
 		Map<String, Object> obj = new HashMap<>();
@@ -105,5 +101,11 @@ public class Message {
 		obj.put(PROP_DATE, date.getTime());
 		obj.putAll(content);
 		return JSONObject.toJSONString(obj);
+	}
+
+	public Message prepareReply() {
+		Message reply = new Message(getTo(), getFrom(), getSubject());
+		reply.setContext(getContext());
+		return reply;
 	}
 }

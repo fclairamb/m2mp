@@ -3,9 +3,7 @@ package org.m2mp.msg.base;
 import com.rabbitmq.client.*;
 import com.rabbitmq.client.QueueingConsumer.Delivery;
 import java.io.IOException;
-import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -32,7 +30,7 @@ public final class MessagingClient implements Runnable {
 		private final String queueName;
 		private final Message msg;
 		private final int attemptNb;
-		
+
 		public SendMessageTask(Message msg) {
 			this(null, msg, 0);
 		}
@@ -101,6 +99,7 @@ public final class MessagingClient implements Runnable {
 					receiver.disconnected();
 					receivingConsumer = null;
 				} catch (Exception ex) {
+					log.catching(ex);
 				}
 			}
 			channel.close();
@@ -116,12 +115,12 @@ public final class MessagingClient implements Runnable {
 		msg.setFrom(myQueueName);
 		executor.submit(new SendMessageTask(queueName, msg), 0);
 	}
-	
+
 	public void sendAsync(Message msg) {
 		executor.submit(new SendMessageTask(msg));
 	}
-	
-	public void send(Message msg ) throws Exception {
+
+	public void send(Message msg) throws Exception {
 		msg.setFrom(myQueueName);
 		actualSend(msg);
 	}

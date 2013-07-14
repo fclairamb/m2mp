@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.m2mp.msg.base.Message;
 import org.m2mp.msg.base.MessageReceiver;
 import org.m2mp.msg.base.MessagingClient;
+import org.m2mp.msg.base.MessagingClientAsync;
 
 /**
  * Abstract messaging service
@@ -17,7 +18,7 @@ public abstract class MessagingService implements MessageReceiver {
 
 	private final Object quitWaiter = new Object();
 	protected final Timer timer = new Timer(true);
-	protected MessagingClient client;
+	protected MessagingClientAsync client;
 	protected final Logger log = LogManager.getLogger(getClass());
 
 	/**
@@ -40,7 +41,7 @@ public abstract class MessagingService implements MessageReceiver {
 	 * Start messaging
 	 */
 	public void start() throws Exception {
-		client = new MessagingClient(getServerQueueName(), getMyQueueName(), this);
+		client = new MessagingClientAsync(new MessagingClient(getServerQueueName(), getMyQueueName()), this);
 		client.start();
 		log.warn("{} / Started !", getMyQueueName());
 	}
@@ -76,10 +77,6 @@ public abstract class MessagingService implements MessageReceiver {
 	}
 
 	@Override
-	public void disconnected() {
-	}
-
-	@Override
-	public void ended() {
+	public void ended(boolean disconnected) {
 	}
 }

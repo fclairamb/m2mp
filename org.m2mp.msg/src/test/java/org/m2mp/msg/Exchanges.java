@@ -19,8 +19,8 @@ public class Exchanges {
 
 	@Test
 	public void sendMessageToMyself() throws IOException, InterruptedException {
-		MessagingClient c1 = new MessagingClient("localhost", "q1");
-		MessagingClient c2 = new MessagingClient("localhost", "q2");
+		MessagingClient c1 = new MessagingClient("localhost");
+		MessagingClient c2 = new MessagingClient("localhost");
 
 		c1.start();
 		c2.start();

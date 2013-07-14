@@ -17,10 +17,35 @@ public final class MessagingClient {
 	private Channel channel;
 	private QueueingConsumer receivingConsumer;
 	protected final Logger log = LogManager.getLogger(getClass());
+	protected boolean durable, exclusive, autodelete;
+
+	public MessagingClient(String serverName) {
+		this.serverName = serverName;
+		this.myQueueName = "tmpqueue_" + System.currentTimeMillis() % 10000 + "_" + System.nanoTime() % 10000;
+		durable = false;
+		exclusive = true;
+		autodelete = true;
+	}
 
 	public MessagingClient(String serverName, String myQueueName) {
 		this.serverName = serverName;
 		this.myQueueName = myQueueName;
+		durable = true;
+	}
+
+	public MessagingClient setDurable(boolean durable) {
+		this.durable = durable;
+		return this;
+	}
+
+	public MessagingClient setExclusive(boolean exclusive) {
+		this.exclusive = exclusive;
+		return this;
+	}
+
+	public MessagingClient setAutoDelete(boolean autodelete) {
+		this.autodelete = autodelete;
+		return this;
 	}
 
 	public void start() throws IOException {
@@ -29,7 +54,7 @@ public final class MessagingClient {
 		Connection connection = factory.newConnection();
 		channel = connection.createChannel();
 		receivingConsumer = new QueueingConsumer(channel);
-		channel.queueDeclare(myQueueName, true, false, false, null);
+		channel.queueDeclare(myQueueName, durable, exclusive, autodelete, null);
 		channel.basicConsume(myQueueName, false, receivingConsumer);
 	}
 

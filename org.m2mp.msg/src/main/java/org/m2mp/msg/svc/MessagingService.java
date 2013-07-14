@@ -15,7 +15,7 @@ import org.m2mp.msg.base.MessagingClientAsync;
  */
 public abstract class MessagingService implements MessageReceiver {
 
-	protected MessagingClientAsync client;
+	protected MessagingClientAsync clientAsync;
 	protected final Logger log = LogManager.getLogger(getClass());
 
 	/**
@@ -38,17 +38,17 @@ public abstract class MessagingService implements MessageReceiver {
 	 * Start messaging
 	 */
 	public void start() throws Exception {
-		client = new MessagingClientAsync(new MessagingClient(getServerQueueName(), getMyQueueName()), this);
-		client.start();
+		clientAsync = new MessagingClientAsync(new MessagingClient(getServerQueueName(), getMyQueueName()), this);
+		clientAsync.start();
 		log.debug("Messaging service around queue \"{}\" Started !", getMyQueueName());
 	}
 
 	public void stop() throws IOException {
-		client.stop();
+		clientAsync.stop();
 	}
 
 	public void send(Message msg) {
-		client.send(msg);
+		clientAsync.send(msg);
 	}
 
 	protected boolean defaultMessageHandling(Message msg) throws Exception {
@@ -56,7 +56,7 @@ public abstract class MessagingService implements MessageReceiver {
 			case StatusMessage.SUBJECT:
 				StatusMessage m = new StatusMessage(msg);
 				if (m.getType() == StatusMessage.Type.request) {
-					client.send(m.reply(StatusMessage.Status.ok).getMessage());
+					clientAsync.send(m.reply(StatusMessage.Status.ok).getMessage());
 					return true;
 				}
 		}

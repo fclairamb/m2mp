@@ -13,7 +13,7 @@ public class AppTest {
 
 	@Test
 	public void sendPing() throws IOException, InterruptedException {
-		MessagingClient clt = new MessagingClient("localhost", "ping_tester");
+		MessagingClient clt = new MessagingClient("localhost", "ping_tester").setDurable(false).setAutoDelete(true);
 		clt.start();
 		Message m1 = clt.getMessage("ping", "ping").setContext();
 		String context = m1.getContext();

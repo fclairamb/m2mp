@@ -25,6 +25,9 @@
         <module name="org.m2mp" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="org.m2mp" target="1.7" />
+    </bytecodeTargetLevel>
   </component>
 </project>
 

@@ -6,7 +6,7 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.utils.UUIDs;
 import java.util.*;
 import org.m2mp.db.DBAccess;
-import static org.m2mp.db.ts.TimeSeries.TABLE_TIMESERIES;
+import static org.m2mp.db.ts.TimeSerie.TABLE_TIMESERIES;
 
 /**
  *
@@ -26,8 +26,8 @@ public class GetDataIterator implements Iterator<TimedData> {
 		this.key = id + (type != null ? "!" + type : "");
 		this.dateBegin = dateBegin != null ? dateBegin : UUIDs.startOf(System.currentTimeMillis() - (1000L * 3600 * 24 * 365 * 2)); // By default, 2 years back, at most 25 empty periods
 		this.dateEnd = dateEnd != null ? dateEnd : UUIDs.endOf(System.currentTimeMillis() + (1000L * 3600 * 24 * 7)); // By default, 7 days ahead, at most 1 empty period
-		this.periodBegin = TimeSeries.dateToPeriod(this.dateBegin);
-		this.periodEnd = TimeSeries.dateToPeriod(this.dateEnd);
+		this.periodBegin = TimeSerie.dateToPeriod(this.dateBegin);
+		this.periodEnd = TimeSerie.dateToPeriod(this.dateEnd);
 		this.inverted = inverted;
 
 		// We're either starting from the end or the beginning

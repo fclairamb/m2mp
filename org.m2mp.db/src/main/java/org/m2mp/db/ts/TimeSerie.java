@@ -15,7 +15,7 @@ import org.m2mp.db.common.TableIncrementalDefinition;
  *
  * @author Florent Clairambault
  */
-public class TimeSeries {
+public class TimeSerie {
 
 //	static final String TABLE_TIMESERIES = "TimeSeries";
 	public static void prepareTable(DBAccess db) {

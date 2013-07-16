@@ -6,6 +6,7 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.Query;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -27,6 +28,16 @@ public class DBAccess {
 		session = Cluster.builder().addContactPoint("localhost").build().connect(keyspaceName);
 	}
 
+	public static DBAccess getOrCreate(String name) {
+		try {
+			return new DBAccess(name);
+		} catch (InvalidQueryException ex) {
+			Cluster cluster = Cluster.builder().addContactPoint("localhost").build();
+			cluster.connect().execute("CREATE KEYSPACE " + name + " WITH replication = {'class':'SimpleStrategy', 'replication_factor':3};");
+			return new DBAccess(name);
+		}
+	}
+
 	public Session session() {
 		return session;
 	}
@@ -34,7 +45,6 @@ public class DBAccess {
 	public KeyspaceMetadata meta() {
 		return session.getCluster().getMetadata().getKeyspace(keyspaceName);
 	}
-	
 	private final LoadingCache<String, PreparedStatement> psCache = CacheBuilder.newBuilder().maximumSize(100).build(new CacheLoader<String, PreparedStatement>() {
 		@Override
 		public PreparedStatement load(String query) throws Exception {

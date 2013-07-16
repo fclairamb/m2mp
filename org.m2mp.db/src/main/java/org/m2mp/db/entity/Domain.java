@@ -1,6 +1,5 @@
 package org.m2mp.db.entity;
 
-import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import java.util.ArrayList;

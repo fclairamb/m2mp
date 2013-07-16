@@ -14,13 +14,13 @@ import org.m2mp.db.DBAccess;
  *
  * @author Florent Clairambault
  */
-public class Domains {
+public class DomainTest {
 
 	private static DBAccess db;
 
 	@BeforeClass
 	public static void setUpClass() {
-		db = new DBAccess("ks_test");
+		db = DBAccess.getOrCreate("ks_test");
 		try {
 			db.execute("drop table Domain;");
 			db.execute("drop table RegistryNode;");

@@ -16,7 +16,7 @@ import org.m2mp.db.DBAccess;
  */
 public class GeneralSetting {
 
-	private static final String TABLE_GENERAL_SETTINGS = "general_settings";
+	public static final String TABLE_GENERAL_SETTINGS = "generalsettings";
 	// <editor-fold defaultstate="collapsed" desc="Get value">
 
 	public static int get(DBAccess db, String name, int defaultValue) {

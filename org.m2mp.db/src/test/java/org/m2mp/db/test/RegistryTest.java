@@ -16,13 +16,13 @@ import org.m2mp.db.registry.RegistryNode;
  *
  * @author Florent Clairambault
  */
-public class Registry {
+public class RegistryTest {
 
 	private static DBAccess db;
 
 	@BeforeClass
 	public static void setUpClass() {
-		db = new DBAccess("ks_test");
+		db = DBAccess.getOrCreate("ks_test");
 		try {
 			db.execute("drop table RegistryNode;");
 			db.execute("drop table RegistryNodeChildren;");

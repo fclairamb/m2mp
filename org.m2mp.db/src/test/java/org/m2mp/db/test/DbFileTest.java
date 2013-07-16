@@ -27,7 +27,7 @@ import org.m2mp.db.registry.RegistryNode;
  * This test is very agressive for any cassandra cluster since it destroyes and
  * recreates all the tables.
  */
-public class DbFiles {
+public class DbFileTest {
 
 	public static class Hashing {
 
@@ -63,7 +63,7 @@ public class DbFiles {
 
 	@BeforeClass
 	public static void setUpClass() {
-		db = new DBAccess("ks_test");
+		db = DBAccess.getOrCreate("ks_test");
 		try {
 			db.execute("drop table RegistryNode;");
 			db.execute("drop table RegistryNodeChildren;");

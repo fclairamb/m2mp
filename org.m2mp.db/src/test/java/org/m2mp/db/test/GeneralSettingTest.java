@@ -15,15 +15,15 @@ import org.m2mp.db.DBAccess;
  *
  * @author Florent Clairambault
  */
-public class GeneralSettings {
+public class GeneralSettingTest {
 
 	static DBAccess db;
 
 	@BeforeClass
 	public static void setUpClass() {
-		db = new DBAccess("ks_test");
+		db = DBAccess.getOrCreate("ks_test");
 		try {
-			db.execute("drop table general_settings;");
+			db.execute("drop table " + GeneralSetting.TABLE_GENERAL_SETTINGS + ";");
 		} catch (Exception ex) {
 		}
 		GeneralSetting.prepareTable(db);

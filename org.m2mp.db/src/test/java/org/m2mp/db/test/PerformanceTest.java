@@ -8,6 +8,7 @@ import com.datastax.driver.core.PreparedStatement;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.m2mp.db.DBAccess;
+import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.entity.Domain;
 
 /**
@@ -20,7 +21,7 @@ public class PerformanceTest {
 
 	@BeforeClass
 	public static void setUpClass() {
-		db = new DBAccess("ks_test");
+		db = DBAccess.getOrCreate("ks_test");
 		try {
 			db.execute("drop table Domain;");
 			db.execute("drop table RegistryNode;");
@@ -28,6 +29,7 @@ public class PerformanceTest {
 			db.execute("drop table RegistryNodeData;");
 		} catch (Exception ex) {
 		}
+		GeneralSetting.prepareTable(db);
 		Domain.prepareTable(db);
 	}
 

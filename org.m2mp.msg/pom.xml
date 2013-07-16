@@ -6,7 +6,6 @@
 	<artifactId>org.m2mp.msg</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
-
 	<name>org.m2mp.msg</name>
 	<url>http://maven.apache.org</url>
 	<build>

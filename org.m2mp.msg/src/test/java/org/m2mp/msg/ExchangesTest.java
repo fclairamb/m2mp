@@ -8,13 +8,15 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.m2mp.msg.base.Message;
+import org.m2mp.msg.base.Message;
+import org.m2mp.msg.base.MessagingClient;
 import org.m2mp.msg.base.MessagingClient;
 
 /**
  *
  * @author florent
  */
-public class Exchanges {
+public class ExchangesTest {
 
 	@Test
 	public void sendMessageToMyself() throws IOException, InterruptedException {

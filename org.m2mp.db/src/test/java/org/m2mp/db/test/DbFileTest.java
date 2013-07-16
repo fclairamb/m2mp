@@ -100,8 +100,8 @@ public class DbFileTest {
 	}
 
 	@Test
-	public void BigSize() throws Exception { // 600 MB
-		realAndDbFilesComparison(600, 1024 * 1024, 1024 * 512);
+	public void BigSize() throws Exception { // 20 MB
+		realAndDbFilesComparison(20, 1024 * 1024, 1024 * 512);
 	}
 
 	private void realAndDbFilesComparison(int nbBlocks, int blockSize, int chunkSize) throws Exception {

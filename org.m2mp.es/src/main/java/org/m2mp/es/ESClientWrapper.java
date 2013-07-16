@@ -4,6 +4,9 @@
  */
 package org.m2mp.es;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.gson.JsonObject;
 import io.searchbox.Action;
 import io.searchbox.Parameters;
@@ -17,10 +20,10 @@ import io.searchbox.core.Index;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -39,17 +42,20 @@ public class ESClientWrapper {
 		clientConfig.getProperties().put(ClientConstants.SERVER_LIST, new LinkedHashSet<>(Arrays.asList("http://localhost:9200")));
 		clientFactory.setClientConfig(clientConfig);
 	}
-	private static final Map<Long, ESClientWrapper> clients = new TreeMap<>();
+	private static final LoadingCache<Long, ESClientWrapper> clients = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).maximumSize(10).build(new CacheLoader<Long, ESClientWrapper>() {
+		@Override
+		public ESClientWrapper load(Long k) throws Exception {
+			return new ESClientWrapper();
+		}
+	});
 
 	static ESClientWrapper get() {
-		long threadId = Thread.currentThread().getId();
 		ESClientWrapper client;
-		synchronized (clients) {
-			client = clients.get(threadId);
-			if (client == null) {
-				client = new ESClientWrapper();
-				clients.put(threadId, client);
-			}
+		try {
+			client = clients.get(Thread.currentThread().getId());
+		} catch (ExecutionException ex) {
+			log.catching(ex);
+			return null;
 		}
 		return client;
 	}

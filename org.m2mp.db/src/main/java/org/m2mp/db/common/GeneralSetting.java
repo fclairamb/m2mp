@@ -16,7 +16,7 @@ import org.m2mp.db.DBAccess;
  */
 public class GeneralSetting {
 
-	public static final String TABLE_GENERAL_SETTINGS = "generalsettings";
+	public static final String TABLE = "generalsettings";
 	// <editor-fold defaultstate="collapsed" desc="Get value">
 
 	public static int get(DBAccess db, String name, int defaultValue) {
@@ -25,7 +25,7 @@ public class GeneralSetting {
 	}
 
 	public static String get(DBAccess db, String name, String defaultValue) {
-		ResultSet rs = db.execute(db.prepare("SELECT value FROM " + TABLE_GENERAL_SETTINGS + " WHERE name = ?;").bind(name));
+		ResultSet rs = db.execute(db.prepare("SELECT value FROM " + TABLE + " WHERE name = ?;").bind(name));
 		for (Row r : rs) {
 			return r.getString(0);
 		}
@@ -39,7 +39,7 @@ public class GeneralSetting {
 	}
 
 	public static ResultSet set(DBAccess db, String name, String value) {
-		return db.execute(db.prepare("INSERT INTO " + TABLE_GENERAL_SETTINGS + " ( name, value ) VALUES ( ?, ? );").bind(name, value));
+		return db.execute(db.prepare("INSERT INTO " + TABLE + " ( name, value ) VALUES ( ?, ? );").bind(name, value));
 	}
 
 	// </editor-fold>
@@ -48,7 +48,7 @@ public class GeneralSetting {
 		TableCreation.checkTable(db, new TableIncrementalDefinition() {
 			@Override
 			public String getTableDefName() {
-				return TABLE_GENERAL_SETTINGS;
+				return TABLE;
 			}
 
 			@Override

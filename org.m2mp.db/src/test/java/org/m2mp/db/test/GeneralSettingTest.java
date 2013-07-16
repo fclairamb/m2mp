@@ -23,7 +23,7 @@ public class GeneralSettingTest {
 	public static void setUpClass() {
 		db = DBAccess.getOrCreate("ks_test");
 		try {
-			db.execute("drop table " + GeneralSetting.TABLE_GENERAL_SETTINGS + ";");
+			db.execute("drop table " + GeneralSetting.TABLE + ";");
 		} catch (Exception ex) {
 		}
 		GeneralSetting.prepareTable(db);

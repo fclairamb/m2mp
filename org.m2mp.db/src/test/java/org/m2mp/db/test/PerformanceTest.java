@@ -36,13 +36,13 @@ public class PerformanceTest {
 	@Test
 	public void shouldBeSlow() { // 21.5s
 		for (int i = 0; i < 20000; i++) {
-			db.execute(db.prepareNoCache("INSERT INTO GeneralSetting ( name, value ) VALUES ( ?, ? );").bind("name", "value"));
+			db.execute(db.prepareNoCache("INSERT INTO " + GeneralSetting.TABLE + " ( name, value ) VALUES ( ?, ? );").bind("name", "value"));
 		}
 	}
 
 	@Test
 	public void shouldBeFast() { // 8.9s
-		PreparedStatement ps = db.prepareNoCache("INSERT INTO GeneralSetting ( name, value ) VALUES ( ?, ? );");
+		PreparedStatement ps = db.prepareNoCache("INSERT INTO " + GeneralSetting.TABLE + " ( name, value ) VALUES ( ?, ? );");
 		for (int i = 0; i < 20000; i++) {
 			db.execute(ps.bind("name", "value"));
 		}
@@ -51,7 +51,7 @@ public class PerformanceTest {
 	@Test
 	public void iWonderAboutThisOne() { // 8.9s
 		for (int i = 0; i < 20000; i++) {
-			db.execute(db.prepare("INSERT INTO GeneralSetting ( name, value ) VALUES ( ?, ? );").bind("name", "value"));
+			db.execute(db.prepare("INSERT INTO " + GeneralSetting.TABLE + " ( name, value ) VALUES ( ?, ? );").bind("name", "value"));
 		}
 	}
 }

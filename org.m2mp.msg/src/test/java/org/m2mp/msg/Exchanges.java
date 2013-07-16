@@ -5,7 +5,6 @@
 package org.m2mp.msg;
 
 import java.io.IOException;
-import java.util.UUID;
 import org.junit.Assert;
 import org.junit.Test;
 import org.m2mp.msg.base.Message;

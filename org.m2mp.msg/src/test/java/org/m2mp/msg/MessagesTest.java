@@ -9,8 +9,6 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 import org.m2mp.msg.base.Message;
-import org.m2mp.msg.base.Message;
-import org.m2mp.msg.base.MessageWrapper;
 import org.m2mp.msg.base.MessageWrapper;
 
 /**

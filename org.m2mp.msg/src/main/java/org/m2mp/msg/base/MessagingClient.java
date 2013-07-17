@@ -7,7 +7,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- * ControlClient handler
+ * Messaging client.
+ *
+ * It's based on RabbitMQ but it might switch to ZMQ + Cassandra as name
+ * registry.
  *
  * @author Florent Clairambault / www.webingenia.com
  */

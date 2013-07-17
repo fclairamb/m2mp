@@ -39,7 +39,7 @@ public class TableCreation {
 	}
 
 	public static boolean tableExists(DBAccess db, String tableName) {
-		TableMetadata table = db.meta().getTable(tableName);
+		TableMetadata table = db.meta().getTable(tableName.toLowerCase());
 		return table != null;
 	}
 }

@@ -104,6 +104,20 @@ public class DbFileTest {
 		realAndDbFilesComparison(20, 1024 * 1024, 1024 * 512);
 	}
 
+	@Test
+	public void properties() throws Exception {
+		{
+			DbFile file = new DbFile(new RegistryNode(db, "/this/is/my/file").check());
+			file.setName("toto.txt");
+			file.setType("my-own/mime-type");
+		}
+		{
+			DbFile file = new DbFile(new RegistryNode(db, "/this/is/my/file").check());
+			Assert.assertEquals("toto.txt", file.getName());
+			Assert.assertEquals("my-own/mime-type", file.getType());
+		}
+	}
+
 	private void realAndDbFilesComparison(int nbBlocks, int blockSize, int chunkSize) throws Exception {
 		File file1;
 		DbFile file2;

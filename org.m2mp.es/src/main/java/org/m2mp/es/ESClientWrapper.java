@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.m2mp.es;
 
 import com.google.common.cache.CacheBuilder;
@@ -42,7 +38,7 @@ public class ESClientWrapper {
 		clientConfig.getProperties().put(ClientConstants.SERVER_LIST, new LinkedHashSet<>(Arrays.asList("http://localhost:9200")));
 		clientFactory.setClientConfig(clientConfig);
 	}
-	private static final LoadingCache<Long, ESClientWrapper> clients = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).maximumSize(10).build(new CacheLoader<Long, ESClientWrapper>() {
+	private static final LoadingCache<Long, ESClientWrapper> clients = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).maximumSize(20).build(new CacheLoader<Long, ESClientWrapper>() {
 		@Override
 		public ESClientWrapper load(Long k) throws Exception {
 			return new ESClientWrapper();

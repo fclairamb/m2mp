@@ -18,36 +18,43 @@ public class EsSearchRequest {
 
 	private QueryBuilder query;
 
-	public void setQuery(QueryBuilder query) {
+	public EsSearchRequest setQuery(QueryBuilder query) {
 		this.query = query;
+		return this;
 	}
 	private final List<SortBuilder> sorts = new ArrayList<>();
 
-	public void addSort(String fieldName) {
+	public EsSearchRequest addSort(String fieldName) {
 		addSort(SortBuilders.fieldSort(fieldName));
+		return this;
 	}
 
-	public void addSort(String fieldName, boolean order) {
+	public EsSearchRequest addSort(String fieldName, boolean order) {
 		addSort(SortBuilders.fieldSort(fieldName).order(order ? SortOrder.ASC : SortOrder.DESC));
+		return this;
 	}
 
-	public void addSort(SortBuilder sb) {
+	public EsSearchRequest addSort(SortBuilder sb) {
 		sorts.add(sb);
+		return this;
 	}
 	private final List<AbstractFacetBuilder> facets = new ArrayList<>();
 
-	public void addFacetsTerms(String fieldName) {
+	public EsSearchRequest addFacetsTerms(String fieldName) {
 		facets.add(FacetBuilders.termsFacet(fieldName).field(fieldName));
+		return this;
 	}
 	private int from = -1;
 
-	public void setFrom(int from) {
+	public EsSearchRequest setFrom(int from) {
 		this.from = from;
+		return this;
 	}
 	private int size = -1;
 
-	public void setSize(int size) {
+	public EsSearchRequest setSize(int size) {
 		this.size = size;
+		return this;
 	}
 
 	public SearchRequestBuilder getSearchRequest() {

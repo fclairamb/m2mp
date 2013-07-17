@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.m2mp.db.DBAccess;
 import static org.m2mp.db.entity.Domain.getIdFromName;
 import org.m2mp.db.common.Entity;
+import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
 import org.m2mp.db.registry.RegistryNode;
 
@@ -71,23 +72,26 @@ public class User extends Entity {
 		setProperty(PROP_PASSWORD, pass);
 	}
 	private static final String TABLE_USER = "User";
-	public static final TableIncrementalDefinition DEFINITION = new TableIncrementalDefinition() {
-		@Override
-		public String getTableDefName() {
-			return TABLE_USER;
-		}
 
-		@Override
-		public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
-			List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
-			list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_USER + " name text PRIMARY KEY, id uuid, domain uuid );"));
-			list.add(new TableIncrementalDefinition.TableChange(2, "CREATE INDEX ON " + TABLE_USER + " ( domain );"));
-			return list;
-		}
+	public static void prepareTable(DBAccess db) {
+		TableCreation.checkTable(db, new TableIncrementalDefinition() {
+			@Override
+			public String getTableDefName() {
+				return TABLE_USER;
+			}
 
-		@Override
-		public int getTableDefVersion() {
-			return 1;
-		}
-	};
+			@Override
+			public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
+				List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
+				list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_USER + " name text PRIMARY KEY, id uuid, domain uuid );"));
+				list.add(new TableIncrementalDefinition.TableChange(2, "CREATE INDEX ON " + TABLE_USER + " ( domain );"));
+				return list;
+			}
+
+			@Override
+			public int getTableDefVersion() {
+				return 1;
+			}
+		});
+	}
 }

@@ -205,6 +205,10 @@ public class RegistryNode {
 		};
 	}
 
+	public RegistryNode getChild(String name) {
+		return new RegistryNode(db, path + name + "/");
+	}
+
 	/**
 	 * Get the number of children.
 	 *

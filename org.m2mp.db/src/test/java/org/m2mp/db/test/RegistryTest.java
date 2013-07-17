@@ -6,6 +6,7 @@ package org.m2mp.db.test;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -81,5 +82,25 @@ public class RegistryTest {
 
 		node = new RegistryNode(db, "/my/path");
 		Assert.assertEquals("abc", node.getProperty("prop", "___"));
+	}
+
+	@Test
+	public void children() {
+		new RegistryNode(db, "/ch/a/bc").check();
+		new RegistryNode(db, "/ch/b/cd").check();
+		new RegistryNode(db, "/ch/c/de").check();
+
+		{ // We check that we find the 3 children
+			RegistryNode parent = new RegistryNode(db, "/ch");
+			Assert.assertEquals(3, Lists.newLinkedList(parent.getChildren()).size());
+		}
+		
+		new RegistryNode(db, "/ch/a/bc2").check();
+
+		{ // We check that we find the 2 sub-children
+			
+			RegistryNode parent = new RegistryNode(db, "/ch/a");
+			Assert.assertEquals(2, Lists.newLinkedList(parent.getChildren()).size());
+		}		
 	}
 }

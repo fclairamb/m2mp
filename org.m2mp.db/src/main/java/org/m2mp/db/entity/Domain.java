@@ -50,7 +50,7 @@ public class Domain extends Entity {
 			throw new IllegalArgumentException("The domain \"" + name + "\" already exists for domain \"" + domainId + "\"");
 		}
 		domainId = UUID.randomUUID();
-		db.execute(db.prepare("INSERT INTO " + TABLE_DOMAIN + " ( name, id ) VALUES ( ?, ? );").bind(name, domainId));
+		db.execute(db.prepare("INSERT INTO " + TABLE + " ( name, id ) VALUES ( ?, ? );").bind(name, domainId));
 
 		Domain d = new Domain(db, domainId);
 		d.check();
@@ -62,10 +62,13 @@ public class Domain extends Entity {
 	public String getName() {
 		return getProperty(PROP_NAME, null);
 	}
-	public static final String TABLE_DOMAIN = "Domain";
+
+	public void setName(String name) {
+	}
+	public static final String TABLE = "Domain";
 
 	protected static UUID getIdFromName(DBAccess db, String name) {
-		ResultSet rs = db.execute(db.prepare("SELECT id FROM " + TABLE_DOMAIN + " WHERE name = ?;").bind(name));
+		ResultSet rs = db.execute(db.prepare("SELECT id FROM " + TABLE + " WHERE name = ?;").bind(name));
 		for (Row row : rs) {
 			return row.getUUID(0);
 		}
@@ -81,14 +84,14 @@ public class Domain extends Entity {
 		TableCreation.checkTable(db, new TableIncrementalDefinition() {
 			@Override
 			public String getTableDefName() {
-				return TABLE_DOMAIN;
+				return TABLE;
 			}
 
 			@Override
 			public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
 				List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
 				list.add(new TableIncrementalDefinition.TableChange(1, ""
-						+ "CREATE TABLE " + TABLE_DOMAIN + " (\n"
+						+ "CREATE TABLE " + TABLE + " (\n"
 						+ "  name text PRIMARY KEY,"
 						+ "  id uuid\n"
 						+ ");"));
@@ -97,7 +100,7 @@ public class Domain extends Entity {
 
 			public String getTablesDefCql() {
 				return ""
-						+ "CREATE TABLE " + TABLE_DOMAIN + " (\n"
+						+ "CREATE TABLE " + TABLE + " (\n"
 						+ "  name text PRIMARY KEY,"
 						+ "  id uuid\n"
 						+ ");";

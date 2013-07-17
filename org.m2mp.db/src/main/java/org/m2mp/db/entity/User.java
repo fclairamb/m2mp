@@ -29,7 +29,7 @@ public class User extends Entity {
 	}
 
 	protected static UUID getIdFromName(DBAccess db, String name) {
-		ResultSet rs = db.execute(db.prepare("SELECT id FROM " + TABLE_USER + " WHERE name = ?;").bind(name));
+		ResultSet rs = db.execute(db.prepare("SELECT id FROM " + TABLE + " WHERE name = ?;").bind(name));
 		for (Row row : rs) {
 			return row.getUUID(0);
 		}
@@ -40,9 +40,9 @@ public class User extends Entity {
 		return userId;
 	}
 
-	public static Domain get(DBAccess db, String name) {
-		UUID domainId = getIdFromName(db, name);
-		return domainId != null ? new Domain(db, domainId) : null;
+	public static User get(DBAccess db, String name) {
+		UUID userId = getIdFromName(db, name);
+		return userId != null ? new User(db, userId) : null;
 	}
 	private static final String PROP_NAME = "name";
 	private static final String PROP_DOMAIN = "domain";
@@ -55,7 +55,7 @@ public class User extends Entity {
 			throw new IllegalArgumentException("The user \"" + name + "\" already exists with id \"" + userId + "\"");
 		}
 		userId = UUID.randomUUID();
-		db.execute(db.prepare("INSERT INTO " + TABLE_USER + " ( name, id, domain ) VALUES ( ?, ?, ? );").bind(name, userId, domain));
+		db.execute(db.prepare("INSERT INTO " + TABLE + " ( name, id, domain ) VALUES ( ?, ?, ? );").bind(name, userId, domain.getId()));
 		User u = new User(db, userId);
 		u.check();
 		u.setProperty(PROP_NAME, name);
@@ -64,6 +64,11 @@ public class User extends Entity {
 		return u;
 	}
 
+//	@Override
+//	public User check() {
+//		super.check();
+//		return this;
+//	}
 	public String getPassword() {
 		return getProperty(PROP_PASSWORD, null);
 	}
@@ -71,20 +76,21 @@ public class User extends Entity {
 	public void setPassword(String pass) {
 		setProperty(PROP_PASSWORD, pass);
 	}
-	private static final String TABLE_USER = "User";
+	public static final String TABLE = "User";
 
 	public static void prepareTable(DBAccess db) {
+		Domain.prepareTable(db);
 		TableCreation.checkTable(db, new TableIncrementalDefinition() {
 			@Override
 			public String getTableDefName() {
-				return TABLE_USER;
+				return TABLE;
 			}
 
 			@Override
 			public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
 				List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
-				list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_USER + " name text PRIMARY KEY, id uuid, domain uuid );"));
-				list.add(new TableIncrementalDefinition.TableChange(2, "CREATE INDEX ON " + TABLE_USER + " ( domain );"));
+				list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE + " ( name text PRIMARY KEY, id uuid, domain uuid );"));
+				list.add(new TableIncrementalDefinition.TableChange(2, "CREATE INDEX ON " + TABLE + " ( domain );"));
 				return list;
 			}
 

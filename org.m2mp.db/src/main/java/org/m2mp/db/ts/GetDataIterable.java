@@ -4,7 +4,6 @@
  */
 package org.m2mp.db.ts;
 
-import java.util.Date;
 import java.util.Iterator;
 import java.util.UUID;
 import org.m2mp.db.DBAccess;

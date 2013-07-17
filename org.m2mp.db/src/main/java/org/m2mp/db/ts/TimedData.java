@@ -59,8 +59,8 @@ public class TimedData {
 		this(id, type, date, JSONObject.toJSONString(map));
 	}
 	// </editor-fold>
-
 	// <editor-fold defaultstate="collapsed" desc="Access methods">
+
 	public String getId() {
 		return id;
 	}

@@ -265,23 +265,24 @@ public class RegistryNode {
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="Properties management">
 	private Map<String, String> values;
-	private PreparedStatement reqGetValues;
+//	private PreparedStatement reqGetValues;
+//
+//	private PreparedStatement reqGetValues() {
+//		if (reqGetValues == null) {
+//			reqGetValues = db.prepare("SELECT values FROM " + TABLE_REGISTRY + " WHERE path = ?;");
+//		}
+//		return reqGetValues;
+//	}
+//	private PreparedStatement reqSaveValue;
+//
+//	private PreparedStatement reqSaveValue() {
+//		if (reqSaveValue == null) {
+//			reqSaveValue = db.prepare("UPDATE " + TABLE_REGISTRY + " SET values[ ? ] = ? WHERE path = ?;");
+//		}
+//		return reqSaveValue;
+//	}
 
-	private PreparedStatement reqGetValues() {
-		if (reqGetValues == null) {
-			reqGetValues = db.prepare("SELECT values FROM " + TABLE_REGISTRY + " WHERE path = ?;");
-		}
-		return reqGetValues;
-	}
-	private PreparedStatement reqSaveValue;
-
-	private PreparedStatement reqSaveValue() {
-		if (reqSaveValue == null) {
-			reqSaveValue = db.prepare("UPDATE " + TABLE_REGISTRY + " SET values[ ? ] = ? WHERE path = ?;");
-		}
-		return reqSaveValue;
-	}
-
+//	private PreparedStatement 
 	public String getProperty(String name, String defaultValue) {
 		String value = getValues().get(name);
 		return value != null ? value : defaultValue;
@@ -304,7 +305,7 @@ public class RegistryNode {
 
 	public Map<String, String> getValues() {
 		if (values == null) {
-			ResultSet rs = db.execute(reqGetValues().bind(path));
+			ResultSet rs = db.execute(db.prepare("SELECT values FROM " + TABLE_REGISTRY + " WHERE path = ?;").bind(path));
 			for (Row r : rs) {
 				values = new HashMap<>(r.getMap(0, String.class, String.class));
 				return values;
@@ -314,8 +315,15 @@ public class RegistryNode {
 		return values;
 	}
 
+	public void delProperty(String name) {
+		db.execute(db.prepare("DELETE values[ ? ] FROM " + TABLE_REGISTRY + " WHERE path = ?;").bind(name, path));
+		if (values != null) {
+			values.remove(name);
+		}
+	}
+
 	public void setProperty(String name, String value) {
-		db.execute(reqSaveValue().bind(name, value, path));
+		db.execute(db.prepare("UPDATE " + TABLE_REGISTRY + " SET values[ ? ] = ? WHERE path = ?;").bind(name, value, path));
 		if (values != null) {
 			values.put(name, value);
 		}

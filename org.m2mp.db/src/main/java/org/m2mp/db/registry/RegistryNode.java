@@ -62,9 +62,19 @@ public class RegistryNode {
 	}
 
 	public void delete() {
-		setStatus(STATUS_DELETED);
+		delete(false);
+	}
+
+	public void delete(boolean forReal) {
 		for (RegistryNode child : getChildren()) {
-			child.delete();
+			child.delete(forReal);
+		}
+		if (forReal) {
+			db.execute(db.prepare("DELETE values, status FROM " + TABLE_REGISTRY + " WHERE path=?;").bind(path));
+			values = null;
+		} else {
+			setStatus(STATUS_DELETED);
+			// We don't touch the values because they haven't been deleted
 		}
 		RegistryNode parent = getParentNode();
 		if (parent != null) {

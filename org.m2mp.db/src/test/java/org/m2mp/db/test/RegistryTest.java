@@ -129,8 +129,18 @@ public class RegistryTest {
 			Assert.assertEquals("v2", node.getProperty("p2", null));
 		}
 
-		{ // We delete the node
+		{ // We mark the node as deleted
 			new RegistryNode(db, "/test/prop").delete();
+		}
+
+		{ // We test
+			RegistryNode node = new RegistryNode(db, "/test/prop").check();
+			Assert.assertEquals(null, node.getProperty("p1", null));
+			Assert.assertEquals("v2", node.getProperty("p2", null));
+		}
+
+		{ // We delete the node for real
+			new RegistryNode(db, "/test/prop").delete(true);
 		}
 
 		{ // We test

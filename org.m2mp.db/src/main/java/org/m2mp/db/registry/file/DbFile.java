@@ -8,7 +8,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import org.m2mp.db.DBAccess;
+import org.m2mp.db.DB;
 import org.m2mp.db.common.Entity;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
@@ -77,7 +77,7 @@ public class DbFile extends Entity {
 	// <editor-fold defaultstate="collapsed" desc="Raw block handling">
 
 	public void delBlock(int blockNb) {
-		node.getDb().execute(reqDelBlock().bind(path, blockNb));
+		DB.execute(reqDelBlock().bind(path, blockNb));
 	}
 
 	public void setBlock(int blockNb, byte[] data) {
@@ -86,11 +86,11 @@ public class DbFile extends Entity {
 
 	public void setBlock(int blockNb, ByteBuffer data) {
 		//System.out.println("Writing block " + path + ":" + blockNb);
-		node.getDb().execute(reqSetBlock().bind(path, blockNb, data));
+		DB.execute(reqSetBlock().bind(path, blockNb, data));
 	}
 
 	public ByteBuffer getBlockBuffer(int blockNb) {
-		ResultSet rs = node.getDb().execute(reqGetBlock().bind(path, blockNb));
+		ResultSet rs = DB.execute(reqGetBlock().bind(path, blockNb));
 		for (Row row : rs) {
 			return row.getBytes(0);
 		}
@@ -112,9 +112,9 @@ public class DbFile extends Entity {
 	// <editor-fold defaultstate="collapsed" desc="Column family preparation">
 	private static final String TABLE_REGISTRYDATA = RegistryNode.TABLE_REGISTRY + "Data";
 
-	public static void prepareTable(DBAccess db) {
-		RegistryNode.prepareTable(db);
-		TableCreation.checkTable(db, new TableIncrementalDefinition() {
+	public static void prepareTable() {
+		RegistryNode.prepareTable();
+		TableCreation.checkTable(new TableIncrementalDefinition() {
 			@Override
 			public String getTableDefName() {
 				return TABLE_REGISTRYDATA;
@@ -149,7 +149,7 @@ public class DbFile extends Entity {
 
 	public PreparedStatement reqGetBlock() {
 		if (reqGetBlock == null) {
-			reqGetBlock = node.getDb().prepare("SELECT data FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
+			reqGetBlock = DB.prepare("SELECT data FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
 		}
 		return reqGetBlock;
 	}
@@ -157,7 +157,7 @@ public class DbFile extends Entity {
 
 	public PreparedStatement reqSetBlock() {
 		if (reqSetBlock == null) {
-			reqSetBlock = node.getDb().prepare("INSERT INTO " + TABLE_REGISTRYDATA + " ( path, block, data ) VALUES ( ?, ?, ? );");
+			reqSetBlock = DB.prepare("INSERT INTO " + TABLE_REGISTRYDATA + " ( path, block, data ) VALUES ( ?, ?, ? );");
 		}
 		return reqSetBlock;
 	}
@@ -165,7 +165,7 @@ public class DbFile extends Entity {
 
 	public PreparedStatement reqDelBlock() {
 		if (reqDelBlock == null) {
-			reqDelBlock = node.getDb().prepare("DELETE FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
+			reqDelBlock = DB.prepare("DELETE FROM " + TABLE_REGISTRYDATA + " WHERE path = ? AND block = ?;");
 		}
 		return reqDelBlock;
 	}

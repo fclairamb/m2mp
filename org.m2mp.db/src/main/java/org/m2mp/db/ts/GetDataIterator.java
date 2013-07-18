@@ -5,7 +5,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.utils.UUIDs;
 import java.util.*;
-import org.m2mp.db.DBAccess;
+import org.m2mp.db.DB;
 import static org.m2mp.db.ts.TimeSerie.TABLE_TIMESERIES;
 
 /**
@@ -14,15 +14,13 @@ import static org.m2mp.db.ts.TimeSerie.TABLE_TIMESERIES;
  */
 public class GetDataIterator implements Iterator<TimedData> {
 
-	private final DBAccess db;
 	private final String key;
 	private final UUID dateBegin, dateEnd;
 	private int period;
 	private final int periodBegin, periodEnd;
 	private final boolean inverted;
 
-	public GetDataIterator(DBAccess db, String id, String type, UUID dateBegin, UUID dateEnd, boolean inverted) {
-		this.db = db;
+	public GetDataIterator(String id, String type, UUID dateBegin, UUID dateEnd, boolean inverted) {
 		this.key = id + (type != null ? "!" + type : "");
 		this.dateBegin = dateBegin != null ? dateBegin : UUIDs.startOf(System.currentTimeMillis() - (1000L * 3600 * 24 * 365 * 2)); // By default, 2 years back, at most 25 empty periods
 		this.dateEnd = dateEnd != null ? dateEnd : UUIDs.endOf(System.currentTimeMillis() + (1000L * 3600 * 24 * 7)); // By default, 7 days ahead, at most 1 empty period
@@ -40,7 +38,7 @@ public class GetDataIterator implements Iterator<TimedData> {
 	private void setPeriod(int period) {
 		this.period = period;
 		PreparedStatement ps = inverted ? reqSelectOrderDesc() : reqSelectOrderAsc();
-		ResultSet rs = db.execute(ps.bind(key, period, dateBegin, dateEnd));
+		ResultSet rs = DB.execute(ps.bind(key, period, dateBegin, dateEnd));
 		iter = rs.iterator();
 	}
 
@@ -68,7 +66,7 @@ public class GetDataIterator implements Iterator<TimedData> {
 
 	public PreparedStatement reqSelectOrderAsc() {
 		if (reqSelectOrderAsc == null) {
-			reqSelectOrderAsc = db.prepare(SELECT_COMMON + " ASC;");
+			reqSelectOrderAsc = DB.prepare(SELECT_COMMON + " ASC;");
 		}
 		return reqSelectOrderAsc;
 	}
@@ -76,7 +74,7 @@ public class GetDataIterator implements Iterator<TimedData> {
 
 	public PreparedStatement reqSelectOrderDesc() {
 		if (reqSelectOrderDesc == null) {
-			reqSelectOrderDesc = db.prepare(SELECT_COMMON + " DESC;");
+			reqSelectOrderDesc = DB.prepare(SELECT_COMMON + " DESC;");
 		}
 		return reqSelectOrderDesc;
 	}

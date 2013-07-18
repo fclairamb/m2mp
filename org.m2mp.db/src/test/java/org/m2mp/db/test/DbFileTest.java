@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.m2mp.db.DBAccess;
+import org.m2mp.db.DB;
 import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.registry.file.DbFile;
 import org.m2mp.db.registry.file.DbFileInputStream;
@@ -59,19 +59,19 @@ public class DbFileTest {
 			}
 		}
 	}
-	private static DBAccess db;
+//	private static DB db;
 
 	@BeforeClass
 	public static void setUpClass() {
-		db = DBAccess.getOrCreate("ks_test");
+		DB.keyspace("ks_test", true);
 		try {
-			db.execute("drop table RegistryNode;");
-			db.execute("drop table RegistryNodeChildren;");
-			db.execute("drop table RegistryNodeData;");
+			DB.execute("drop table RegistryNode;");
+			DB.execute("drop table RegistryNodeChildren;");
+			DB.execute("drop table RegistryNodeData;");
 		} catch (Exception ex) {
 		}
-		GeneralSetting.prepareTable(db);
-		DbFile.prepareTable(db);
+		GeneralSetting.prepareTable();
+		DbFile.prepareTable();
 	}
 
 	private void writeFile(OutputStream os, int nbBlocks, int blockSize, int mod) throws IOException {
@@ -107,12 +107,12 @@ public class DbFileTest {
 	@Test
 	public void properties() throws Exception {
 		{
-			DbFile file = new DbFile(new RegistryNode(db, "/this/is/my/file").check());
+			DbFile file = new DbFile(new RegistryNode("/this/is/my/file").check());
 			file.setName("toto.txt");
 			file.setType("my-own/mime-type");
 		}
 		{
-			DbFile file = new DbFile(new RegistryNode(db, "/this/is/my/file").check());
+			DbFile file = new DbFile(new RegistryNode("/this/is/my/file").check());
 			Assert.assertEquals("toto.txt", file.getName());
 			Assert.assertEquals("my-own/mime-type", file.getType());
 		}
@@ -129,7 +129,7 @@ public class DbFileTest {
 			}
 		}
 		{ // File on DB
-			file2 = new DbFile(new RegistryNode(db, "/this/is/my/file-" + (nbBlocks * blockSize) + "-" + chunkSize).check());
+			file2 = new DbFile(new RegistryNode( "/this/is/my/file-" + (nbBlocks * blockSize) + "-" + chunkSize).check());
 			file2.setBlockSize(chunkSize);
 			try (OutputStream os = new DbFileOutputStream(file2)) {
 				writeFile(os, nbBlocks, blockSize, 256);

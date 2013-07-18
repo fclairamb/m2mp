@@ -5,7 +5,7 @@ import com.datastax.driver.core.Row;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import org.m2mp.db.DBAccess;
+import org.m2mp.db.DB;
 import org.m2mp.db.common.Entity;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.registry.RegistryNode;
@@ -17,42 +17,39 @@ import org.m2mp.db.common.TableIncrementalDefinition;
  */
 public class Domain extends Entity {
 
-	private final DBAccess db;
 	private UUID domainId;
 	private static final String PREFIX = "/domain/";
 
-	public Domain(DBAccess db, UUID id) {
-		this.db = db;
+	public Domain(UUID id) {
 		domainId = id;
-		node = new RegistryNode(db, PREFIX + id);
+		node = new RegistryNode(PREFIX + id);
 	}
 
-	public Domain(DBAccess db, String name) {
-		this.db = db;
-		domainId = getIdFromName(db, name);
+	public Domain(String name) {
+		domainId = getIdFromName(name);
 		if (domainId != null) {
-			node = new RegistryNode(db, PREFIX + domainId);
+			node = new RegistryNode(PREFIX + domainId);
 		} else {
 			throw new IllegalArgumentException("The domain \"" + name + "\" could not be found !");
 		}
 	}
 
-	public static Domain get(DBAccess db, String name) {
-		UUID domainId = getIdFromName(db, name);
-		return domainId != null ? new Domain(db, domainId) : null;
+	public static Domain get(String name) {
+		UUID domainId = getIdFromName(name);
+		return domainId != null ? new Domain(domainId) : null;
 	}
 	private static final String PROP_NAME = "name";
 	private static final String PROP_CREATED_DATE = "created";
 
-	public static Domain create(DBAccess db, String name) {
-		UUID domainId = getIdFromName(db, name);
+	public static Domain create(String name) {
+		UUID domainId = getIdFromName(name);
 		if (domainId != null) {
 			throw new IllegalArgumentException("The domain \"" + name + "\" already exists for domain \"" + domainId + "\"");
 		}
 		domainId = UUID.randomUUID();
-		db.execute(db.prepare("INSERT INTO " + TABLE + " ( name, id ) VALUES ( ?, ? );").bind(name, domainId));
+		DB.execute(DB.prepare("INSERT INTO " + TABLE + " ( name, id ) VALUES ( ?, ? );").bind(name, domainId));
 
-		Domain d = new Domain(db, domainId);
+		Domain d = new Domain(domainId);
 		d.check();
 		d.setProperty(PROP_NAME, name);
 		d.setProperty(PROP_CREATED_DATE, System.currentTimeMillis());
@@ -67,8 +64,8 @@ public class Domain extends Entity {
 	}
 	public static final String TABLE = "Domain";
 
-	protected static UUID getIdFromName(DBAccess db, String name) {
-		ResultSet rs = db.execute(db.prepare("SELECT id FROM " + TABLE + " WHERE name = ?;").bind(name));
+	protected static UUID getIdFromName(String name) {
+		ResultSet rs = DB.execute(DB.prepare("SELECT id FROM " + TABLE + " WHERE name = ?;").bind(name));
 		for (Row row : rs) {
 			return row.getUUID(0);
 		}
@@ -79,9 +76,9 @@ public class Domain extends Entity {
 		return domainId;
 	}
 
-	public static void prepareTable(DBAccess db) {
-		RegistryNode.prepareTable(db);
-		TableCreation.checkTable(db, new TableIncrementalDefinition() {
+	public static void prepareTable() {
+		RegistryNode.prepareTable();
+		TableCreation.checkTable(new TableIncrementalDefinition() {
 			@Override
 			public String getTableDefName() {
 				return TABLE;

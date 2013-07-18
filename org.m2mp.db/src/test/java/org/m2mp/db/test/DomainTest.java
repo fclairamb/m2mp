@@ -8,7 +8,7 @@ import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.m2mp.db.entity.Domain;
-import org.m2mp.db.DBAccess;
+import org.m2mp.db.DB;
 
 /**
  *
@@ -16,34 +16,33 @@ import org.m2mp.db.DBAccess;
  */
 public class DomainTest {
 
-	private static DBAccess db;
-
+//	private static DB db;
 	@BeforeClass
 	public static void setUpClass() {
-		db = DBAccess.getOrCreate("ks_test");
+		DB.keyspace("ks_test", true);
 		try {
-			db.execute("drop table Domain;");
-			db.execute("drop table RegistryNode;");
-			db.execute("drop table RegistryNodeChildren;");
-			db.execute("drop table RegistryNodeData;");
+			DB.execute("drop table Domain;");
+			DB.execute("drop table RegistryNode;");
+			DB.execute("drop table RegistryNodeChildren;");
+			DB.execute("drop table RegistryNodeData;");
 		} catch (Exception ex) {
 		}
-		Domain.prepareTable(db);
+		Domain.prepareTable();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void test_wrong_access() {
-		new Domain(db, "d1-wa");
+		new Domain("d1-wa");
 	}
 
 	@Test
 	public void test_create() {
-		Domain d1 = Domain.get(db, "d1");
+		Domain d1 = Domain.get("d1");
 		Assert.assertNull(d1);
 
-		Domain d2 = Domain.create(db, "d1");
+		Domain d2 = Domain.create("d1");
 
-		Domain d3 = Domain.get(db, "d1");
+		Domain d3 = Domain.get("d1");
 
 		Assert.assertEquals(d2.getId(), d3.getId());
 	}

@@ -10,7 +10,7 @@ import java.util.LinkedList;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.m2mp.db.DBAccess;
+import org.m2mp.db.DB;
 import org.m2mp.db.registry.RegistryNode;
 
 /**
@@ -19,24 +19,22 @@ import org.m2mp.db.registry.RegistryNode;
  */
 public class RegistryTest {
 
-	private static DBAccess db;
-
 	@BeforeClass
 	public static void setUpClass() {
-		db = DBAccess.getOrCreate("ks_test");
+		DB.keyspace("ks_test", true);
 		try {
-			db.execute("drop table RegistryNode;");
-			db.execute("drop table RegistryNodeChildren;");
-			db.execute("drop table RegistryNodeData;");
+			DB.execute("drop table RegistryNode;");
+			DB.execute("drop table RegistryNodeChildren;");
+			DB.execute("drop table RegistryNodeData;");
 		} catch (Exception ex) {
 		}
-		RegistryNode.prepareTable(db);
+		RegistryNode.prepareTable();
 	}
 
 	@Test
 	public void existence() {
 		// We select "n1" and check that it doesn't exists
-		RegistryNode n1 = new RegistryNode(db, "/my/path/to/node/1");
+		RegistryNode n1 = new RegistryNode("/my/path/to/node/1");
 		Assert.assertFalse(n1.exists());
 		Assert.assertFalse(n1.existed());
 
@@ -68,38 +66,38 @@ public class RegistryTest {
 			Assert.assertEquals(list.size(), 1);
 		}
 
-		Assert.assertEquals(5, new RegistryNode(db, "/").getNbChildren(true));
+		Assert.assertEquals(5, new RegistryNode("/").getNbChildren(true));
 
-		new RegistryNode(db, "/my/path/to").delete();
-		Assert.assertEquals(2, new RegistryNode(db, "/").getNbChildren(true));
+		new RegistryNode("/my/path/to").delete();
+		Assert.assertEquals(2, new RegistryNode("/").getNbChildren(true));
 	}
 
 	@Test
 	public void values() {
-		RegistryNode node = new RegistryNode(db, "/my/path").check();
+		RegistryNode node = new RegistryNode("/my/path").check();
 		Assert.assertNull(node.getProperty("myprop", null));
 		node.setProperty("prop", "abc");
 
-		node = new RegistryNode(db, "/my/path");
+		node = new RegistryNode("/my/path");
 		Assert.assertEquals("abc", node.getProperty("prop", "___"));
 	}
 
 	@Test
 	public void children() {
-		new RegistryNode(db, "/ch/a/bc").check();
-		new RegistryNode(db, "/ch/b/cd").check();
-		new RegistryNode(db, "/ch/c/de").check();
+		new RegistryNode("/ch/a/bc").check();
+		new RegistryNode("/ch/b/cd").check();
+		new RegistryNode("/ch/c/de").check();
 
 		{ // We check that we find the 3 children
-			RegistryNode parent = new RegistryNode(db, "/ch");
+			RegistryNode parent = new RegistryNode("/ch");
 			Assert.assertEquals(3, Lists.newLinkedList(parent.getChildren()).size());
 		}
 
-		new RegistryNode(db, "/ch/a/bc2").check();
+		new RegistryNode("/ch/a/bc2").check();
 
 		{ // We check that we find the 2 sub-children
 
-			RegistryNode parent = new RegistryNode(db, "/ch/a");
+			RegistryNode parent = new RegistryNode("/ch/a");
 			Assert.assertEquals(2, Lists.newLinkedList(parent.getChildren()).size());
 		}
 	}
@@ -107,44 +105,44 @@ public class RegistryTest {
 	@Test
 	public void propertyTest() {
 		{ // We define
-			RegistryNode node = new RegistryNode(db, "/test/prop").check();
+			RegistryNode node = new RegistryNode("/test/prop").check();
 			node.setProperty("p1", "v1");
 			node.setProperty("p2", "v2");
 		}
 
 		{ // We test
-			RegistryNode node = new RegistryNode(db, "/test/prop").check();
+			RegistryNode node = new RegistryNode("/test/prop").check();
 			Assert.assertEquals("v1", node.getProperty("p1", null));
 			Assert.assertEquals("v2", node.getProperty("p2", null));
 		}
 
 		{ // We delete a property
-			RegistryNode node = new RegistryNode(db, "/test/prop").check();
+			RegistryNode node = new RegistryNode("/test/prop").check();
 			node.delProperty("p1");
 		}
 
 		{ // We test
-			RegistryNode node = new RegistryNode(db, "/test/prop").check();
+			RegistryNode node = new RegistryNode("/test/prop").check();
 			Assert.assertEquals(null, node.getProperty("p1", null));
 			Assert.assertEquals("v2", node.getProperty("p2", null));
 		}
 
 		{ // We mark the node as deleted
-			new RegistryNode(db, "/test/prop").delete();
+			new RegistryNode("/test/prop").delete();
 		}
 
 		{ // We test
-			RegistryNode node = new RegistryNode(db, "/test/prop").check();
+			RegistryNode node = new RegistryNode("/test/prop").check();
 			Assert.assertEquals(null, node.getProperty("p1", null));
 			Assert.assertEquals("v2", node.getProperty("p2", null));
 		}
 
 		{ // We delete the node for real
-			new RegistryNode(db, "/test/prop").delete(true);
+			new RegistryNode("/test/prop").delete(true);
 		}
 
 		{ // We test
-			RegistryNode node = new RegistryNode(db, "/test/prop").check();
+			RegistryNode node = new RegistryNode("/test/prop").check();
 			Assert.assertEquals(null, node.getProperty("p1", null));
 			Assert.assertEquals(null, node.getProperty("p2", null));
 		}

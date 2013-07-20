@@ -1,15 +1,11 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.m2mp.db.registry.file;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import org.m2mp.db.registry.RegistryNode;
 
 /**
- *
+ * DBFile's OutputStream
+ * 
  * @author Florent Clairambault
  */
 public class DbFileOutputStream extends OutputStream {
@@ -21,7 +17,6 @@ public class DbFileOutputStream extends OutputStream {
 	private final byte[] chunk;
 	private int chunkOffset;
 	private int chunkNb;
-	private final static String PROPERTY_SIZE = "size";
 
 	public DbFileOutputStream(DbFile file) {
 		this.file = file;
@@ -76,12 +71,10 @@ public class DbFileOutputStream extends OutputStream {
 			chunkNb++;
 			chunkOffset = 0;
 		}
-//		db.setFileProperty( path, "size", ""+size);
 		if (offset > size) {
 			size = offset;
 			file.setSize(size);
 		}
-
 	}
 
 	@Override

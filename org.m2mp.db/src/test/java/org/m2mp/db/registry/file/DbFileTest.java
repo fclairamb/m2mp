@@ -1,4 +1,4 @@
-package org.m2mp.db.test;
+package org.m2mp.db.registry.file;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,9 +15,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.m2mp.db.DB;
 import org.m2mp.db.common.GeneralSetting;
-import org.m2mp.db.registry.file.DbFile;
-import org.m2mp.db.registry.file.DbFileInputStream;
-import org.m2mp.db.registry.file.DbFileOutputStream;
 import org.m2mp.db.registry.RegistryNode;
 
 /**
@@ -129,30 +126,30 @@ public class DbFileTest {
 			}
 		}
 		{ // File on DB
-			file2 = new DbFile(new RegistryNode( "/this/is/my/file-" + (nbBlocks * blockSize) + "-" + chunkSize).check());
+			file2 = new DbFile(new RegistryNode("/this/is/my/file-" + (nbBlocks * blockSize) + "-" + chunkSize).check());
 			file2.setBlockSize(chunkSize);
 			try (OutputStream os = new DbFileOutputStream(file2)) {
 				writeFile(os, nbBlocks, blockSize, 256);
 			}
 		}
-//		This was useful for debugging but it turns out to be quite slow
-//		{ 
-//			try (InputStream is1 = new FileInputStream(file1)) {
-//				try (InputStream is2 = new DbFileInputStream(file2)) {
-//					long offset = 0;
-//					try {
-//						while (is1.available() > 0 && is2.available() > 0) {
-//							Assert.assertEquals(is1.read(), is2.read());
-//							offset += 1;
-//						}
-//					} finally {
-//						System.out.println("offset = " + offset);
-//					}
-//					Assert.assertEquals(0, is1.available());
-//					Assert.assertEquals(0, is2.available());
-//				}
-//			}
-//		}
+		//This was useful for debugging but it turns out to be quite slow
+		if (0 == 1) { // (it's an IDE thing)
+			try (InputStream is1 = new FileInputStream(file1)) {
+				try (InputStream is2 = new DbFileInputStream(file2)) {
+					long offset = 0;
+					try {
+						while (is1.available() > 0 && is2.available() > 0) {
+							Assert.assertEquals(is1.read(), is2.read());
+							offset += 1;
+						}
+					} finally {
+						System.out.println("offset = " + offset);
+					}
+					Assert.assertEquals(0, is1.available());
+					Assert.assertEquals(0, is2.available());
+				}
+			}
+		}
 		Assert.assertEquals(file1.length(), file2.getSize());
 
 		{ // Hashing

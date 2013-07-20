@@ -17,12 +17,10 @@ import org.m2mp.db.registry.RegistryNode;
 /**
  * File stored in database.
  *
- * @author Florent Clairambault
+ * The current implementation is minimalistic. It doesn't take advantage of
+ * async mechanisms or the NIO buffers the new cassandra driver offers.
  *
- * <strong>Notes:</strong><br />
- * <ul>
- * <li>Requesting </li>
- * </ul>
+ * @author Florent Clairambault
  */
 public class DbFile extends Entity {
 
@@ -32,46 +30,93 @@ public class DbFile extends Entity {
 	private final static String PROPERTY_BLOCK_SIZE = "blsize";
 	final String path;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param node Node to wrap the DbFile around
+	 */
 	public DbFile(RegistryNode node) {
 		this.node = node;
 		this.path = node.getPath();
 	}
 
+	/**
+	 * Set the type of file (mime-type)
+	 *
+	 * @param type Type
+	 */
 	public void setType(String type) {
 		setProperty(PROPERTY_TYPE, type);
 	}
 
+	/**
+	 * Get the type of file (mime-type)
+	 *
+	 * @return Type
+	 */
 	public String getType() {
 		return getProperty(PROPERTY_TYPE, null);
 	}
 
+	/**
+	 * Set the name of the file (as it should be returned)
+	 *
+	 * @param filename Name of the file
+	 */
 	public void setName(String filename) {
 		setProperty(PROPERTY_NAME, filename);
 	}
 
+	/**
+	 * Get the name of file
+	 *
+	 * @return Name of the file
+	 */
 	public String getName() {
 		return getProperty(PROPERTY_NAME, null);
 	}
 
-	public void setSize(long size) {
+	/**
+	 * Set the size of the file
+	 *
+	 * @param size Size of the file
+	 */
+	void setSize(long size) {
 		setProperty(PROPERTY_SIZE, size);
 	}
 
+	/**
+	 * Get the size of the file.
+	 *
+	 * @return Size of the file
+	 */
 	public long getSize() {
 		return getProperty(PROPERTY_SIZE, (long) 0);
 	}
-	private static final int DEFAULT_CHUNK_SIZE = 512 * 1024;
+	private static final int DEFAULT_BLOCK_SIZE = 512 * 1024;
 
-	public int getBlockSize() {
-		int chunckSize = getProperty(PROPERTY_BLOCK_SIZE, -1);
-		if (chunckSize == -1) {
-			chunckSize = DEFAULT_CHUNK_SIZE;
-			setProperty(PROPERTY_BLOCK_SIZE, chunckSize);
+	/**
+	 * Get the block size. Each file might have a different block size.
+	 *
+	 * @return
+	 */
+	int getBlockSize() {
+		int blockSize = getProperty(PROPERTY_BLOCK_SIZE, -1);
+		if (blockSize == -1) {
+			blockSize = DEFAULT_BLOCK_SIZE;
+			setProperty(PROPERTY_BLOCK_SIZE, blockSize);
 		}
-		return chunckSize;
+		return blockSize;
 	}
 
-	public void setBlockSize(int size) {
+	/**
+	 * Set the block size.
+	 *
+	 * Each block is a new column in the actual
+	 *
+	 * @return
+	 */
+	void setBlockSize(int size) {
 		setProperty(PROPERTY_BLOCK_SIZE, size);
 	}
 	// <editor-fold defaultstate="collapsed" desc="Raw block handling">

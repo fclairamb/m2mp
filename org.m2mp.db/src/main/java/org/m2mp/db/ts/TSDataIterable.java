@@ -6,13 +6,13 @@ package org.m2mp.db.ts;
 
 import java.util.Iterator;
 import java.util.UUID;
-import org.m2mp.db.DB;
 
 /**
+ * TimeSerie TimedData iterable.
  *
  * @author Florent Clairambault
  */
-public class GetDataIterable implements Iterable<TimedData> {
+public class TSDataIterable implements Iterable<TimedData> {
 
 	private final String id;
 	private final String type;
@@ -20,7 +20,7 @@ public class GetDataIterable implements Iterable<TimedData> {
 	private final UUID dateEnd;
 	private final boolean orderAsc;
 
-	public GetDataIterable( String id, String type, UUID dateBegin, UUID dateEnd, boolean orderAsc) {
+	TSDataIterable(String id, String type, UUID dateBegin, UUID dateEnd, boolean orderAsc) {
 		this.id = id;
 		this.type = type;
 		this.dateBegin = dateBegin;
@@ -30,6 +30,6 @@ public class GetDataIterable implements Iterable<TimedData> {
 
 	@Override
 	public Iterator<TimedData> iterator() {
-		return new GetDataIterator(id, type, dateBegin, dateEnd, orderAsc);
+		return new TSDataIterator(id, type, dateBegin, dateEnd, orderAsc);
 	}
 }

@@ -16,7 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * Minimalistic cassandra access wrapper.
  * @author Florent Clairambault
  */
 public class DB {
@@ -26,6 +26,11 @@ public class DB {
 	private static String keyspaceName;
 	private static Session session;
 
+	/**
+	 * Change keyspace
+	 * @param name Name of the keyspace
+	 * @param create To create it if not already there
+	 */
 	public static void keyspace(String name, boolean create) {
 		Cluster cluster = Cluster.builder().addContactPoint("localhost").build();
 		try {
@@ -41,14 +46,26 @@ public class DB {
 		}
 	}
 
+	/**
+	 * Change keyspace
+	 * @param name Keyspace name
+	 */
 	public static void keyspace(String name) {
 		keyspace(name, false);
 	}
 
+	/**
+	 * Get the internal session object
+	 * @return Session object
+	 */
 	public static Session session() {
 		return session;
 	}
 
+	/**
+	 * Get the keyspace metadata
+	 * @return Metadata object
+	 */
 	public static KeyspaceMetadata meta() {
 		return session.getCluster().getMetadata().getKeyspace(keyspaceName);
 	}
@@ -59,6 +76,11 @@ public class DB {
 		}
 	});
 
+	/**
+	 * Prepare a query and put it in cache.
+	 * @param query Query to prepare
+	 * @return PreparedStatement
+	 */
 	public static PreparedStatement prepare(String query) {
 		try {
 			return psCache.get(query);
@@ -68,19 +90,39 @@ public class DB {
 		}
 	}
 
+	/**
+	 * Prepare a query (whithout putting it in cache)
+	 * @param query Query to prepare
+	 * @return PreparedStatement
+	 */
 	public static PreparedStatement prepareNoCache(String query) {
 		return session.prepare(query);
 	}
 
-	public static ResultSet execute(Query q) {
-		return session.execute(q);
+	/**
+	 * Execute a query
+	 * @param query Query to execute
+	 * @return The result
+	 */
+	public static ResultSet execute(Query query) {
+		return session.execute(query);
 	}
 
-	public static ResultSet execute(String q) {
-		return session.execute(q);
+	/**
+	 * Execute a query
+	 * @param query Query to execute
+	 * @return The result
+	 */
+	public static ResultSet execute(String query) {
+		return session.execute(query);
 	}
 
-	public static ResultSetFuture executeAsync(Query q) {
-		return session.executeAsync(q);
+	/**
+	 * Execute a query asynchronously
+	 * @param query Query to execute
+	 * @return The result future
+	 */
+	public static ResultSetFuture executeAsync(Query query) {
+		return session.executeAsync(query);
 	}
 }

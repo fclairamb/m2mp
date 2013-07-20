@@ -8,7 +8,10 @@ import java.util.Date;
 import org.m2mp.db.registry.RegistryNode;
 
 /**
- *
+ * Entity base class.
+ * 
+ * An entity is only an extension of RegistryNode at this stage.
+ * 
  * @author Florent Clairambault
  */
 public abstract class Entity {

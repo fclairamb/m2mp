@@ -13,6 +13,7 @@ import org.m2mp.db.common.TableIncrementalDefinition;
 import org.m2mp.db.registry.RegistryNode;
 
 /**
+ * User data container.
  *
  * @author Florent Clairambault
  */

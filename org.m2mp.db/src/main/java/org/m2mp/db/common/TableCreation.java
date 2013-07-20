@@ -1,26 +1,29 @@
 package org.m2mp.db.common;
 
 import com.datastax.driver.core.TableMetadata;
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.m2mp.db.DB;
 
 /**
+ * Table creation helper.
+ *
+ * This is a very simple.
  *
  * @author Florent Clairambault
  */
 public class TableCreation {
 
+	private final Logger log = LogManager.getLogger(TableCreation.class);
+
 	public static void checkTable(TableIncrementalDefinition tableDef) {
 		int version;
-		
-//		GeneralSetting gs = new GeneralSetting(db);
-		
-		if (!tableExists( tableDef.getTableDefName())) {
+
+		if (!tableExists(tableDef.getTableDefName())) {
 			version = -1;
 		} else {
 			version = GeneralSetting.get("table_version_" + tableDef.getTableDefName(), 0);
 		}
-//		int lastVersion = version;
 		try {
 			for (TableIncrementalDefinition.TableChange tc : tableDef.getTableDefChanges()) {
 				if (tc.version > version) {
@@ -38,7 +41,7 @@ public class TableCreation {
 		}
 	}
 
-	public static boolean tableExists(String tableName) {
+	private static boolean tableExists(String tableName) {
 		TableMetadata table = DB.meta().getTable(tableName.toLowerCase());
 		return table != null;
 	}

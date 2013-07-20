@@ -12,7 +12,10 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 /**
- *
+ * Timed data.
+ * 
+ * 
+ * 
  * @author florent
  */
 public class TimedData {

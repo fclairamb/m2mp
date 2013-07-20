@@ -1,6 +1,5 @@
 package org.m2mp.db.registry;
 
-import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import java.util.ArrayList;
@@ -24,8 +23,16 @@ import org.m2mp.db.common.TableIncrementalDefinition;
  */
 public class RegistryNode {
 
+	/**
+	 * Path of the node
+	 */
 	protected String path;
 
+	/**
+	 * Constructor
+	 *
+	 * @param path Path of the node
+	 */
 	public RegistryNode(String path) {
 		if (!path.endsWith("/")) {
 			path += "/";
@@ -33,10 +40,20 @@ public class RegistryNode {
 		this.path = path;
 	}
 
+	/**
+	 * Get the path
+	 *
+	 * @return Path of the node
+	 */
 	public String getPath() {
 		return path;
 	}
 
+	/**
+	 * Check if the node does exists and if not, create it.
+	 *
+	 * @return Checked node
+	 */
 	public RegistryNode check() {
 		switch (getStatus()) {
 			case STATUS_UNDEFINED:
@@ -46,19 +63,31 @@ public class RegistryNode {
 		return this;
 	}
 
-	public void create() {
+	/**
+	 * Create the node
+	 */
+	public RegistryNode create() {
 		setStatus(STATUS_CREATED);
 		RegistryNode parent = getParentNode();
 		if (parent != null) {
 			parent.check();
 			parent.addChild(getName());
 		}
+		return this;
 	}
 
+	/**
+	 * Delete the node
+	 */
 	public void delete() {
 		delete(false);
 	}
 
+	/**
+	 * Delete the node.
+	 *
+	 * @param forReal Delete its content and children contents
+	 */
 	public void delete(boolean forReal) {
 		for (RegistryNode child : getChildren()) {
 			child.delete(forReal);
@@ -76,14 +105,29 @@ public class RegistryNode {
 		}
 	}
 
+	/**
+	 * Check if a node exists.
+	 *
+	 * @return If the node exists
+	 */
 	public boolean exists() {
 		return getStatus() == STATUS_CREATED;
 	}
 
+	/**
+	 * Check if a node exists or existed (was only marked as deleted).
+	 *
+	 * @return If the node existed
+	 */
 	public boolean existed() {
 		return getStatus() != STATUS_UNDEFINED;
 	}
 
+	/**
+	 * Get the parent node.
+	 *
+	 * @return Parent node
+	 */
 	public RegistryNode getParentNode() {
 		String parentPath = convPathToBase(path);
 		if (parentPath == null) {
@@ -92,6 +136,12 @@ public class RegistryNode {
 		return new RegistryNode(parentPath);
 	}
 
+	/**
+	 * Get the base path from a path
+	 *
+	 * @param path Path to check
+	 * @return Base path to get
+	 */
 	private static String convPathToBase(String path) {
 		int p = path.lastIndexOf('/');
 
@@ -122,6 +172,13 @@ public class RegistryNode {
 		return name;
 	}
 
+	/**
+	 * Get the name of the node.
+	 *
+	 * Example: new RegistryNode("/path/of/my_file").getName() == "my_file"
+	 *
+	 * @return Name of the node
+	 */
 	public String getName() {
 		return convPathToName(path);
 	}
@@ -185,6 +242,13 @@ public class RegistryNode {
 		};
 	}
 
+	/**
+	 * Get children nodes.
+	 *
+	 * There's no limit on the number of children nodes that we can read.
+	 *
+	 * @return all the children nodes
+	 */
 	public Iterable<RegistryNode> getChildren() {
 		final Iterator<String> iter = getChildrenNames().iterator();
 		return new Iterable<RegistryNode>() {
@@ -209,6 +273,12 @@ public class RegistryNode {
 		};
 	}
 
+	/**
+	 * Get one child registry node.
+	 *
+	 * @param name Name of the registry node child
+	 * @return
+	 */
 	public RegistryNode getChild(String name) {
 		return new RegistryNode(path + name + "/");
 	}
@@ -234,32 +304,16 @@ public class RegistryNode {
 	private static final int STATUS_UNDEFINED = -1;
 	private static final int STATUS_DELETED = 5;
 	private static final int STATUS_CREATED = 100;
-	private PreparedStatement reqGetStatus;
-
-	private PreparedStatement reqGetStatus() {
-		if (reqGetStatus == null) {
-			reqGetStatus = DB.prepare("SELECT status FROM " + TABLE_REGISTRY + " WHERE path = ?;");
-		}
-		return reqGetStatus;
-	}
-	private PreparedStatement _reqSetStatus;
-
-	private PreparedStatement reqSetStatus() {
-		if (_reqSetStatus == null) {
-			_reqSetStatus = DB.prepare("UPDATE " + TABLE_REGISTRY + " SET status = ? WHERE path = ?;");
-		}
-		return _reqSetStatus;
-	}
 
 	protected void setStatus(int value) {
-		DB.execute(reqSetStatus().bind(value, path));
+		DB.execute(DB.prepare("UPDATE " + TABLE_REGISTRY + " SET status = ? WHERE path = ?;").bind(value, path));
 		status = value;
 	}
 	Integer status;
 
 	protected int getStatus() {
 		if (status == null) {
-			ResultSet rs = DB.execute(reqGetStatus().bind(path));
+			ResultSet rs = DB.execute(DB.prepare("SELECT status FROM " + TABLE_REGISTRY + " WHERE path = ?;").bind(path));
 			for (Row row : rs) {
 				status = row.getInt(0);
 			}
@@ -269,24 +323,13 @@ public class RegistryNode {
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="Properties management">
 	private Map<String, String> values;
-//	private PreparedStatement reqGetValues;
-//
-//	private PreparedStatement reqGetValues() {
-//		if (reqGetValues == null) {
-//			reqGetValues = db.prepare("SELECT values FROM " + TABLE_REGISTRY + " WHERE path = ?;");
-//		}
-//		return reqGetValues;
-//	}
-//	private PreparedStatement reqSaveValue;
-//
-//	private PreparedStatement reqSaveValue() {
-//		if (reqSaveValue == null) {
-//			reqSaveValue = db.prepare("UPDATE " + TABLE_REGISTRY + " SET values[ ? ] = ? WHERE path = ?;");
-//		}
-//		return reqSaveValue;
-//	}
 
-//	private PreparedStatement 
+	/**
+	 * Get a property
+	 * @param name Name of the property
+	 * @param defaultValue Default value of the property
+	 * @return Value of the property
+	 */
 	public String getProperty(String name, String defaultValue) {
 		String value = getValues().get(name);
 		return value != null ? value : defaultValue;

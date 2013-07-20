@@ -9,18 +9,51 @@ import org.m2mp.db.DB;
 import static org.m2mp.db.ts.TimeSerie.TABLE_TIMESERIES;
 
 /**
+ * Time serie timed data iterator.
  *
  * @author Florent Clairambault
  */
-public class GetDataIterator implements Iterator<TimedData> {
+public class TSDataIterator implements Iterator<TimedData> {
 
+	/**
+	 * Key of the serie
+	 */
 	private final String key;
-	private final UUID dateBegin, dateEnd;
+	private final UUID /**
+			 * Beginning date
+			 */
+			dateBegin,
+			/**
+			 * Ending date
+			 */
+			dateEnd;
+	/**
+	 * Current period: year * 12 + month
+	 */
 	private int period;
-	private final int periodBegin, periodEnd;
+	private final int /**
+			 * Beginning period
+			 */
+			periodBegin,
+			/**
+			 * Ending period
+			 */
+			periodEnd;
+	/**
+	 * Inverted
+	 */
 	private final boolean inverted;
 
-	public GetDataIterator(String id, String type, UUID dateBegin, UUID dateEnd, boolean inverted) {
+	/**
+	 * Data iterator.
+	 *
+	 * @param id Identifier of the data to iterate on.
+	 * @param type Type of data (can be null)
+	 * @param dateBegin Beginning date
+	 * @param dateEnd Ending date
+	 * @param inverted Inversion: true to go from end to beginning
+	 */
+	TSDataIterator(String id, String type, UUID dateBegin, UUID dateEnd, boolean inverted) {
 		this.key = id + (type != null ? "!" + type : "");
 		this.dateBegin = dateBegin != null ? dateBegin : UUIDs.startOf(System.currentTimeMillis() - (1000L * 3600 * 24 * 365 * 2)); // By default, 2 years back, at most 25 empty periods
 		this.dateEnd = dateEnd != null ? dateEnd : UUIDs.endOf(System.currentTimeMillis() + (1000L * 3600 * 24 * 7)); // By default, 7 days ahead, at most 1 empty period

@@ -98,12 +98,15 @@ public class DbFile extends Entity {
 	/**
 	 * Get the block size. Each file might have a different block size.
 	 *
-	 * @return
+	 * @return Get the block size.
 	 */
 	int getBlockSize() {
 		int blockSize = getProperty(PROPERTY_BLOCK_SIZE, -1);
-		if (blockSize == -1) {
+		if (blockSize <= 0) {
 			blockSize = DEFAULT_BLOCK_SIZE;
+			
+			// We do have to define the block size here, because if the default
+			// blocksize evolves, we need to make sure it's still OK.
 			setProperty(PROPERTY_BLOCK_SIZE, blockSize);
 		}
 		return blockSize;
@@ -111,10 +114,7 @@ public class DbFile extends Entity {
 
 	/**
 	 * Set the block size.
-	 *
-	 * Each block is a new column in the actual
-	 *
-	 * @return
+	 * @param size Block size (in bytes)
 	 */
 	void setBlockSize(int size) {
 		setProperty(PROPERTY_BLOCK_SIZE, size);

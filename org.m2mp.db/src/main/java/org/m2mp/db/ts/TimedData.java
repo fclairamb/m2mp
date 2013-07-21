@@ -14,9 +14,7 @@ import org.json.simple.JSONValue;
 /**
  * Timed data.
  * 
- * 
- * 
- * @author florent
+ * @author Florent Clairambault
  */
 public class TimedData {
 

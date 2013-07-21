@@ -23,7 +23,7 @@ import org.m2mp.db.registry.RegistryNode;
 
 /**
  *
- * @author florent
+ * @author Florent Clairambault
  */
 public class TimeSerieTest {
 //	private static DB db;

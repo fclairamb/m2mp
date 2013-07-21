@@ -15,7 +15,7 @@ import org.m2mp.db.ts.TimeSerie;
 
 /**
  *
- * @author florent
+ * @author Florent Clairambault
  */
 public class UserTest {
 

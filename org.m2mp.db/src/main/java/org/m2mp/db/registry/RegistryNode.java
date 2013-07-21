@@ -14,6 +14,7 @@ import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
 
 /**
+ * Registry node.
  *
  * @author Florent Clairambault
  *
@@ -277,7 +278,7 @@ public class RegistryNode {
 	 * Get one child registry node.
 	 *
 	 * @param name Name of the registry node child
-	 * @return
+	 * @return A new RegistryNode instance
 	 */
 	public RegistryNode getChild(String name) {
 		return new RegistryNode(path + name + "/");
@@ -326,6 +327,7 @@ public class RegistryNode {
 
 	/**
 	 * Get a property
+	 *
 	 * @param name Name of the property
 	 * @param defaultValue Default value of the property
 	 * @return Value of the property

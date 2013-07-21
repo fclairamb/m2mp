@@ -13,7 +13,7 @@ import org.m2mp.db.entity.Domain;
 
 /**
  *
- * @author florent
+ * @author Florent Clairambault
  */
 public class PerformanceTest {
 

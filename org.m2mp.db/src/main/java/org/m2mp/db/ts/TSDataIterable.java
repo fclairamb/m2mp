@@ -8,7 +8,7 @@ import java.util.Iterator;
 import java.util.UUID;
 
 /**
- * TimeSerie TimedData iterable.
+ * Time serie TimedData iterable.
  *
  * @author Florent Clairambault
  */

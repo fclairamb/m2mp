@@ -13,7 +13,7 @@ import org.json.simple.JSONValue;
 
 /**
  * Timed data.
- * 
+ *
  * @author Florent Clairambault
  */
 public class TimedData {
@@ -21,29 +21,29 @@ public class TimedData {
 	private final String id;
 	private final String type;
 	private final UUID date;
-	private final String json;
+	private final String data;
 
 	// <editor-fold defaultstate="collapsed" desc="JSON constructors">
-	public TimedData(String id, String json) {
-		this(id, null, json);
+	public TimedData(String id, String data) {
+		this(id, null, data);
 	}
 
-	public TimedData(String id, String type, String json) {
-		this(id, type, new Date(), json);
+	public TimedData(String id, String type, String data) {
+		this(id, type, new Date(), data);
 	}
 
-	public TimedData(String id, String type, Date date, String json) {
+	public TimedData(String id, String type, Date date, String data) {
 		this.id = id;
 		this.type = type;
 		this.date = new UUID(UUIDs.startOf(date.getTime()).getMostSignificantBits(), System.nanoTime());
-		this.json = json;
+		this.data = data;
 	}
 
 	public TimedData(String id, String type, UUID date, String json) {
 		this.id = id;
 		this.type = type;
 		this.date = date;
-		this.json = json;
+		this.data = json;
 	}
 
 	// </editor-fold>
@@ -78,12 +78,12 @@ public class TimedData {
 		return new Date(UUIDs.unixTimestamp(date));
 	}
 
-	public String getJson() {
-		return json;
+	public String getData() {
+		return data;
 	}
 
 	public Object getJsonObject() {
-		return JSONValue.parse(getJson());
+		return JSONValue.parse(getData());
 	}
 
 	public Map<String, Object> getJsonMap() {

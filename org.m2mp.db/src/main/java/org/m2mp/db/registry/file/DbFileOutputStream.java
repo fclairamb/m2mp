@@ -25,6 +25,10 @@ public class DbFileOutputStream extends OutputStream {
 		this.chunk = new byte[chunkSize];
 
 		this.offset = 0;
+		
+		if ( ! file.exists() ) {
+			file.create();
+		}
 	}
 
 	@Override

@@ -215,4 +215,19 @@ public class DbFile extends Entity {
 		return reqDelBlock;
 	}
 	private PreparedStatement reqDelBlock;
+
+	@Deprecated
+	public InputStream getInputStream() {
+		return openInputStream();
+	}
+
+	@Deprecated
+	public OutputStream getOutputStream() {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Deprecated
+	public long getFileSize() {
+		return getSize();
+	}
 }

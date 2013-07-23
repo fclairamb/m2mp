@@ -8,6 +8,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import org.codehaus.jackson.map.util.JSONPObject;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.m2mp.db.DB;
 import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.common.TableCreation;
@@ -219,7 +223,7 @@ public class RegistryNode {
 		DB.execute(DB.prepare("DELETE FROM " + TABLE_REGISTRY + "Children WHERE path = ? AND name = ?;").bind(path, name));
 	}
 
-	private Iterable<String> getChildrenNames() {
+	public Iterable<String> getChildrenNames() {
 		final Iterator<Row> iter = DB.execute(DB.prepare("SELECT name FROM " + TABLE_REGISTRY + "Children WHERE path = ?;").bind(path)).iterator();
 		return new Iterable<String>() {
 			@Override
@@ -333,7 +337,7 @@ public class RegistryNode {
 	 * @return Value of the property
 	 */
 	public String getProperty(String name, String defaultValue) {
-		String value = getValues().get(name);
+		String value = getProperties().get(name);
 		return value != null ? value : defaultValue;
 	}
 
@@ -347,12 +351,21 @@ public class RegistryNode {
 		return value != null ? Long.parseLong(value) : defaultValue;
 	}
 
+	public boolean getProperty(String name, boolean defaultValue) {
+		return getProperty(name, defaultValue ? "1" : "0").equals("1");
+	}
+
 	public Date getPropertyDate(String name) {
 		long time = getProperty(name, (long) 0);
 		return time != 0 ? new Date(time) : null;
 	}
 
-	public Map<String, String> getValues() {
+	public UUID getPropertyUUID(String name) {
+		String id = getProperty(name, (String) null);
+		return id != null ? UUID.fromString(id) : null;
+	}
+
+	public Map<String, String> getProperties() {
 		if (values == null) {
 			ResultSet rs = DB.execute(DB.prepare("SELECT values FROM " + TABLE_REGISTRY + " WHERE path = ?;").bind(path));
 			for (Row r : rs) {
@@ -378,6 +391,10 @@ public class RegistryNode {
 		}
 	}
 
+	public void setProperty(String name, boolean value) {
+		setProperty(name, value ? "1" : "0");
+	}
+
 	public void setProperty(String name, long value) {
 		setProperty(name, "" + value);
 	}
@@ -390,5 +407,73 @@ public class RegistryNode {
 	@Override
 	public String toString() {
 		return path;
+	}
+
+	@Deprecated
+	public void setValue(String pkey, String s) {
+		setProperty(pkey, s);
+	}
+
+	@Deprecated
+	public void setValue(String symbolName, Date date) {
+		setProperty(symbolName, date);
+	}
+
+	@Deprecated
+	public String getValueString(String package_name) {
+		return getProperty(package_name, null);
+	}
+
+	public JSONObject toJsonObject() {
+		JSONObject obj = new JSONObject();
+
+		for (Map.Entry<String, String> me : getProperties().entrySet()) {
+			obj.put(me.getKey(), JSONValue.parse(me.getValue()));
+		}
+
+		for (RegistryNode rn : getChildren()) {
+			obj.put(rn.getName(), rn.toJsonObject());
+		}
+
+		return obj;
+	}
+
+	@Deprecated
+	public Map<String, String> getMap() {
+		return getProperties();
+	}
+
+	@Deprecated
+	public Date getValueDate(String symbolName) {
+		return getPropertyDate(symbolName);
+	}
+
+	@Deprecated
+	public void delValue(String symbolName) {
+		delProperty(symbolName);
+	}
+
+	public Iterable<String> getPropertyNames() {
+		return getProperties().keySet();
+	}
+
+	@Deprecated
+	public Iterable<String> getKeysList() {
+		return getPropertyNames();
+	}
+
+	@Deprecated
+	public String getValueString(String name, String defaultValue) {
+		return getProperty(name, defaultValue);
+	}
+
+	@Deprecated
+	public long getValueLong(String name, long defaultValue) {
+		return getProperty(name, defaultValue);
+	}
+
+	@Deprecated
+	public int getValueInt(String propertyName, int defaultValue) {
+		return getProperty(propertyName, defaultValue);
 	}
 }

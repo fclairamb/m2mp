@@ -99,4 +99,13 @@ public class User extends Entity {
 			}
 		});
 	}
+
+	public Domain getDomain() {
+		return new Domain(getPropertyUUID("domain"));
+	}
+
+	@Deprecated
+	public boolean isSuperAdmin() {
+		return getProperty("__super_admin", false);
+	}
 }

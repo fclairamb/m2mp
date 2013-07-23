@@ -19,6 +19,9 @@ import org.m2mp.db.common.TableIncrementalDefinition;
  */
 public class Domain extends Entity {
 
+	public static Domain getDefault() {
+		return new Domain("__default__").check();
+	}
 	private UUID domainId;
 	private static final String PREFIX = "/domain/";
 
@@ -110,5 +113,18 @@ public class Domain extends Entity {
 				return 1;
 			}
 		});
+	}
+
+	@Override
+	public Domain check() {
+		if (!exists()) {
+			create(getName());
+		}
+		return this;
+	}
+
+	@Deprecated
+	public User getDefaultUser() {
+		return User.get("__" + getName() + "__");
 	}
 }

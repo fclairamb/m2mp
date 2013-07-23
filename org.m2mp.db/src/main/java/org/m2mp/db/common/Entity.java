@@ -5,13 +5,14 @@
 package org.m2mp.db.common;
 
 import java.util.Date;
+import java.util.UUID;
 import org.m2mp.db.registry.RegistryNode;
 
 /**
  * Entity base class.
- * 
+ *
  * An entity is only an extension of RegistryNode at this stage.
- * 
+ *
  * @author Florent Clairambault
  */
 public abstract class Entity {
@@ -35,6 +36,10 @@ public abstract class Entity {
 		node.setProperty(name, value);
 	}
 
+	protected void setProperty(String name, boolean value) {
+		node.setProperty(name, value);
+	}
+
 	protected String getProperty(String name, String value) {
 		return node.getProperty(name, value);
 	}
@@ -47,7 +52,32 @@ public abstract class Entity {
 		return node.getProperty(name, defaultValue);
 	}
 
+	protected boolean getProperty(String name, boolean defaultValue) {
+		return node.getProperty(name, defaultValue);
+	}
+
 	protected Date getPropertyDate(String name) {
 		return node.getPropertyDate(name);
+	}
+
+	protected UUID getPropertyUUID(String name) {
+		return node.getPropertyUUID(name);
+	}
+
+	public RegistryNode getNode() {
+		return node;
+	}
+
+	public boolean exists() {
+		return node.exists();
+	}
+
+	public Entity create() {
+		node.create();
+		return this;
+	}
+
+	public void delete() {
+		node.delete();
 	}
 }

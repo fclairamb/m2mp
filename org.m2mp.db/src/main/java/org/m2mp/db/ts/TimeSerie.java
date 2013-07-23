@@ -76,11 +76,11 @@ public class TimeSerie {
 		PreparedStatement reqInsert = DB.prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, period, type, date, data ) VALUES ( ?, ?, ?, ?, ? );");
 
 		// We insert it once
-		DB.execute(reqInsert.bind(td.getId(), period, td.getType(), date, td.getJson()));
+		DB.execute(reqInsert.bind(td.getId(), period, td.getType(), date, td.getData()));
 
 		// And also an other time if a type was specified
 		if (td.getType() != null) {
-			DB.execute(reqInsert.bind(td.getId() + "!" + td.getType(), period, td.getType(), date, td.getJson()));
+			DB.execute(reqInsert.bind(td.getId() + "!" + td.getType(), period, td.getType(), date, td.getData()));
 		}
 	}
 

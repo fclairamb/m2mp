@@ -3,6 +3,7 @@ package org.m2mp.db.registry;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -126,6 +127,10 @@ public class RegistryNode {
 	 */
 	public boolean existed() {
 		return getStatus() != STATUS_UNDEFINED;
+	}
+
+	public boolean deleted() {
+		return getStatus() == STATUS_DELETED;
 	}
 
 	/**
@@ -355,6 +360,10 @@ public class RegistryNode {
 		return getProperty(name, defaultValue ? "1" : "0").equals("1");
 	}
 
+	public String getPropertyString(String name) {
+		return getProperty(name, (String) null);
+	}
+
 	public Date getPropertyDate(String name) {
 		long time = getProperty(name, (long) 0);
 		return time != 0 ? new Date(time) : null;
@@ -402,6 +411,10 @@ public class RegistryNode {
 	public void setProperty(String name, Date date) {
 		setProperty(name, date.getTime());
 	}
+
+	public void setProperty(String name, UUID id) {
+		setProperty(name, id.toString());
+	}
 	// </editor-fold>
 
 	@Override
@@ -412,6 +425,11 @@ public class RegistryNode {
 	@Deprecated
 	public void setValue(String pkey, String s) {
 		setProperty(pkey, s);
+	}
+
+	@Deprecated
+	public void setValue(String name, UUID value) {
+		setProperty(name, value);
 	}
 
 	@Deprecated
@@ -475,5 +493,20 @@ public class RegistryNode {
 	@Deprecated
 	public int getValueInt(String propertyName, int defaultValue) {
 		return getProperty(propertyName, defaultValue);
+	}
+
+	@Deprecated
+	public Collection<String> getValuesList() {
+		return getProperties().values();
+	}
+
+	@Deprecated
+	public UUID getValueUUID(String name) {
+		return getPropertyUUID(name);
+	}
+
+	@Deprecated
+	public String getValue(String name) {
+		return getPropertyString(name);
 	}
 }

@@ -40,6 +40,10 @@ public abstract class Entity {
 		node.setProperty(name, value);
 	}
 
+	protected void setProperty(String name, UUID id) {
+		node.setProperty(name, id);
+	}
+
 	protected String getProperty(String name, String value) {
 		return node.getProperty(name, value);
 	}
@@ -64,6 +68,10 @@ public abstract class Entity {
 		return node.getPropertyUUID(name);
 	}
 
+	protected void delProperty(String name) {
+		node.delProperty(name);
+	}
+
 	public RegistryNode getNode() {
 		return node;
 	}
@@ -76,8 +84,52 @@ public abstract class Entity {
 		node.create();
 		return this;
 	}
+	/**
+	 * Property: Date of deletion.
+	 *
+	 * This property might be of importance when you want to remove the entities
+	 * that haven't been used for quite some time first.
+	 */
+	private static final String PROPERTY_DELETED_DATE = ".deleted_date";
 
 	public void delete() {
 		node.delete();
+		setProperty(PROPERTY_DELETED_DATE, System.currentTimeMillis());
+	}
+
+	public boolean deleted() {
+		return node.deleted();
+	}
+
+	public long deletedTime() {
+		return getProperty(PROPERTY_DELETED_DATE, 0);
+	}
+
+	public void undelete() {
+		node.check();
+		delProperty(PROPERTY_DELETED_DATE);
+	}
+	private static final String PROP_VERSION = ".version";
+
+	protected abstract int getObjectVersion();
+
+	public boolean versionOutdated() {
+		return getObjectVersion() > getProperty(PROP_VERSION, 0);
+	}
+
+	public void versionUpdate() {
+		// If the deletedTime property wasn't applied yet
+		if (deleted() && deletedTime() == 0) {
+			delete();
+		}
+	}
+
+	public boolean versionCheck() {
+		if (versionOutdated()) {
+			versionUpdate();
+			return true;
+		} else {
+			return false;
+		}
 	}
 }

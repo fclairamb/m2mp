@@ -24,6 +24,7 @@ public class Domain extends Entity {
 	}
 	private UUID domainId;
 	private static final String PREFIX = "/domain/";
+	private static final String PROP_MASTER_ID = "master";
 
 	public Domain(UUID id) {
 		domainId = id;
@@ -126,5 +127,18 @@ public class Domain extends Entity {
 	@Deprecated
 	public User getDefaultUser() {
 		return User.get("__" + getName() + "__");
+	}
+
+	public void setMaster(User master) {
+		setProperty(PROP_MASTER_ID, master.getId());
+	}
+
+	public User getMaster() {
+		return getMaster();
+	}
+
+	@Override
+	protected int getObjectVersion() {
+		return 1;
 	}
 }

@@ -3,8 +3,6 @@ package org.m2mp.db.registry.file;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -186,11 +184,11 @@ public class DbFile extends Entity {
 	}
 	// </editor-fold>
 
-	public InputStream openInputStream() {
+	public DbFileInputStream openInputStream() {
 		return new DbFileInputStream(this);
 	}
 
-	public OutputStream openOutputStream() {
+	public DbFileOutputStream openOutputStream() {
 		return new DbFileOutputStream(this);
 	}
 
@@ -219,17 +217,22 @@ public class DbFile extends Entity {
 	private PreparedStatement reqDelBlock;
 
 	@Deprecated
-	public InputStream getInputStream() {
+	public DbFileInputStream getInputStream() {
 		return openInputStream();
 	}
 
 	@Deprecated
-	public OutputStream getOutputStream() {
+	public DbFileOutputStream getOutputStream() {
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Deprecated
 	public long getFileSize() {
 		return getSize();
+	}
+
+	@Override
+	protected int getObjectVersion() {
+		return 1;
 	}
 }

@@ -44,6 +44,7 @@ public class User extends Entity {
 		return userId != null ? new User(userId) : null;
 	}
 	private static final String PROP_NAME = "name";
+	private static final String PROP_DISPLAYNAME = "displayName";
 	private static final String PROP_DOMAIN = "domain";
 	private static final String PROP_CREATED_DATE = "created";
 	private static final String PROP_PASSWORD = "password";
@@ -63,13 +64,22 @@ public class User extends Entity {
 		return u;
 	}
 
-//	@Override
-//	public User check() {
-//		super.check();
-//		return this;
-//	}
+	public String getUsername() {
+		return getProperty(PROP_NAME, null);
+	}
+
+	public String getDisplayName() {
+		String name = getProperty(PROP_DISPLAYNAME, null);
+		return name != null ? name : getUsername();
+	}
+
 	public String getPassword() {
 		return getProperty(PROP_PASSWORD, null);
+	}
+
+	public static User authenticate(String username, String password) {
+		User user = User.get(username);
+		return (password != null && password.equals(user.getPassword())) ? user : null;
 	}
 
 	public void setPassword(String pass) {
@@ -107,5 +117,14 @@ public class User extends Entity {
 	@Deprecated
 	public boolean isSuperAdmin() {
 		return getProperty("__super_admin", false);
+	}
+
+	@Override
+	protected int getObjectVersion() {
+		return 1;
+	}
+	
+	public RegistryNode settings() {
+		return node.getChild("settings").check();
 	}
 }

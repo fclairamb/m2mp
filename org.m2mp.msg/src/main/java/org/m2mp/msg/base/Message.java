@@ -10,8 +10,15 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 /**
- *
- * @author florent
+ * Inter-components message. 
+ * 
+ * Messages are generated with simple JSON objects with some mandatory fields:
+ * <ul>
+ *  <li>__from: The sender</li>
+ *  <li>__to: The recipient</li>
+ *  <li>__subject: Type of message</li>
+ *  <li>__date: The date of the message generation</li>
+ * </ul>
  */
 public class Message {
 

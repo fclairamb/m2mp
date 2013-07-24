@@ -13,7 +13,7 @@ import org.m2mp.msg.base.MessageWrapper;
 
 /**
  *
- * @author florent
+ * @author Florent Clairambault
  */
 public class MessagesTest {
 

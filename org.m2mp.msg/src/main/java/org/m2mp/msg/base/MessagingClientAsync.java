@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Logger;
 
 /**
  *
- * @author florent
+ * @author Florent Clairambault
  */
 public class MessagingClientAsync implements Runnable {
 

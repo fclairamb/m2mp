@@ -5,8 +5,7 @@
 package org.m2mp.msg.base;
 
 /**
- *
- * @author florent
+ * Message wrapper.
  */
 public class MessageWrapper {
 

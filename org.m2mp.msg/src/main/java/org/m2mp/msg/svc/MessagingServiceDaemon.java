@@ -16,7 +16,7 @@ import org.m2mp.msg.base.Message;
 
 /**
  *
- * @author florent
+ * @author Florent Clairambault
  */
 public abstract class MessagingServiceDaemon extends MessagingService implements Daemon {
 

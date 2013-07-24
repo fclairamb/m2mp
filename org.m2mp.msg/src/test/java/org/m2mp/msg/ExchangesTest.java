@@ -12,7 +12,7 @@ import org.m2mp.msg.base.MessagingClient;
 
 /**
  *
- * @author florent
+ * @author Florent Clairambault
  */
 public class ExchangesTest {
 

@@ -1,4 +1,4 @@
-package org.m2mp.db.registry.file;
+package org.m2mp.db.test;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,6 +16,9 @@ import org.junit.Test;
 import org.m2mp.db.DB;
 import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.registry.RegistryNode;
+import org.m2mp.db.registry.file.DbFile;
+import org.m2mp.db.registry.file.DbFileInputStream;
+import org.m2mp.db.registry.file.DbFileOutputStream;
 
 /**
  *
@@ -83,22 +86,22 @@ public class DbFileTest {
 
 	@Test
 	public void TinySize() throws Exception { // 20 bytes
-		realAndDbFilesComparison(1, 20, 4096);
+		realAndDbFilesComparison(1, 20);
 	}
 
 	@Test
 	public void SmallSize() throws Exception { // 1 MB
-		realAndDbFilesComparison(1, 20, 1024 * 512);
+		realAndDbFilesComparison(1024, 1024);
 	}
 
 	@Test
 	public void MediumSize() throws Exception { // 4 MB
-		realAndDbFilesComparison(1, 20, 1024 * 512);
+		realAndDbFilesComparison(4, 1024*1024);
 	}
 
 	@Test
 	public void BigSize() throws Exception { // 20 MB
-		realAndDbFilesComparison(20, 1024 * 1024, 1024 * 512);
+		realAndDbFilesComparison(20, 1024 * 1024);
 	}
 
 	@Test
@@ -115,19 +118,18 @@ public class DbFileTest {
 		}
 	}
 
-	private void realAndDbFilesComparison(int nbBlocks, int blockSize, int chunkSize) throws Exception {
+	private void realAndDbFilesComparison(int nbBlocks, int blockSize) throws Exception {
 		File file1;
 		DbFile file2;
 		{ // File on disk
-			file1 = new File("/tmp/test-" + (nbBlocks * blockSize) + "-" + chunkSize);
+			file1 = new File("/tmp/test-" + (nbBlocks * blockSize) );
 			file1.deleteOnExit();
 			try (OutputStream os = new FileOutputStream(file1)) {
 				writeFile(os, nbBlocks, blockSize, 256);
 			}
 		}
 		{ // File on DB
-			file2 = new DbFile(new RegistryNode("/this/is/my/file-" + (nbBlocks * blockSize) + "-" + chunkSize).check());
-			file2.setBlockSize(chunkSize);
+			file2 = new DbFile(new RegistryNode("/this/is/my/file-" + (nbBlocks * blockSize) ).check());
 			try (OutputStream os = new DbFileOutputStream(file2)) {
 				writeFile(os, nbBlocks, blockSize, 256);
 			}

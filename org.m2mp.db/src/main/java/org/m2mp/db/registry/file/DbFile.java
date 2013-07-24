@@ -93,6 +93,11 @@ public class DbFile extends Entity {
 	public long getSize() {
 		return getProperty(PROPERTY_SIZE, (long) 0);
 	}
+	
+	/**
+	 * Default block size.
+	 * 512KB seems like a good fit.
+	 */
 	private static final int DEFAULT_BLOCK_SIZE = 512 * 1024;
 
 	/**
@@ -104,7 +109,7 @@ public class DbFile extends Entity {
 		int blockSize = getProperty(PROPERTY_BLOCK_SIZE, -1);
 		if (blockSize <= 0) {
 			blockSize = DEFAULT_BLOCK_SIZE;
-			
+
 			// We do have to define the block size here, because if the default
 			// blocksize evolves, we need to make sure it's still OK.
 			setProperty(PROPERTY_BLOCK_SIZE, blockSize);
@@ -112,13 +117,14 @@ public class DbFile extends Entity {
 		return blockSize;
 	}
 
-	/**
-	 * Set the block size.
-	 * @param size Block size (in bytes)
-	 */
-	void setBlockSize(int size) {
-		setProperty(PROPERTY_BLOCK_SIZE, size);
-	}
+//	/**
+//	 * Set the block size.
+//	 *
+//	 * @param size Block size (in bytes)
+//	 */
+//	private void setBlockSize(int size) {
+//		setProperty(PROPERTY_BLOCK_SIZE, size);
+//	}
 	// <editor-fold defaultstate="collapsed" desc="Raw block handling">
 
 	public void delBlock(int blockNb) {
@@ -186,10 +192,6 @@ public class DbFile extends Entity {
 
 	public OutputStream openOutputStream() {
 		return new DbFileOutputStream(this);
-	}
-
-	public void delete() {
-		node.delete();
 	}
 
 	public PreparedStatement reqGetBlock() {

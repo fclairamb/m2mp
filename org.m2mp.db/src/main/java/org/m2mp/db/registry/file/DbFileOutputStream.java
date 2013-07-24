@@ -11,7 +11,7 @@ import java.io.OutputStream;
 public class DbFileOutputStream extends OutputStream {
 
 	private final DbFile file;
-	private final int chunkSize;
+	private final int blockSize;
 	private long size;
 	private long offset;
 	private final byte[] chunk;
@@ -20,9 +20,9 @@ public class DbFileOutputStream extends OutputStream {
 
 	public DbFileOutputStream(DbFile file) {
 		this.file = file;
-		this.chunkSize = file.getBlockSize();
+		this.blockSize = file.getBlockSize();
 		this.size = file.getSize();
-		this.chunk = new byte[chunkSize];
+		this.chunk = new byte[blockSize];
 
 		this.offset = 0;
 		
@@ -36,7 +36,7 @@ public class DbFileOutputStream extends OutputStream {
 		offset++;
 		this.chunk[chunkOffset++] = (byte) b;
 
-		if (chunkOffset == this.chunkSize) {
+		if (chunkOffset == this.blockSize) {
 			write();
 		}
 	}
@@ -50,8 +50,8 @@ public class DbFileOutputStream extends OutputStream {
 		this.offset = offset;
 
 		// We define our new chunk
-		chunkNb = (int) (offset / chunkSize);
-		chunkOffset = (int) (offset - (chunkNb * chunkSize));
+		chunkNb = (int) (offset / blockSize);
+		chunkOffset = (int) (offset - (chunkNb * blockSize));
 
 		// But we also need to load some possibly existing data
 		byte[] previousChunk = file.getBlockBytes(chunkNb);

@@ -10,6 +10,7 @@ import static org.m2mp.db.entity.Domain.getIdFromName;
 import org.m2mp.db.common.Entity;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
+import static org.m2mp.db.entity.Domain.TABLE;
 import org.m2mp.db.registry.RegistryNode;
 
 /**
@@ -25,6 +26,11 @@ public class User extends Entity {
 	public User(UUID userId) {
 		this.userId = userId;
 		node = new RegistryNode(PREFIX + userId);
+	}
+
+	public User(RegistryNode node) {
+		this.node = node;
+		this.userId = UUID.fromString(node.getName());
 	}
 
 	protected static UUID getIdFromName(String name) {
@@ -55,13 +61,17 @@ public class User extends Entity {
 			throw new IllegalArgumentException("The user \"" + name + "\" already exists with id \"" + userId + "\"");
 		}
 		userId = UUID.randomUUID();
-		DB.execute(DB.prepare("INSERT INTO " + TABLE + " ( name, id, domain ) VALUES ( ?, ?, ? );").bind(name, userId, domain.getId()));
 		User u = new User(userId);
 		u.check();
-		u.setProperty(PROP_NAME, name);
 		u.setProperty(PROP_CREATED_DATE, System.currentTimeMillis());
-		u.setProperty(PROP_DOMAIN, domain.getId().toString());
+		u.setUsername(name);
+		u.setDomain(domain);
 		return u;
+	}
+
+	public void setUsername(String name) {
+		setProperty(PROP_NAME, name);
+		DB.execute(DB.prepare("INSERT INTO " + TABLE + " ( name, id ) VALUES ( ?, ? );").bind(name, userId));
 	}
 
 	public String getUsername() {
@@ -111,7 +121,12 @@ public class User extends Entity {
 	}
 
 	public Domain getDomain() {
-		return new Domain(getPropertyUUID("domain"));
+		return new Domain(getPropertyUUID(PROP_DOMAIN));
+	}
+
+	public void setDomain(Domain domain) {
+		setProperty(PROP_DOMAIN, domain.getId());
+		DB.execute(DB.prepare("UPDATE " + TABLE + " SET domain = ? WHERE name = ?;").bind(domain.getId(), getUsername()));
 	}
 
 	@Deprecated
@@ -123,7 +138,7 @@ public class User extends Entity {
 	protected int getObjectVersion() {
 		return 1;
 	}
-	
+
 	public RegistryNode settings() {
 		return node.getChild("settings").check();
 	}

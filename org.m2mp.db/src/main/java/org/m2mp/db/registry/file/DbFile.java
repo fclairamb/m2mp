@@ -14,6 +14,7 @@ import org.m2mp.db.common.Entity;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
 import org.m2mp.db.registry.RegistryNode;
+import static org.m2mp.db.registry.RegistryNode.TABLE_REGISTRY;
 
 /**
  * File stored in database.
@@ -256,7 +257,7 @@ public class DbFile extends Entity {
 			}
 		}
 	}
-
+	
 	@Override
 	protected int getObjectVersion() {
 		return 5;

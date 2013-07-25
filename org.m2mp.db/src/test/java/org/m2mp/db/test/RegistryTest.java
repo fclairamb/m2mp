@@ -8,10 +8,12 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.m2mp.db.DB;
 import org.m2mp.db.registry.RegistryNode;
+import org.m2mp.db.registry.file.DbFile;
 
 /**
  *
@@ -22,13 +24,14 @@ public class RegistryTest {
 	@BeforeClass
 	public static void setUpClass() {
 		DB.keyspace("ks_test", true);
-		try {
-			DB.execute("drop table RegistryNode;");
-			DB.execute("drop table RegistryNodeChildren;");
-			DB.execute("drop table RegistryNodeData;");
-		} catch (Exception ex) {
-		}
-		RegistryNode.prepareTable();
+		DbFile.prepareTable();
+	}
+
+	@Before
+	public void setUp() {
+		DB.execute("truncate RegistryNode;");
+		DB.execute("truncate RegistryNodeChildren;");
+		DB.execute("truncate RegistryNodeData;");
 	}
 
 	@Test

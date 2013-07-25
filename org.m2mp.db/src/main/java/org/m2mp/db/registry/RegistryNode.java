@@ -10,7 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import org.codehaus.jackson.map.util.JSONPObject;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.m2mp.db.DB;

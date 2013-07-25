@@ -100,6 +100,7 @@ public class RegistryNode {
 		}
 		if (forReal) {
 			DB.execute(DB.prepare("DELETE values, status FROM " + TABLE_REGISTRY + " WHERE path=?;").bind(path));
+			DB.execute(DB.prepare("DELETE FROM " + TABLE_REGISTRY + "Data WHERE path=?;").bind(path));
 			values = null;
 		} else {
 			setStatus(STATUS_DELETED);

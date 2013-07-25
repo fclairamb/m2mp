@@ -30,6 +30,11 @@ public class Domain extends Entity {
 		domainId = id;
 		node = new RegistryNode(PREFIX + id);
 	}
+	
+	public Domain(RegistryNode node) {
+		domainId = UUID.fromString( node.getName() );
+		this.node = node;
+	}
 
 	public Domain(String name) {
 		domainId = getIdFromName(name);
@@ -53,11 +58,9 @@ public class Domain extends Entity {
 			throw new IllegalArgumentException("The domain \"" + name + "\" already exists for domain \"" + domainId + "\"");
 		}
 		domainId = UUID.randomUUID();
-		DB.execute(DB.prepare("INSERT INTO " + TABLE + " ( name, id ) VALUES ( ?, ? );").bind(name, domainId));
-
 		Domain d = new Domain(domainId);
 		d.check();
-		d.setProperty(PROP_NAME, name);
+		d.setName(name);
 		d.setProperty(PROP_CREATED_DATE, System.currentTimeMillis());
 		return d;
 	}
@@ -67,6 +70,8 @@ public class Domain extends Entity {
 	}
 
 	public void setName(String name) {
+		setProperty(PROP_NAME, name);
+		DB.execute(DB.prepare("INSERT INTO " + TABLE + " ( name, id ) VALUES ( ?, ? );").bind(name, domainId));
 	}
 	public static final String TABLE = "Domain";
 
@@ -118,9 +123,10 @@ public class Domain extends Entity {
 
 	@Override
 	public Domain check() {
-		if (!exists()) {
-			create(getName());
-		}
+		node.check();
+//		if (!exists()) {
+//			create(getName());
+//		}
 		return this;
 	}
 
@@ -140,5 +146,10 @@ public class Domain extends Entity {
 	@Override
 	protected int getObjectVersion() {
 		return 1;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return obj instanceof Domain && getId().equals(((Domain)obj).getId());
 	}
 }

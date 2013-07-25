@@ -3,6 +3,9 @@ package org.m2mp.db.registry.file;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,10 +94,8 @@ public class DbFile extends Entity {
 	public long getSize() {
 		return getProperty(PROPERTY_SIZE, (long) 0);
 	}
-	
 	/**
-	 * Default block size.
-	 * 512KB seems like a good fit.
+	 * Default block size. 512KB seems like a good fit.
 	 */
 	private static final int DEFAULT_BLOCK_SIZE = 512 * 1024;
 
@@ -124,7 +125,6 @@ public class DbFile extends Entity {
 //		setProperty(PROPERTY_BLOCK_SIZE, size);
 //	}
 	// <editor-fold defaultstate="collapsed" desc="Raw block handling">
-
 	public void delBlock(int blockNb) {
 		DB.execute(reqDelBlock().bind(path, blockNb));
 	}
@@ -185,6 +185,7 @@ public class DbFile extends Entity {
 	// </editor-fold>
 
 	public DbFileInputStream openInputStream() {
+		versionCheck();
 		return new DbFileInputStream(this);
 	}
 
@@ -223,7 +224,7 @@ public class DbFile extends Entity {
 
 	@Deprecated
 	public DbFileOutputStream getOutputStream() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return openOutputStream();
 	}
 
 	@Deprecated
@@ -231,8 +232,33 @@ public class DbFile extends Entity {
 		return getSize();
 	}
 
+	private static final int IO_BUFFER_SIZE = 8192;
+	
+	private static void streamCopy(InputStream in, OutputStream out) throws IOException {
+		byte[] b = new byte[IO_BUFFER_SIZE];
+		int read;
+		while ((read = in.read(b)) != -1) {
+			out.write(b, 0, read);
+		}
+	}
+	
+	@Override
+	public void versionUpdate() {
+		super.versionUpdate();
+		if (getBlockBytes(0) == null) {
+			try {
+				try (DbFileInputStream is = new DbFileInputStream(new DbFile(node.getChild("file")))) {
+					try (DbFileOutputStream os = new DbFileOutputStream(this)) {
+						streamCopy(is, os);
+					}
+				}
+			} catch (Exception ex) {
+			}
+		}
+	}
+
 	@Override
 	protected int getObjectVersion() {
-		return 1;
+		return 5;
 	}
 }

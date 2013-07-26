@@ -266,6 +266,6 @@ public class DbFile extends Entity {
 	
 	@Override
 	protected int getObjectVersion() {
-		return 5;
+		return 6;
 	}
 }

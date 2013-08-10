@@ -89,7 +89,7 @@ public class User extends Entity {
 
 	public static User authenticate(String username, String password) {
 		User user = User.get(username);
-		return (password != null && password.equals(user.getPassword())) ? user : null;
+		return (user != null && password != null && password.equals(user.getPassword())) ? user : null;
 	}
 
 	public void setPassword(String pass) {

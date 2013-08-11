@@ -19,20 +19,24 @@ import java.util.LinkedHashSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-/**
- *
- * @author Florent Clairambault
- */
 public class ESClientWrapper {
 
 	private static final JestClientFactory clientFactory = new JestClientFactory();
 	private static final ClientConfig clientConfig = new ClientConfig();
 	private static final Logger log = LogManager.getLogger(ESClientWrapper.class);
-	private static final ExecutorService executor = Executors.newFixedThreadPool(2);
+	private static final ExecutorService executor = Executors.newFixedThreadPool(2, new ThreadFactory() {
+		@Override
+		public Thread newThread(Runnable r) {
+			Thread t = new Thread(r, "ESClientWrapper_Thread");
+			t.setPriority(Thread.MIN_PRIORITY);
+			return t;
+		}
+	});
 
 	static {
 		clientConfig.getProperties().put(ClientConstants.SERVER_LIST, new LinkedHashSet<>(Arrays.asList("http://localhost:9200")));

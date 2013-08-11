@@ -104,7 +104,7 @@ public class DbFile extends Entity {
 	 *
 	 * @return Get the block size.
 	 */
-	int getBlockSize() {
+	public int getBlockSize() {
 		int blockSize = getProperty(PROPERTY_BLOCK_SIZE, -1);
 		if (blockSize <= 0) {
 			blockSize = DEFAULT_BLOCK_SIZE;
@@ -114,6 +114,21 @@ public class DbFile extends Entity {
 			setProperty(PROPERTY_BLOCK_SIZE, blockSize);
 		}
 		return blockSize;
+	}
+
+	/**
+	 * Set the block size.
+	 * We can only set the block size if it hasn't been set before.
+	 * @param size
+	 * @return 
+	 */
+	public boolean setBlockSize(int size) {
+		int blockSize = getProperty(PROPERTY_BLOCK_SIZE, -1);
+		if (blockSize < 1) {
+			setProperty(PROPERTY_BLOCK_SIZE, size);
+			return true;
+		}
+		return false;
 	}
 
 //	/**
@@ -231,9 +246,8 @@ public class DbFile extends Entity {
 	public long getFileSize() {
 		return getSize();
 	}
-
 	private static final int IO_BUFFER_SIZE = 8192;
-	
+
 	private static void streamCopy(InputStream in, OutputStream out) throws IOException {
 		byte[] b = new byte[IO_BUFFER_SIZE];
 		int read;
@@ -241,11 +255,11 @@ public class DbFile extends Entity {
 			out.write(b, 0, read);
 		}
 	}
-	
+
 	@Override
 	public void versionUpdate() {
 		super.versionUpdate();
-		
+
 		//TODO: Remove this. This is fix for the previous storage that had a bogus file/file hierarchy
 		if (getBlockBytes(0) == null) {
 			try {
@@ -254,16 +268,16 @@ public class DbFile extends Entity {
 						streamCopy(is, os);
 					}
 				}
-				
+
 				RegistryNode child = node.getChild("file");
-				if ( child.exists()) {
+				if (child.exists()) {
 					child.delete();
 				}
 			} catch (Exception ex) {
 			}
 		}
 	}
-	
+
 	@Override
 	protected int getObjectVersion() {
 		return 6;

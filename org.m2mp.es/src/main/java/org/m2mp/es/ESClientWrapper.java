@@ -1,8 +1,5 @@
 package org.m2mp.es;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.gson.JsonObject;
 import io.searchbox.Action;
 import io.searchbox.Parameters;
@@ -16,11 +13,9 @@ import io.searchbox.core.Index;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,7 +24,7 @@ public class ESClientWrapper {
 	private static final JestClientFactory clientFactory = new JestClientFactory();
 	private static final ClientConfig clientConfig = new ClientConfig();
 	private static final Logger log = LogManager.getLogger(ESClientWrapper.class);
-	private static final ExecutorService executor = Executors.newFixedThreadPool(2, new ThreadFactory() {
+	private static final ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactory() {
 		@Override
 		public Thread newThread(Runnable r) {
 			Thread t = new Thread(r, "ESClientWrapper_Thread");
@@ -37,33 +32,13 @@ public class ESClientWrapper {
 			return t;
 		}
 	});
+	private static final JestClient client;
 
 	static {
 		clientConfig.getProperties().put(ClientConstants.SERVER_LIST, new LinkedHashSet<>(Arrays.asList("http://localhost:9200")));
+		clientConfig.getProperties().put(ClientConstants.IS_MULTI_THREADED, true);
 		clientFactory.setClientConfig(clientConfig);
-	}
-	private static final LoadingCache<Long, ESClientWrapper> clients = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).maximumSize(20).build(new CacheLoader<Long, ESClientWrapper>() {
-		@Override
-		public ESClientWrapper load(Long k) throws Exception {
-			return new ESClientWrapper();
-		}
-	});
-
-	static ESClientWrapper get() {
-		ESClientWrapper client;
-		try {
-			client = clients.get(Thread.currentThread().getId());
-		} catch (ExecutionException ex) {
-			log.catching(ex);
-			return null;
-		}
-		return client;
-	}
-
-	private JestClient getClient() {
-		synchronized (clientFactory) {
-			return clientFactory.getObject();
-		}
+		client = clientFactory.getObject();
 	}
 
 	private ESClientWrapper() {
@@ -71,7 +46,7 @@ public class ESClientWrapper {
 
 	public static JestResult execute(Action action) throws IOException {
 		try {
-			return get().getClient().execute(action);
+			return client.execute(action);
 		} catch (Exception ex) {
 			log.catching(ex);
 			return null;
@@ -112,5 +87,10 @@ public class ESClientWrapper {
 				index(entity);
 			}
 		});
+	}
+	
+	public static void stop() {
+		executor.shutdown();
+		client.shutdownClient();
 	}
 }

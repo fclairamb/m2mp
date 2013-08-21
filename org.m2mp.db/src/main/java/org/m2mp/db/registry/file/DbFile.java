@@ -41,6 +41,20 @@ public class DbFile extends Entity {
 		this.path = node.getPath();
 	}
 
+	@Override
+	public DbFile create() {
+		super.create();
+		
+		// We're adding a file marker to make sure we can identify when we have a file
+		setProperty(RegistryNode.PROPERTY_IS_FILE, true);
+		return this;
+	}
+
+	@Override
+	public boolean exists() {
+		return super.exists() && getProperty(RegistryNode.PROPERTY_IS_FILE, false);
+	}
+	
 	/**
 	 * Set the type of file (mime-type)
 	 *
@@ -280,6 +294,6 @@ public class DbFile extends Entity {
 
 	@Override
 	protected int getObjectVersion() {
-		return 6;
+		return 7;
 	}
 }

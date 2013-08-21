@@ -16,6 +16,7 @@ import org.m2mp.db.DB;
 import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
+import org.m2mp.db.registry.file.DbFile;
 
 /**
  * Registry node.
@@ -88,6 +89,10 @@ public class RegistryNode {
 		delete(false);
 	}
 
+	public boolean isFile() {
+		return getProperty(RegistryNode.PROPERTY_IS_FILE, false);
+	}
+
 	/**
 	 * Delete the node.
 	 *
@@ -100,7 +105,7 @@ public class RegistryNode {
 		if (forReal) {
 			DB.execute(DB.prepare("DELETE values, status FROM " + TABLE_REGISTRY + " WHERE path=?;").bind(path));
 			DB.execute(DB.prepare("DELETE FROM " + TABLE_REGISTRY + "Data WHERE path=?;").bind(path));
-			values = null;
+			properties = null;
 		} else {
 			setStatus(STATUS_DELETED);
 			// We don't touch the values because they haven't been deleted
@@ -332,7 +337,8 @@ public class RegistryNode {
 	}
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="Properties management">
-	private Map<String, String> values;
+	private Map<String, String> properties;
+	public static final String PROPERTY_IS_FILE = ".is_file";
 
 	/**
 	 * Get a property
@@ -375,28 +381,28 @@ public class RegistryNode {
 	}
 
 	public Map<String, String> getProperties() {
-		if (values == null) {
+		if (properties == null) {
 			ResultSet rs = DB.execute(DB.prepare("SELECT values FROM " + TABLE_REGISTRY + " WHERE path = ?;").bind(path));
 			for (Row r : rs) {
-				values = new HashMap<>(r.getMap(0, String.class, String.class));
-				return values;
+				properties = new HashMap<>(r.getMap(0, String.class, String.class));
+				return properties;
 			}
-			values = new HashMap<>();
+			properties = new HashMap<>();
 		}
-		return values;
+		return properties;
 	}
 
 	public void delProperty(String name) {
 		DB.execute(DB.prepare("DELETE values[ ? ] FROM " + TABLE_REGISTRY + " WHERE path = ?;").bind(name, path));
-		if (values != null) {
-			values.remove(name);
+		if (properties != null) {
+			properties.remove(name);
 		}
 	}
 
 	public void setProperty(String name, String value) {
 		DB.execute(DB.prepare("UPDATE " + TABLE_REGISTRY + " SET values[ ? ] = ? WHERE path = ?;").bind(name, value, path));
-		if (values != null) {
-			values.put(name, value);
+		if (properties != null) {
+			properties.put(name, value);
 		}
 	}
 

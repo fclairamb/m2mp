@@ -10,7 +10,6 @@ import static org.m2mp.db.entity.Domain.getIdFromName;
 import org.m2mp.db.common.Entity;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
-import static org.m2mp.db.entity.Domain.TABLE;
 import org.m2mp.db.registry.RegistryNode;
 
 /**

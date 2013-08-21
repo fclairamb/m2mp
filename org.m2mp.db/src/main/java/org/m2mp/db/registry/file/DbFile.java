@@ -52,7 +52,7 @@ public class DbFile extends Entity {
 
 	@Override
 	public boolean exists() {
-		return super.exists() && getProperty(RegistryNode.PROPERTY_IS_FILE, false);
+		return super.exists() && getProperty(RegistryNode.PROPERTY_IS_FILE, false) && getBlockBuffer(0) != null;
 	}
 	
 	/**

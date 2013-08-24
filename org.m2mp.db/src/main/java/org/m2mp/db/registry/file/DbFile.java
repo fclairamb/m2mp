@@ -47,12 +47,13 @@ public class DbFile extends Entity {
 		
 		// We're adding a file marker to make sure we can identify when we have a file
 		setProperty(RegistryNode.PROPERTY_IS_FILE, true);
+		
 		return this;
 	}
 
 	@Override
 	public boolean exists() {
-		return super.exists() && getProperty(RegistryNode.PROPERTY_IS_FILE, false) && getBlockBuffer(0) != null;
+		return super.exists() && getProperty(RegistryNode.PROPERTY_IS_FILE, false) /*&& getBlockBuffer(0) != null*/;
 	}
 	
 	/**

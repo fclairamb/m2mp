@@ -91,7 +91,7 @@ public class TimeSerie {
 	 * @return TimedData iterator
 	 */
 	public static Iterable<TimedData> getData(String id) {
-		return getData(id);
+		return getData(id, null);
 	}
 
 	/**

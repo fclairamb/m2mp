@@ -7,6 +7,8 @@ import java.io.InputStream;
  * DBFile's inputstream.
  *
  * @author Florent Clairambault
+ * 
+ * (We don't declare AutoCloseable as closing makes no sense in the DbFileInputStream)
  */
 public class DbFileInputStream extends InputStream {
 

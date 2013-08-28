@@ -85,5 +85,10 @@ public class TimedData {
 	public Map<String, Object> getJsonMap() {
 		return (Map<String, Object>) getJsonObject();
 	}
+
 	// </editor-fold>
+	@Override
+	public String toString() {
+		return "TimedDate[" + id + "/" + type + "][" + getDate() + "] = " + data;
+	}
 }

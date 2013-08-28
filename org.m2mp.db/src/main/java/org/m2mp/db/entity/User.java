@@ -4,6 +4,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import org.m2mp.db.DB;
 import static org.m2mp.db.entity.Domain.getIdFromName;
@@ -140,5 +141,21 @@ public class User extends Entity {
 
 	public RegistryNode settings() {
 		return node.getChild("settings").check();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if ( obj instanceof User ) {
+			User ou = (User) obj;
+			return ou.getId().equals(getId());
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int hash = 7;
+		hash = 23 * hash + Objects.hashCode(this.userId);
+		return hash;
 	}
 }

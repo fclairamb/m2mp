@@ -8,7 +8,7 @@ import java.io.OutputStream;
  * 
  * @author Florent Clairambault
  */
-public class DbFileOutputStream extends OutputStream {
+public class DbFileOutputStream extends OutputStream implements AutoCloseable {
 
 	private final DbFile file;
 	private final int blockSize;

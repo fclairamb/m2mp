@@ -122,6 +122,7 @@ public abstract class Entity {
 		if (deleted() && deletedTime() == 0) {
 			delete();
 		}
+		setProperty(PROP_VERSION, getObjectVersion());
 	}
 
 	public boolean versionCheck() {

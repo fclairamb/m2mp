@@ -18,8 +18,6 @@ import org.junit.Test;
 import org.m2mp.db.DB;
 import org.m2mp.db.ts.TimeSerie;
 import org.m2mp.db.ts.TimedData;
-import org.m2mp.db.common.GeneralSetting;
-import org.m2mp.db.registry.RegistryNode;
 
 /**
  *
@@ -206,5 +204,100 @@ public class TimeSerieTest {
 			ArrayList<TimedData> results = Lists.newArrayList(TimeSerie.getData(id, null, sdf.parse("2013-08-01 23:59:59"), sdf.parse("2013-08-02 00:00:01"), false));
 			Assert.assertEquals(1, results.size());
 		}
+	}
+
+	@Test
+	public void deleteAll() throws Exception {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String id = "dev-" + UUID.randomUUID();
+		insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
+		insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
+		insertData(id, "c", sdf.parse("2013-08-04 00:00:00"));
+		insertData(id, "d", sdf.parse("2013-08-05 00:00:00"));
+		insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
+		insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
+		Assert.assertEquals(Lists.newArrayList(TimeSerie.getData(id)).size(), 6);
+
+		// We delete everything (10 years back)
+		TimeSerie.delete(id, null);
+
+		Assert.assertEquals(Lists.newArrayList(TimeSerie.getData(id)).size(), 0);
+	}
+
+	@Test
+	public void deletePreciselyHalf() throws Exception {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String id = "dev-" + UUID.randomUUID();
+		insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
+		insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
+		insertData(id, "c", sdf.parse("2013-08-04 00:00:00"));
+		insertData(id, "d", sdf.parse("2013-08-05 00:00:00"));
+		insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
+		insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
+
+		// We get everything and delete half of it
+		for (TimedData td : TimeSerie.getData(id)) {
+			String mark = (String) td.getJsonMap().get("mark");
+			if (mark.charAt(0) % 2 == 0) {
+				TimeSerie.delete(td); // Deleting while itering over results is not an issue
+			}
+		}
+		Assert.assertEquals(Lists.newArrayList(TimeSerie.getData(id)).size(), 3);
+	}
+
+	@Test
+	public void deletePreciselyManually() throws Exception {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String id = "dev-" + UUID.randomUUID();
+		TimedData first, last;
+		insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
+		insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
+		first = insertData(id, "c", sdf.parse("2013-08-04 00:00:00"));
+		insertData(id, "d", sdf.parse("2013-08-05 00:00:00"));
+		last = insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
+		insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
+
+		// We get half of the data using the ranges, and delete it
+		for (TimedData td : TimeSerie.getData(id, null, first.getDate(), last.getDate(), true)) {
+			String mark = (String) td.getJsonMap().get("mark");
+			// We also make sure we're fetching good results
+			Assert.assertTrue(mark.equals("c") || mark.equals("d") || mark.equals("e"));
+			TimeSerie.delete(td);
+		}
+		Assert.assertEquals(3, Lists.newArrayList(TimeSerie.getData(id)).size());
+	}
+
+	@Test
+	public void deletePreciselyAutomatically() throws Exception {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String id = "dev-" + UUID.randomUUID();
+		TimedData first, last;
+		insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
+		insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
+		first = insertData(id, "c", sdf.parse("2013-08-04 00:00:00"));
+		insertData(id, "d", sdf.parse("2013-08-05 00:00:00"));
+		last = insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
+		insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
+
+		// We delete half of the data (using getDate and not getDateUUID is very important here)
+		TimeSerie.delete(id, null, first.getDate(), last.getDate());
+		Assert.assertEquals(3, Lists.newArrayList(TimeSerie.getData(id)).size());
+	}
+
+	@Test
+	public void deleteRoughlyHalf() throws Exception {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String id = "dev-" + UUID.randomUUID();
+		TimedData first, last;
+		insertData(id, "a", sdf.parse("2013-01-01 00:00:00"));
+		insertData(id, "b", sdf.parse("2013-02-02 00:00:00"));
+		first = insertData(id, "c", sdf.parse("2013-03-01 00:00:00"));
+		insertData(id, "d", sdf.parse("2013-04-01 00:00:00"));
+		last = insertData(id, "e", sdf.parse("2013-05-01 00:00:00"));
+		insertData(id, "f", sdf.parse("2013-06-01 00:00:00"));
+
+		// We delete half of the data but with a monthly precision (no read ==> much faster)
+		TimeSerie.deleteRoughly(id, null, first.getDate(), last.getDate());
+		Assert.assertEquals(3, Lists.newArrayList(TimeSerie.getData(id)).size());
 	}
 }

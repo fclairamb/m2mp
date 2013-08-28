@@ -129,11 +129,6 @@ public class User extends Entity {
 		DB.execute(DB.prepare("UPDATE " + TABLE + " SET domain = ? WHERE name = ?;").bind(domain.getId(), getUsername()));
 	}
 
-	@Deprecated
-	public boolean isSuperAdmin() {
-		return getProperty("__super_admin", false);
-	}
-
 	@Override
 	protected int getObjectVersion() {
 		return 1;
@@ -154,8 +149,6 @@ public class User extends Entity {
 
 	@Override
 	public int hashCode() {
-		int hash = 7;
-		hash = 23 * hash + Objects.hashCode(this.userId);
-		return hash;
+		return userId.hashCode();
 	}
 }

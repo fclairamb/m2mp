@@ -85,6 +85,105 @@ public class TimeSerie {
 	}
 
 	/**
+	 * Delete all data around a period.
+	 *
+	 * @param period Period to delete
+	 * @param id Identifier of the data
+	 * @param type Type of the data
+	 */
+	public static void delete(int period, String id, String type) {
+		DB.execute(DB.prepare("DELETE FROM " + TABLE_TIMESERIES + " WHERE id=? AND period=?;").bind(id, period));
+		if (type != null) {
+			DB.execute(DB.prepare("DELETE FROM " + TABLE_TIMESERIES + " WHERE id=? AND period=?;").bind(id + "!" + type, period));
+		}
+	}
+
+	/**
+	 * Delete a precise event.
+	 *
+	 * @param date Date
+	 * @param id Identifier
+	 * @param type Type of the data
+	 */
+	public static void delete(String id, String type, UUID date) {
+		int period = dateToPeriod(date);
+		DB.execute(DB.prepare("DELETE FROM " + TABLE_TIMESERIES + " WHERE id=? AND period=? AND date=?;").bind(id, period, date));
+		if (type != null) {
+			DB.execute(DB.prepare("DELETE FROM " + TABLE_TIMESERIES + " WHERE id=? AND period=? AND date=?;").bind(id + "!" + type, period, date));
+		}
+	}
+
+	/**
+	 * Delete a precise event.
+	 *
+	 * @param td Timed data to delete
+	 */
+	public static void delete(TimedData td) {
+		delete(td.getId(), td.getType(), td.getDateUUID());
+	}
+
+	/**
+	 * Delete events from a date to a date with a period (month) precision.
+	 *
+	 * This only has a monthly precision. An other (uneeded at this time) proper
+	 * cleanup is required to only delete the matching events in the fromPeriod
+	 * and toPeriod periods.
+	 *
+	 * Specifying the type if very imporant here, without it the type won't be
+	 * handled properly.
+	 *
+	 * @param id TS identifier
+	 * @param type TS event type
+	 * @param fromDate Beginning date
+	 * @param toDate Ending date
+	 */
+	public static void deleteRoughly(String id, String type, Date fromDate, Date toDate) {
+		if (fromDate == null) { // No start == 10 years back
+			fromDate = new Date(System.currentTimeMillis() - 10 * 365 * 24 * 3600 * 1000);
+		}
+		if (toDate == null) { // No stop == 1 year after now
+			toDate = new Date(System.currentTimeMillis() + 365 * 24 * 3600 * 1000);
+		}
+		int fromPeriod = dateToPeriod(fromDate), toPeriod = dateToPeriod(toDate);
+
+		for (int period = fromPeriod; period <= toPeriod; period++) {
+			delete(period, id, type);
+		}
+	}
+
+	/**
+	 * Delete events from a date to a date with correct (ms) precision.
+	 *
+	 * The type will be used for the deletion even if not issued. This is
+	 * because every event is fetched to be deleted.
+	 *
+	 * @param id TS identifier
+	 * @param type TS event type
+	 * @param fromDate Beginning date
+	 * @param toDate Ending date
+	 */
+	public static void delete(String id, String type, Date fromDate, Date toDate) {
+		for (TimedData td : getData(id, type, fromDate, toDate, true)) {
+			delete(td);
+		}
+	}
+
+	/**
+	 * Delete everything on a timeserie.
+	 *
+	 * This delete events 10 years before and 1 year after now.
+	 *
+	 * If the type is null, it won't be deleted. It's very important to delete
+	 * the type as well.
+	 *
+	 * @param id TS Identifier
+	 * @param type TS Type
+	 */
+	public static void delete(String id, String type) {
+		deleteRoughly(id, type, null, null);
+	}
+
+	/**
 	 * Get the latest data around an identifier.
 	 *
 	 * @param id Identifier

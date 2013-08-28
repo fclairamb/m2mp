@@ -4,6 +4,7 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import org.m2mp.db.DB;
 import org.m2mp.db.common.Entity;
@@ -30,9 +31,9 @@ public class Domain extends Entity {
 		domainId = id;
 		node = new RegistryNode(PREFIX + id);
 	}
-	
+
 	public Domain(RegistryNode node) {
-		domainId = UUID.fromString( node.getName() );
+		domainId = UUID.fromString(node.getName());
 		this.node = node;
 	}
 
@@ -150,6 +151,11 @@ public class Domain extends Entity {
 
 	@Override
 	public boolean equals(Object obj) {
-		return obj instanceof Domain && getId().equals(((Domain)obj).getId());
+		return obj instanceof Domain && getId().equals(((Domain) obj).getId());
+	}
+
+	@Override
+	public int hashCode() {
+		return domainId.hashCode();
 	}
 }

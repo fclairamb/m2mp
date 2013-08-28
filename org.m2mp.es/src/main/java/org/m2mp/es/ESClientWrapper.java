@@ -2,17 +2,14 @@ package org.m2mp.es;
 
 import com.google.gson.JsonObject;
 import io.searchbox.Action;
-import io.searchbox.Parameters;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.JestResult;
 import io.searchbox.client.config.ClientConfig;
-import io.searchbox.client.config.ClientConstants;
 import io.searchbox.core.Delete;
 import io.searchbox.core.Index;
+import io.searchbox.params.Parameters;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -22,7 +19,7 @@ import org.apache.logging.log4j.Logger;
 public class ESClientWrapper {
 
 	private static final JestClientFactory clientFactory = new JestClientFactory();
-	private static final ClientConfig clientConfig = new ClientConfig();
+	private static final ClientConfig clientConfig = new ClientConfig.Builder("http://localhost:9200").multiThreaded(true).build();
 	private static final Logger log = LogManager.getLogger(ESClientWrapper.class);
 	private static final ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactory() {
 		@Override
@@ -35,8 +32,6 @@ public class ESClientWrapper {
 	private static final JestClient client;
 
 	static {
-		clientConfig.getProperties().put(ClientConstants.SERVER_LIST, new LinkedHashSet<>(Arrays.asList("http://localhost:9200")));
-		clientConfig.getProperties().put(ClientConstants.IS_MULTI_THREADED, true);
 		clientFactory.setClientConfig(clientConfig);
 		client = clientFactory.getObject();
 	}
@@ -56,19 +51,19 @@ public class ESClientWrapper {
 	private static Action entityToIndex(EsIndexable eib) {
 		JsonObject content = eib.getEsIndexableContent();
 		if (content == null) {
-			Delete delete = new Delete.Builder(eib.getEsDocId()).index(eib.getEsIndexName()).type(eib.getEsDocType()).build();
+			Delete.Builder builder = new Delete.Builder().id(eib.getEsDocId()).index(eib.getEsIndexName()).type(eib.getEsDocType());
 			String esRouting = eib.getEsRouting();
 			if (esRouting != null) {
-				delete.addParameter(Parameters.ROUTING, esRouting);
+				builder = builder.setParameter(Parameters.ROUTING, esRouting);
 			}
-			return delete;
+			return builder.build();
 		} else {
-			Index index = new Index.Builder(content.toString()).id(eib.getEsDocId()).type(eib.getEsDocType()).index(eib.getEsIndexName()).build();
+			Index.Builder builder = new Index.Builder(content.toString()).id(eib.getEsDocId()).type(eib.getEsDocType()).index(eib.getEsIndexName());
 			String esRouting = eib.getEsRouting();
 			if (esRouting != null) {
-				index.addParameter(Parameters.ROUTING, esRouting);
+				builder.setParameter(Parameters.ROUTING, esRouting);
 			}
-			return index;
+			return builder.build();
 		}
 	}
 
@@ -88,7 +83,7 @@ public class ESClientWrapper {
 			}
 		});
 	}
-	
+
 	public static void stop() {
 		executor.shutdown();
 		client.shutdownClient();

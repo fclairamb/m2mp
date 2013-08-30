@@ -25,6 +25,12 @@ public class DB {
 	}
 	private static String keyspaceName;
 	private static Session session;
+	
+	public static void stop() {
+		if ( session != null ) {
+			session.shutdown();
+		}
+	}
 
 	/**
 	 * Change keyspace

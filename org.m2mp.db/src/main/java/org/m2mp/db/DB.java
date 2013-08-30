@@ -12,11 +12,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Minimalistic cassandra access wrapper.
+ *
  * @author Florent Clairambault
  */
 public class DB {
@@ -24,25 +26,35 @@ public class DB {
 	private DB() {
 	}
 	private static String keyspaceName;
+	private static Cluster cluster;
 	private static Session session;
-	
-	public static void stop() {
-		if ( session != null ) {
-			session.shutdown();
+
+	private static Cluster getCluster() {
+		if (cluster == null) {
+			cluster = Cluster.builder().addContactPoint("localhost").build();
 		}
+		return cluster;
+	}
+
+	public static void stop() {
+		if (cluster != null) {
+			cluster.shutdown(5, TimeUnit.SECONDS);
+			cluster = null;
+		}
+		psCache.cleanUp();
 	}
 
 	/**
 	 * Change keyspace
+	 *
 	 * @param name Name of the keyspace
 	 * @param create To create it if not already there
 	 */
 	public static void keyspace(String name, boolean create) {
-		Cluster cluster = Cluster.builder().addContactPoint("localhost").build();
 		try {
 			keyspaceName = name;
 			psCache.cleanUp();
-			session = cluster.connect(keyspaceName);
+			session = getCluster().connect(keyspaceName);
 		} catch (InvalidQueryException ex) {
 			if (create) {
 				cluster.connect().execute("CREATE KEYSPACE " + name + " WITH replication = {'class':'SimpleStrategy', 'replication_factor':3};");
@@ -54,6 +66,7 @@ public class DB {
 
 	/**
 	 * Change keyspace
+	 *
 	 * @param name Keyspace name
 	 */
 	public static void keyspace(String name) {
@@ -62,6 +75,7 @@ public class DB {
 
 	/**
 	 * Get the internal session object
+	 *
 	 * @return Session object
 	 */
 	public static Session session() {
@@ -70,6 +84,7 @@ public class DB {
 
 	/**
 	 * Get the keyspace metadata
+	 *
 	 * @return Metadata object
 	 */
 	public static KeyspaceMetadata meta() {
@@ -84,6 +99,7 @@ public class DB {
 
 	/**
 	 * Prepare a query and put it in cache.
+	 *
 	 * @param query Query to prepare
 	 * @return PreparedStatement
 	 */
@@ -98,6 +114,7 @@ public class DB {
 
 	/**
 	 * Prepare a query (whithout putting it in cache)
+	 *
 	 * @param query Query to prepare
 	 * @return PreparedStatement
 	 */
@@ -107,6 +124,7 @@ public class DB {
 
 	/**
 	 * Execute a query
+	 *
 	 * @param query Query to execute
 	 * @return The result
 	 */
@@ -116,6 +134,7 @@ public class DB {
 
 	/**
 	 * Execute a query
+	 *
 	 * @param query Query to execute
 	 * @return The result
 	 */
@@ -125,6 +144,7 @@ public class DB {
 
 	/**
 	 * Execute a query asynchronously
+	 *
 	 * @param query Query to execute
 	 * @return The result future
 	 */

@@ -85,23 +85,64 @@ public class DbFileTest {
 	}
 
 	@Test
-	public void TinySize() throws Exception { // 20 bytes
+	public void cmpTinySize() throws Exception { // 20 bytes
 		realAndDbFilesComparison(1, 20);
 	}
 
 	@Test
-	public void SmallSize() throws Exception { // 1 MB
+	public void cmpSmallSize() throws Exception { // 1 MB
 		realAndDbFilesComparison(1024, 1024);
 	}
 
 	@Test
-	public void MediumSize() throws Exception { // 4 MB
-		realAndDbFilesComparison(4, 1024*1024);
+	public void cmpMediumSize() throws Exception { // 4 MB
+		realAndDbFilesComparison(4, 1024 * 1024);
 	}
 
 	@Test
-	public void BigSize() throws Exception { // 20 MB
-		realAndDbFilesComparison(20, 1024 * 1024);
+	public void cmpBigSize() throws Exception { // 10 MB
+		realAndDbFilesComparison(10, 1024 * 1024);
+	}
+
+	@Test
+	public void skipBytes() throws Exception {
+		int nbBlocks = 4, blockSize = 32 * 1024;
+		long length = nbBlocks * blockSize;
+
+		File file1;
+		DbFile file2;
+
+		{ // File on disk
+			file1 = new File("/tmp/test-" + (nbBlocks * blockSize));
+			file1.deleteOnExit();
+			try (OutputStream os = new FileOutputStream(file1)) {
+				writeFile(os, nbBlocks, blockSize, 256);
+			}
+		}
+		{ // File on DB
+			file2 = new DbFile(new RegistryNode("/this/is/my/file-" + (nbBlocks * blockSize)).check());
+			try (OutputStream os = new DbFileOutputStream(file2)) {
+				writeFile(os, nbBlocks, blockSize, 256);
+			}
+		}
+
+		try (InputStream is1 = new FileInputStream(file1); InputStream is2 = new DbFileInputStream(file2)) {
+			is1.skip(length / 2);
+			is2.skip(length / 2);
+			String hash1 = Hashing.sha1(is1);
+			String hash2 = Hashing.sha1(is2);
+			Assert.assertEquals(hash1,hash2);
+			Assert.assertEquals(hash1,"f04977267a391b2c8f7ad8e070f149bc19b0fc25");
+		}
+
+		try (InputStream is1 = new FileInputStream(file1); InputStream is2 = new DbFileInputStream(file2)) {
+			is1.skip(2588); // Arbirary number
+			is2.skip(2588);
+			String hash1 = Hashing.sha1(is1);
+			String hash2 = Hashing.sha1(is2);
+			Assert.assertEquals(hash1,hash2);
+			Assert.assertEquals(hash1,"93f05113e12bd875fe7075fd7e662c8e2f76dbb0");
+		}
 	}
 
 	@Test
@@ -122,14 +163,14 @@ public class DbFileTest {
 		File file1;
 		DbFile file2;
 		{ // File on disk
-			file1 = new File("/tmp/test-" + (nbBlocks * blockSize) );
+			file1 = new File("/tmp/test-" + (nbBlocks * blockSize));
 			file1.deleteOnExit();
 			try (OutputStream os = new FileOutputStream(file1)) {
 				writeFile(os, nbBlocks, blockSize, 256);
 			}
 		}
 		{ // File on DB
-			file2 = new DbFile(new RegistryNode("/this/is/my/file-" + (nbBlocks * blockSize) ).check());
+			file2 = new DbFile(new RegistryNode("/this/is/my/file-" + (nbBlocks * blockSize)).check());
 			try (OutputStream os = new DbFileOutputStream(file2)) {
 				writeFile(os, nbBlocks, blockSize, 256);
 			}

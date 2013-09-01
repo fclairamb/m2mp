@@ -18,7 +18,7 @@ public class DbFileInputStream extends InputStream {
 	private byte[] block;
 	private long readOffset;
 	private int blockOffset;
-	private int blockNb;
+	private int blockNb = -1;
 
 	/**
 	 * DBFile's InputStream constructor.

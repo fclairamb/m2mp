@@ -91,7 +91,7 @@ public class DbFileInputStream extends InputStream {
 	 */
 	private void setReadOffset(long offset) {
 		readOffset = offset;
-		int newChunk = (int) (readOffset / blockOffset);
+		int newChunk = (int) (readOffset / blockSize);
 		if (newChunk != blockNb) {
 			blockNb = newChunk;
 			getChunk(blockNb);

@@ -7,8 +7,9 @@ import java.io.InputStream;
  * DBFile's inputstream.
  *
  * @author Florent Clairambault
- * 
- * (We don't declare AutoCloseable as closing makes no sense in the DbFileInputStream)
+ *
+ * (We don't declare AutoCloseable as closing makes no sense in the
+ * DbFileInputStream)
  */
 public class DbFileInputStream extends InputStream {
 
@@ -50,19 +51,20 @@ public class DbFileInputStream extends InputStream {
 			return -1;
 		}
 	}
-	
+
 	@Override
 	public int available() {
 		return (int) (size - readOffset);
 	}
 
 	private void getChunk(int nb) {
-		if ( nb == -1 )
-			nb = 0;
 		this.block = file.getBlockBytes(nb);
 	}
 
 	private void getNextChunk() {
+		if (blockNb == -1) {
+			blockNb = 0;
+		}
 		getChunk(blockNb++);
 		blockOffset = 0;
 	}

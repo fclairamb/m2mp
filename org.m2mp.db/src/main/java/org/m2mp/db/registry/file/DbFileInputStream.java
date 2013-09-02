@@ -57,6 +57,8 @@ public class DbFileInputStream extends InputStream {
 	}
 
 	private void getChunk(int nb) {
+		if ( nb == -1 )
+			nb = 0;
 		this.block = file.getBlockBytes(nb);
 	}
 

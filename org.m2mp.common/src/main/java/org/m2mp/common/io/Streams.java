@@ -24,7 +24,15 @@ public class Streams {
 		}
 	}
 
-	public static void copy(InputStream in, OutputStream out, long length) throws IOException {
+	/**
+	 * Copy a stream to an other stream.
+	 * @param in Input stream
+	 * @param out Output stream
+	 * @param length Bytes to copy
+	 * @return Remaining bytes
+	 * @throws IOException 
+	 */
+	public static long copy(InputStream in, OutputStream out, long length) throws IOException {
 		byte[] b = new byte[IO_BUFFER_SIZE];
 		int read;
 		while ((read = in.read(b)) != -1 && length > 0) {
@@ -34,5 +42,6 @@ public class Streams {
 			length -= read;
 			out.write(b, 0, read);
 		}
+		return length;
 	}
 }

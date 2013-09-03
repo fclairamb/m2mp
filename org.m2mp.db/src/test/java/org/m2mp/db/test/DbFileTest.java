@@ -131,8 +131,8 @@ public class DbFileTest {
 			is2.skip(length / 2);
 			String hash1 = Hashing.sha1(is1);
 			String hash2 = Hashing.sha1(is2);
-			Assert.assertEquals(hash1,hash2);
-			Assert.assertEquals(hash1,"f04977267a391b2c8f7ad8e070f149bc19b0fc25");
+			Assert.assertEquals(hash1, hash2);
+			Assert.assertEquals(hash1, "f04977267a391b2c8f7ad8e070f149bc19b0fc25");
 		}
 
 		try (InputStream is1 = new FileInputStream(file1); InputStream is2 = new DbFileInputStream(file2)) {
@@ -140,8 +140,8 @@ public class DbFileTest {
 			is2.skip(2588);
 			String hash1 = Hashing.sha1(is1);
 			String hash2 = Hashing.sha1(is2);
-			Assert.assertEquals(hash1,hash2);
-			Assert.assertEquals(hash1,"93f05113e12bd875fe7075fd7e662c8e2f76dbb0");
+			Assert.assertEquals(hash1, hash2);
+			Assert.assertEquals(hash1, "93f05113e12bd875fe7075fd7e662c8e2f76dbb0");
 		}
 	}
 
@@ -177,19 +177,15 @@ public class DbFileTest {
 		}
 		//This was useful for debugging but it turns out to be quite slow
 		if (0 == 1) { // (it's an IDE thing)
-			try (InputStream is1 = new FileInputStream(file1)) {
-				try (InputStream is2 = new DbFileInputStream(file2)) {
-					long offset = 0;
-					try {
-						while (is1.available() > 0 && is2.available() > 0) {
-							Assert.assertEquals(is1.read(), is2.read());
-							offset += 1;
-						}
-					} finally {
-						System.out.println("offset = " + offset);
+			try (InputStream is1 = new FileInputStream(file1); InputStream is2 = new DbFileInputStream(file2)) {
+				long offset = 0;
+				try {
+					while (is1.available() > 0 || is2.available() > 0) {
+						Assert.assertEquals(is1.read(), is2.read());
+						offset += 1;
 					}
-					Assert.assertEquals(0, is1.available());
-					Assert.assertEquals(0, is2.available());
+				} finally {
+					System.out.println("offset = " + offset);
 				}
 			}
 		}

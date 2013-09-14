@@ -236,6 +236,7 @@ public class TimeSerie {
 			cal.set(Calendar.HOUR, cal.getActualMinimum(Calendar.HOUR));
 			cal.set(Calendar.MINUTE, cal.getActualMinimum(Calendar.MINUTE));
 			cal.set(Calendar.SECOND, cal.getActualMinimum(Calendar.SECOND));
+			cal.set(Calendar.MILLISECOND, cal.getActualMinimum(Calendar.MILLISECOND));
 			begin = cal.getTime();
 		}
 		{
@@ -243,6 +244,7 @@ public class TimeSerie {
 			cal.set(Calendar.HOUR, cal.getActualMaximum(Calendar.HOUR));
 			cal.set(Calendar.MINUTE, cal.getActualMaximum(Calendar.MINUTE));
 			cal.set(Calendar.SECOND, cal.getActualMaximum(Calendar.SECOND));
+			cal.set(Calendar.MILLISECOND, cal.getActualMaximum(Calendar.MILLISECOND));
 			end = cal.getTime();
 		}
 		return getData(id, type, begin, end, reverse);

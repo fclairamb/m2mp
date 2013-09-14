@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.m2mp.common.io;
 
 import java.io.IOException;
@@ -9,8 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- *
- * @author florent
+ * Generic streams management helper.
  */
 public class Streams {
 

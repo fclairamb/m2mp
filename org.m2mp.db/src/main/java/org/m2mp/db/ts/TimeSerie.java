@@ -2,6 +2,7 @@ package org.m2mp.db.ts;
 
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.utils.UUIDs;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -63,6 +64,19 @@ public class TimeSerie {
 		cal.setTime(date);
 		int period = cal.get(Calendar.YEAR) * 12 + (cal.get(Calendar.MONTH) + 1);
 		return period;
+	}
+
+	private static Calendar periodToCalendar(int period) {
+		int year = period / 12;
+		int month = period - (year * 12);
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.YEAR, year);
+		cal.set(Calendar.MONTH, month - 1);
+		return cal;
+	}
+
+	public static String periodToMonth(int period) {
+		return new SimpleDateFormat("yyyy-MM").format(periodToCalendar(period).getTime());
 	}
 
 	/**
@@ -202,6 +216,36 @@ public class TimeSerie {
 	 */
 	public static Iterable<TimedData> getData(String id, String type) {
 		return getData(id, type, (Date) null, null, true);
+	}
+
+	/**
+	 * Get some data around an identifier and a specific period (a month in the
+	 * current implementation)
+	 *
+	 * @param id Identifier
+	 * @param type Type of data
+	 * @param period Period considered
+	 * @param reverse Order of listing
+	 * @return
+	 */
+	public static Iterable<TimedData> getData(String id, String type, int period, boolean reverse) {
+		Calendar cal = periodToCalendar(period);
+		Date begin, end;
+		{
+			cal.set(Calendar.DAY_OF_MONTH, cal.getActualMinimum(Calendar.DAY_OF_MONTH));
+			cal.set(Calendar.HOUR, cal.getActualMinimum(Calendar.HOUR));
+			cal.set(Calendar.MINUTE, cal.getActualMinimum(Calendar.MINUTE));
+			cal.set(Calendar.SECOND, cal.getActualMinimum(Calendar.SECOND));
+			begin = cal.getTime();
+		}
+		{
+			cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+			cal.set(Calendar.HOUR, cal.getActualMaximum(Calendar.HOUR));
+			cal.set(Calendar.MINUTE, cal.getActualMaximum(Calendar.MINUTE));
+			cal.set(Calendar.SECOND, cal.getActualMaximum(Calendar.SECOND));
+			end = cal.getTime();
+		}
+		return getData(id, type, begin, end, reverse);
 	}
 
 	/**

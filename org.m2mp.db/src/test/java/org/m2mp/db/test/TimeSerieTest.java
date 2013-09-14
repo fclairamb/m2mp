@@ -300,4 +300,36 @@ public class TimeSerieTest {
 		TimeSerie.deleteRoughly(id, null, first.getDate(), last.getDate());
 		Assert.assertEquals(3, Lists.newArrayList(TimeSerie.getData(id)).size());
 	}
+
+	@Test
+	public void deletePreciselyByPeriod() throws Exception {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String id = "dev-" + UUID.randomUUID();
+		insertData(id, "a-", sdf.parse("2013-07-31 00:00:00"));
+		insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
+		insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
+		insertData(id, "c", sdf.parse("2013-08-04 00:00:00"));
+		insertData(id, "d", sdf.parse("2013-08-29 00:00:00"));
+		insertData(id, "e", sdf.parse("2013-08-30 00:00:00"));
+		insertData(id, "f", sdf.parse("2013-08-31 00:00:00"));
+		insertData(id, "a+", sdf.parse("2013-09-01 00:00:00"));
+
+		Assert.assertEquals(8, Lists.newArrayList(TimeSerie.getData(id)).size());
+
+		{// We delete the data for a period
+			int period = 2013 * 12 + 8;
+			for (TimedData td : TimeSerie.getData(id, null, period, true)) {
+				Assert.assertEquals(1, ((String) td.getJsonMap().get("mark")).length());
+				TimeSerie.delete(td);
+			}
+		}
+
+		Assert.assertEquals(2, Lists.newArrayList(TimeSerie.getData(id)).size());
+	}
+
+	@Test
+	public void periodTest() throws Exception {
+		int period = 2013 * 12 + 9;
+		Assert.assertEquals("2013-09", TimeSerie.periodToMonth(period));
+	}
 }

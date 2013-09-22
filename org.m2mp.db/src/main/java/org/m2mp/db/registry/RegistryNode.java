@@ -16,7 +16,6 @@ import org.m2mp.db.DB;
 import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
-import org.m2mp.db.registry.file.DbFile;
 
 /**
  * Registry node.
@@ -107,8 +106,8 @@ public class RegistryNode {
 			DB.execute(DB.prepare("DELETE FROM " + TABLE_REGISTRY + "Data WHERE path=?;").bind(path));
 			properties = null;
 		} else {
+			// We're just marking this as requiring a deletion
 			setStatus(STATUS_DELETED);
-			// We don't touch the values because they haven't been deleted
 		}
 		RegistryNode parent = getParentNode();
 		if (parent != null) {
@@ -428,26 +427,6 @@ public class RegistryNode {
 		return path;
 	}
 
-	@Deprecated
-	public void setValue(String pkey, String s) {
-		setProperty(pkey, s);
-	}
-
-	@Deprecated
-	public void setValue(String name, UUID value) {
-		setProperty(name, value);
-	}
-
-	@Deprecated
-	public void setValue(String symbolName, Date date) {
-		setProperty(symbolName, date);
-	}
-
-	@Deprecated
-	public String getValueString(String package_name) {
-		return getProperty(package_name, null);
-	}
-
 	public JSONObject toJsonObject() {
 		JSONObject obj = new JSONObject();
 
@@ -463,6 +442,30 @@ public class RegistryNode {
 	}
 
 	@Deprecated
+	public String getValueString(String package_name) {
+		return getProperty(package_name, null);
+	}
+
+	@Deprecated
+	public void setValue(String pkey, String s) {
+		setProperty(pkey, s);
+	}
+
+	@Deprecated
+	public void setValue(String name, UUID value) {
+		setProperty(name, value);
+	}
+
+	@Deprecated
+	public void setValue(String symbolName, Date date) {
+		setProperty(symbolName, date);
+	}
+
+	public Iterable<String> getPropertyNames() {
+		return getProperties().keySet();
+	}
+
+	@Deprecated
 	public Map<String, String> getMap() {
 		return getProperties();
 	}
@@ -475,10 +478,6 @@ public class RegistryNode {
 	@Deprecated
 	public void delValue(String symbolName) {
 		delProperty(symbolName);
-	}
-
-	public Iterable<String> getPropertyNames() {
-		return getProperties().keySet();
 	}
 
 	@Deprecated

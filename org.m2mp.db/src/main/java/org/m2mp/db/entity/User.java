@@ -4,7 +4,6 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import org.m2mp.db.DB;
 import static org.m2mp.db.entity.Domain.getIdFromName;
@@ -15,6 +14,8 @@ import org.m2mp.db.registry.RegistryNode;
 
 /**
  * User data container.
+ * 
+ * This is mostly a code sample but it can be applied to pretty much all projects.
  *
  * @author Florent Clairambault
  */

@@ -216,12 +216,12 @@ public class TimeSerieTest {
 		insertData(id, "d", sdf.parse("2013-08-05 00:00:00"));
 		insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
 		insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
-		Assert.assertEquals(Lists.newArrayList(TimeSerie.getData(id)).size(), 6);
+		Assert.assertEquals(6, Lists.newArrayList(TimeSerie.getData(id)).size() );
 
 		// We delete everything (10 years back)
 		TimeSerie.delete(id, null);
 
-		Assert.assertEquals(Lists.newArrayList(TimeSerie.getData(id)).size(), 0);
+		Assert.assertEquals(0, Lists.newArrayList(TimeSerie.getData(id)).size());
 	}
 
 	@Test
@@ -239,7 +239,7 @@ public class TimeSerieTest {
 		for (TimedData td : TimeSerie.getData(id)) {
 			String mark = (String) td.getJsonMap().get("mark");
 			if (mark.charAt(0) % 2 == 0) {
-				TimeSerie.delete(td); // Deleting while itering over results is not an issue
+				td.delete(); // Deleting while itering over results is not an issue
 			}
 		}
 		Assert.assertEquals(Lists.newArrayList(TimeSerie.getData(id)).size(), 3);
@@ -262,7 +262,7 @@ public class TimeSerieTest {
 			String mark = (String) td.getJsonMap().get("mark");
 			// We also make sure we're fetching good results
 			Assert.assertTrue(mark.equals("c") || mark.equals("d") || mark.equals("e"));
-			TimeSerie.delete(td);
+			td.delete();
 		}
 		Assert.assertEquals(3, Lists.newArrayList(TimeSerie.getData(id)).size());
 	}
@@ -320,7 +320,7 @@ public class TimeSerieTest {
 			int period = 2013 * 12 + 8;
 			for (TimedData td : TimeSerie.getData(id, null, period, true)) {
 				Assert.assertEquals(1, ((String) td.getJsonMap().get("mark")).length());
-				TimeSerie.delete(td);
+				td.delete();
 			}
 		}
 
@@ -331,5 +331,42 @@ public class TimeSerieTest {
 	public void periodTest() throws Exception {
 		int period = 2013 * 12 + 9;
 		Assert.assertEquals("2013-09", TimeSerie.periodToMonth(period));
+	}
+
+	@Test
+	public void replaceEventTest() throws Exception {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String id = "dev-" + UUID.randomUUID();
+		insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
+		insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
+		insertData(id, "c", sdf.parse("2013-08-04 00:00:00"));
+		insertData(id, "d", sdf.parse("2013-08-05 00:00:00"));
+		insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
+		insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
+
+		// We will transform half of the marks by adding a 2
+		for (TimedData td : TimeSerie.getData(id)) {
+			String mark = (String) td.getJsonMap().get("mark");
+			// We also make sure we're fetching good results
+			if (mark.charAt(0) % 2 == 0) {
+				Map<String, Object> map = td.getJsonMap();
+				map.put("mark", mark + "2");
+				td.overwrite(map);
+			}
+		}
+		// We must still have 6 data (some of them must have changed though)
+		Assert.assertEquals(6, Lists.newArrayList(TimeSerie.getData(id)).size());
+
+		{ // But for half of them, we must have a "2" next to it
+			int nb = 0;
+			for (TimedData td : TimeSerie.getData(id)) {
+				String mark = (String) td.getJsonMap().get("mark");
+				// We also make sure we're fetching good results
+				if (mark.length() == 2) {
+					nb++;
+				}
+			}
+			Assert.assertEquals(3, nb);
+		}
 	}
 }

@@ -10,6 +10,17 @@ import org.json.simple.JSONValue;
 /**
  * Timed data.
  *
+ * A timed data is:
+ * <ul>
+ * <li>An identifier: What we are talking about</li>
+ * <li>A type: An optionnal sub-identifier. It's frequently used (for a device,
+ * it could be a sensor's name)</li>
+ * <li>A date: The unique identifer. There can't be two timed data with the same
+ * date.</li>
+ * <li>The data: Free for any used. We are currently forced to use JSON but this
+ * might change.</li>
+ * </ul>
+ *
  * @author Florent Clairambault
  */
 public class TimedData {
@@ -19,7 +30,7 @@ public class TimedData {
 	private final UUID date;
 	private final String data;
 
-	// <editor-fold defaultstate="collapsed" desc="JSON constructors">
+	// <editor-fold defaultstate="collapsed" desc="String constructors">
 	public TimedData(String id, String data) {
 		this(id, null, data);
 	}
@@ -35,11 +46,15 @@ public class TimedData {
 		this.data = data;
 	}
 
-	public TimedData(String id, String type, UUID date, String json) {
+	public TimedData(String id, String type, UUID date, String data) {
 		this.id = id;
 		this.type = type;
 		this.date = date;
-		this.data = json;
+		this.data = data;
+	}
+
+	public TimedData(TimedData src, String data) {
+		this(src.getId(), src.getType(), src.getDateUUID(), data);
 	}
 
 	// </editor-fold>
@@ -55,9 +70,13 @@ public class TimedData {
 	public TimedData(String id, String type, Date date, Map<String, Object> map) {
 		this(id, type, date, JSONObject.toJSONString(map));
 	}
+
+	public TimedData(TimedData src, Map<String, Object> map) {
+		this(src, JSONObject.toJSONString(map));
+	}
+
 	// </editor-fold>
 	// <editor-fold defaultstate="collapsed" desc="Access methods">
-
 	public String getId() {
 		return id;
 	}
@@ -91,4 +110,18 @@ public class TimedData {
 	public String toString() {
 		return "TimedDate[" + id + "/" + type + "][" + getDate() + "] = " + data;
 	}
+	// <editor-fold defaultstate="collapsed" desc="Modification methods">
+
+	public void overwrite(String data) {
+		TimeSerie.save(new TimedData(this, data));
+	}
+	
+	public void overwrite(Map<String, Object> map) {
+		TimeSerie.save(new TimedData(this, map));
+	}
+
+	public void delete() {
+		TimeSerie.delete(this);
+	}
+	// </editor-fold>
 }

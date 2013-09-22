@@ -76,6 +76,13 @@ public class TSDataIterator implements Iterator<TimedData> {
 	}
 
 	@Override
+	/**
+	 * Check if there's some data available.
+	 *
+	 * If we can't find some data, we will switch to the next period until we've
+	 * reached the last period.
+	 *
+	 */
 	public boolean hasNext() {
 		boolean hasNext = iter.hasNext();
 		while (!hasNext && (inverted ? period >= periodBegin : period <= periodEnd)) {

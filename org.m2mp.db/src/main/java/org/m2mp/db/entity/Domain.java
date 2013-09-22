@@ -15,6 +15,8 @@ import org.m2mp.db.common.TableIncrementalDefinition;
 /**
  * Domain. Domain is like NT domains, or google apps domain. It helps keep a
  * group of users and/or devices together.
+ * 
+ * This is mostly a code sample but it can be applied to pretty much all projects.
  *
  * @author Florent Clairambault
  */

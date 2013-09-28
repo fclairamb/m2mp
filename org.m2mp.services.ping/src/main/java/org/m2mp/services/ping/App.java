@@ -1,7 +1,5 @@
 package org.m2mp.services.ping;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.m2mp.msg.base.Message;
 import org.m2mp.msg.svc.MessagingServiceDaemon;
 

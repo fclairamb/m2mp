@@ -2,30 +2,20 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="640bd07e-04c1-4390-a94b-9b3572e958a4" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/libraries/Maven__com_datastax_cassandra_cassandra_driver_core_1_0_0.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/libraries/Maven__commons_lang_commons_lang_2_4.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_cassandra_cassandra_all_1_2_3.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_apache_cassandra_cassandra_thrift_1_2_3.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/libraries/Maven__org_xerial_snappy_snappy_java_1_0_4_1.xml" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../org.m2mp.services.ping/src/main/java/org/m2mp/services/ping/App.java" afterPath="$PROJECT_DIR$/../org.m2mp.services.ping/src/main/java/org/m2mp/services/ping/App.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/Domain.java" afterPath="$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/Domain.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/org/m2mp/db/registry/RegistryNode.java" afterPath="$PROJECT_DIR$/src/main/java/org/m2mp/db/registry/RegistryNode.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/test/java/org/m2mp/db/test/RegistryTest.java" afterPath="$PROJECT_DIR$/src/test/java/org/m2mp/db/test/RegistryTest.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedDataWrapper.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimeSerie.java" afterPath="$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimeSerie.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedData.java" afterPath="$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedData.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/org.m2mp.iml" afterPath="$PROJECT_DIR$/org.m2mp.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../pom.xml" afterPath="$PROJECT_DIR$/../pom.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="org.m2mp.iws" />
     <ignored path=".idea/workspace.xml" />
-    <file path="/Dummy.txt" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380338909866" ignored="false" />
+    <file path="/Dummy.txt" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380724146608" ignored="false" />
     <file path="/dependencies.yml" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1373933058936" ignored="false" />
     <file path="/ivy-1.0-SNAPSHOT.xml" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1373933397007" ignored="false" />
     <file path="/Application.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1373935507812" ignored="false" />
     <file path="/Build.scala" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1373935084750" ignored="false" />
     <file path="/timedData.scala.html" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1373936036161" ignored="false" />
-    <file path="/TimedData.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1373935815624" ignored="false" />
+    <file path="/TimedData.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380677107028" ignored="false" />
     <file path="$PROJECT_DIR$/../org.m2mp.web/app/views/timeSerie/scala/html.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1373936120625" ignored="false" />
     <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/PageRegistry.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380338834340" ignored="false" />
     <file path="/PageRegistry.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380327913804" ignored="false" />
@@ -35,29 +25,69 @@
     <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/PageImage.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380329502194" ignored="false" />
     <file path="/PageImage.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380329497834" ignored="false" />
     <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/PageUpload.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380329809942" ignored="false" />
-    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/events/Event.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380338843337" ignored="false" />
-    <file path="/Event.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380330670908" ignored="false" />
-    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/dao/ImageTag.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380330721383" ignored="false" />
-    <file path="/ImageTag.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380330715007" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/events/Event.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380676564001" ignored="false" />
+    <file path="/Event.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380676563608" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/dao/ImageTag.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380507640377" ignored="false" />
+    <file path="/ImageTag.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380507588759" ignored="false" />
     <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/events/EventImageUploaded.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380331012108" ignored="false" />
     <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/PageTopUsers.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380331191423" ignored="false" />
-    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/session/Design.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380334724348" ignored="false" />
-    <file path="/Design.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380334697278" ignored="false" />
-    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/session/DesignData.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380338101380" ignored="false" />
-    <file path="/DesignData.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380338081762" ignored="false" />
-    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/dao/UserThy.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380336571249" ignored="false" />
-    <file path="/UserThy.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380336565227" ignored="false" />
-    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/dao/DomainThy.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380337895681" ignored="false" />
-    <file path="/DomainThy.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380337895332" ignored="false" />
-    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/PageDomainSettings.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380338826707" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/session/Design.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380483032506" ignored="false" />
+    <file path="/Design.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380483030988" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/session/DesignData.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380502216380" ignored="false" />
+    <file path="/DesignData.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380486129840" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/dao/UserThy.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380493882282" ignored="false" />
+    <file path="/UserThy.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380491687026" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/dao/DomainThy.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380592941272" ignored="false" />
+    <file path="/DomainThy.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380592378329" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/PageDomainSettings.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380592941272" ignored="false" />
     <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/PageMySettings.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380336949766" ignored="false" />
     <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/PageNotes.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380336976168" ignored="false" />
     <file path="/PageNotes.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380336975758" ignored="false" />
     <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/PageMyNotes.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380336981994" ignored="false" />
-    <file path="/PageDomainSettings.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380338807056" ignored="false" />
+    <file path="/PageDomainSettings.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380592167005" ignored="false" />
     <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/session/MenuEntry.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380338574478" ignored="false" />
     <file path="/MenuEntry.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380338572381" ignored="false" />
-    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/thyimg.iws" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380338932470" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/thyimg.iws" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380633257719" ignored="false" />
+    <file path="/a.dummy" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380365495205" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/PageUser.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380498100853" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/SharedImageHandling.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380461572297" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/dao/ImageSet.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380507640377" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/PageMe.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380461572297" ignored="false" />
+    <file path="/PageMe.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380416961236" ignored="false" />
+    <file path="/fragment.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380416896256" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/PageDomains.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380483017466" ignored="false" />
+    <file path="/PageDomains.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380483015627" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/dao/UserDomainsList.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380425132323" ignored="false" />
+    <file path="/UserDomainsList.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380425131687" ignored="false" />
+    <file path="/DomainsList.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380491517697" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/dao/DomainsList.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380493882282" ignored="false" />
+    <file path="/PageUser.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380498045997" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/PageMap.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380501267252" ignored="false" />
+    <file path="/PageMap.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380498353240" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/session/UserSession.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380592751046" ignored="false" />
+    <file path="/UserSession.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380592742382" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/dao/ImageSetCache.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380507640377" ignored="false" />
+    <file path="/ImageSetCache.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380507361536" ignored="false" />
+    <file path="/ImageSet.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380507461982" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/PageSs.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380507999196" ignored="false" />
+    <file path="/PageSs.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380507959168" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/PageAboutPoints.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380508495716" ignored="false" />
+    <file path="/PageAboutPoints.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380508491190" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/session/AccessFilter.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380593130621" ignored="false" />
+    <file path="/AccessFilter.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380593042695" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/session/DomainSession.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380592941272" ignored="false" />
+    <file path="/DomainSession.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380590319838" ignored="false" />
+    <file path="$PROJECT_DIR$/../../GMX/CB/certs/main.py" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380567458716" ignored="false" />
+    <file path="/main.py" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380626864864" ignored="false" />
+    <file path="$PROJECT_DIR$/../../GMX/CB/certs/autocert.iws" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380571879147" ignored="false" />
+    <file path="$PROJECT_DIR$/../../svn_WI/webdev/thyimg/src/main/java/com/webingenia/thyimg/pages/PageNotAuthorized.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380593241289" ignored="false" />
+    <file path="/PageNotAuthorized.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380592779249" ignored="false" />
+    <file path="$PROJECT_DIR$/../../GMX/CB/autocert/main.py" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380627245543" ignored="false" />
+    <file path="$PROJECT_DIR$/../../GMX/yt/atmel_files_access/src/main.c" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380633254907" ignored="false" />
+    <file path="$PROJECT_DIR$/../../GMX/yt/atmel_files_access/Makefile" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380632273632" ignored="false" />
+    <file path="/Makefile" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380632273632" ignored="false" />
+    <file path="/TimedDataWrapper.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380743815374" ignored="false" />
+    <file path="/TimeSerie.java" changelist="640bd07e-04c1-4390-a94b-9b3572e958a4" time="1380677900645" ignored="false" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,6 +102,7 @@
     <disable_hints />
   </component>
   <component name="DebuggerManager">
+    <ui_properties default_suspend_policy="SuspendAll" default_condition_enabled="true" />
     <breakpoint_any default_suspend_policy="SuspendAll" default_condition_enabled="true">
       <breakpoint>
         <option name="NOTIFY_CAUGHT" value="true" />
@@ -108,7 +139,6 @@
         <option name="LOG_MESSAGE" value="" />
       </breakpoint>
     </breakpoint_any>
-    <ui_properties default_suspend_policy="SuspendAll" default_condition_enabled="true" />
     <breakpoint_rules />
     <ui_properties />
   </component>
@@ -118,10 +148,19 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="User.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/User.java">
+      <file leaf-file-name="TimedDataWrapper.java" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedDataWrapper.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="43" column="0" selection-start="1124" selection-end="1124" vertical-scroll-proportion="0.0">
+            <state line="13" column="3" selection-start="373" selection-end="373" vertical-scroll-proportion="0.15254237">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="TimeSerie.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimeSerie.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="105" column="62" selection-start="2914" selection-end="2914" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -130,16 +169,16 @@
       <file leaf-file-name="TimedData.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedData.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="54" column="5" selection-start="1575" selection-end="1575" vertical-scroll-proportion="0.0">
+            <state line="133" column="5" selection-start="3740" selection-end="3740" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Domain.java" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/Domain.java">
+      <file leaf-file-name="TimeSerieTest.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/TimeSerieTest.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="156" column="5" selection-start="3946" selection-end="3946" vertical-scroll-proportion="2.9789157">
+            <state line="337" column="25" selection-start="11407" selection-end="11407" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -163,8 +202,10 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedData.java" />
         <option value="$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/Domain.java" />
+        <option value="$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedData.java" />
+        <option value="$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimeSerie.java" />
+        <option value="$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedDataWrapper.java" />
       </list>
     </option>
   </component>
@@ -179,7 +220,7 @@
     <option name="x" value="-2" />
     <option name="y" value="25" />
     <option name="width" value="1924" />
-    <option name="height" value="1177" />
+    <option name="height" value="1057" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <OptionsSetting value="true" id="Add" />
@@ -207,6 +248,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -238,6 +280,18 @@
               <option name="myItemId" value="src" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="test" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="java" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="test" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
           </PATH>
           <PATH>
             <PATH_ELEMENT>
@@ -309,14 +363,13 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="entity" />
+              <option name="myItemId" value="ts" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
       <pane id="PackagesPane" />
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -324,14 +377,14 @@
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="options.lastSelected" value="project.propVCSSupport.Mappings" />
     <property name="MemberChooser.sorted" value="false" />
+    <property name="options.lastSelected" value="project.propVCSSupport.Mappings" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="MemberChooser.showClasses" value="true" />
     <property name="GoToClass.includeLibraries" value="false" />
-    <property name="options.searchVisible" value="true" />
-    <property name="options.splitter.details.proportions" value="0.2" />
     <property name="MemberChooser.copyJavadoc" value="false" />
+    <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -354,19 +407,6 @@
       <option name="SHMEM_ADDRESS" value="javadebug" />
       <option name="HOST" value="localhost" />
       <option name="PORT" value="5005" />
-      <method />
-    </configuration>
-    <configuration default="true" type="Applet" factoryName="Applet">
-      <module name="" />
-      <option name="MAIN_CLASS_NAME" />
-      <option name="HTML_FILE_NAME" />
-      <option name="HTML_USED" value="false" />
-      <option name="WIDTH" value="400" />
-      <option name="HEIGHT" value="300" />
-      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
-      <option name="VM_PARAMETERS" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
       <method />
     </configuration>
     <configuration default="true" type="TestNG" factoryName="TestNG">
@@ -395,6 +435,19 @@
       <envs />
       <properties />
       <listeners />
+      <method />
+    </configuration>
+    <configuration default="true" type="Applet" factoryName="Applet">
+      <module name="" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="HTML_FILE_NAME" />
+      <option name="HTML_USED" value="false" />
+      <option name="WIDTH" value="400" />
+      <option name="HEIGHT" value="300" />
+      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
+      <option name="VM_PARAMETERS" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
       <method />
     </configuration>
     <configuration default="true" type="Application" factoryName="Application">
@@ -463,14 +516,20 @@
       <created>1370284856381</created>
       <updated>1370284856381</updated>
     </task>
+    <task id="LOCAL-00001" summary="Small changes around JSON management (there's still something wrong with the code though).">
+      <created>1380339287858</created>
+      <updated>1380339287858</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-2" y="25" width="1924" height="1177" extended-state="6" />
+    <frame x="-2" y="25" width="1924" height="1057" extended-state="0" />
     <editor active="false" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -479,17 +538,16 @@
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3291262" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2524013" sideWeight="0.67087376" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2524013" sideWeight="0.6274725" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="JetGradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.37252748" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
     </layout>
@@ -536,11 +594,11 @@
     <option name="WRAP_WHEN_TYPING_REACHES_RIGHT_MARGIN" value="false" />
     <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="false" />
-    <option name="LAST_COMMIT_MESSAGE" />
+    <option name="LAST_COMMIT_MESSAGE" value="Small changes around JSON management (there's still something wrong with the code though)." />
     <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="false" />
-    <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="false" />
+    <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="CHECK_FILES_UP_TO_DATE_BEFORE_COMMIT" value="false" />
-    <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="false" />
+    <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_FILE_COMMIT" value="false" />
     <option name="FILE_HISTORY_DIALOG_COMMENTS_SPLITTER_PROPORTION" value="0.8" />
     <option name="FILE_HISTORY_DIALOG_SPLITTER_PROPORTION" value="0.5" />
@@ -550,6 +608,7 @@
     <option name="UPDATE_FILTER_BY_SCOPE" value="false" />
     <option name="SHOW_FILE_HISTORY_AS_TREE" value="false" />
     <option name="FILE_HISTORY_SPLITTER_PROPORTION" value="0.6" />
+    <MESSAGE value="Small changes around JSON management (there's still something wrong with the code though)." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -561,6 +620,30 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedData.java">
       <provider selected="true" editor-type-id="text-editor">
+        <state line="133" column="5" selection-start="3740" selection-end="3740" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/User.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedData.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="55" column="5" selection-start="1686" selection-end="1686" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/Domain.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="28" column="26" selection-start="794" selection-end="794" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedData.java">
+      <provider selected="true" editor-type-id="text-editor">
         <state line="45" column="5" selection-start="1083" selection-end="1083" vertical-scroll-proportion="0.0">
           <folding />
         </state>
@@ -568,49 +651,65 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/User.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="37" column="0" selection-start="995" selection-end="995" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="37" column="0" selection-start="995" selection-end="995" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/Domain.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="18" column="13" selection-start="491" selection-end="491" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="18" column="13" selection-start="491" selection-end="491" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/User.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="68" column="23" selection-start="2121" selection-end="2121" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="68" column="23" selection-start="2121" selection-end="2121" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/Domain.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="18" column="13" selection-start="491" selection-end="491" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="18" column="13" selection-start="491" selection-end="491" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/Domain.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="28" column="26" selection-start="794" selection-end="794" vertical-scroll-proportion="0.016949153" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/User.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="43" column="0" selection-start="1124" selection-end="1124" vertical-scroll-proportion="0.0">
+        <state line="43" column="0" selection-start="1124" selection-end="1124" vertical-scroll-proportion="0.016949153" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/DB.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="23" column="17" selection-start="790" selection-end="790" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimeSerie.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="105" column="62" selection-start="2914" selection-end="2914" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedData.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="54" column="5" selection-start="1575" selection-end="1575" vertical-scroll-proportion="0.0">
+        <state line="133" column="5" selection-start="3740" selection-end="3740" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/Domain.java">
+    <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/TimeSerieTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="156" column="5" selection-start="3946" selection-end="3946" vertical-scroll-proportion="2.9789157">
+        <state line="337" column="25" selection-start="11407" selection-end="11407" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedDataWrapper.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="13" column="3" selection-start="373" selection-end="373" vertical-scroll-proportion="0.15254237">
           <folding />
         </state>
       </provider>

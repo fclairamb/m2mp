@@ -11,6 +11,9 @@ import java.util.UUID;
 /**
  * Timed data.
  * <p/>
+ * A timed data never changes.
+ * <p/>
+ * <p/>
  * A timed data is:
  * <ul>
  * <li>An identifier: What we are talking about</li>
@@ -79,6 +82,10 @@ public class TimedData {
 
     public TimedData(TimedData src, Map<String, Object> map) {
         this(src, JSONObject.toJSONString(map));
+    }
+
+    public TimedData(TimedDataWrapper tdw) {
+        this(tdw.getId(), tdw.getType(), tdw.getDateUUID(), tdw.getMap());
     }
 
     // </editor-fold>

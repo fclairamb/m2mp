@@ -82,17 +82,7 @@ public class TimeSerie {
      * @param td Timed data to save
      */
     public static void save(TimedData td) {
-        UUID date = td.getDateUUID();
-        int period = dateToPeriod(date);
-        PreparedStatement reqInsert = DB.prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, period, type, date, data ) VALUES ( ?, ?, ?, ?, ? );");
-
-        // We insert it once
-        DB.execute(reqInsert.bind(td.getId(), period, td.getType(), date, td.getData()));
-
-        // And also an other time if a type was specified
-        if (td.getType() != null) {
-            DB.execute(reqInsert.bind(td.getId() + "!" + td.getType(), period, td.getType(), date, td.getData()));
-        }
+        save(td.getId(), td.getType(), td.getDateUUID(), td.getData());
     }
 
     /**
@@ -101,8 +91,20 @@ public class TimeSerie {
      * @param tdw data wrapper to save
      */
     public static void save(TimedDataWrapper tdw) {
-        //TODO: Do not create a TimedData instance for nothing
-        delete(new TimedData(tdw));
+        save(tdw.getId(), tdw.getType(), tdw.getDateUUID(), tdw.getJson());
+    }
+
+    private static void save(String id, String type, UUID date, String data) {
+        int period = dateToPeriod(date);
+        PreparedStatement reqInsert = DB.prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, period, type, date, data ) VALUES ( ?, ?, ?, ?, ? );");
+
+        // We insert it once
+        DB.execute(reqInsert.bind(id, period, type, date, data));
+
+        // And also an other time if a type was specified
+        if (type != null) {
+            DB.execute(reqInsert.bind(id + "!" + type, period, type, date, data));
+        }
     }
 
     /**

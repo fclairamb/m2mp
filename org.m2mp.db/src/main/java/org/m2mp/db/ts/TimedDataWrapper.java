@@ -1,8 +1,10 @@
 package org.m2mp.db.ts;
 
 import com.datastax.driver.core.utils.UUIDs;
+import org.json.simple.JSONObject;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -20,11 +22,20 @@ public class TimedDataWrapper {
     private Map<String, Object> map;
     private boolean mod;
 
+    public TimedDataWrapper(String id, String type, UUID date, Map<String, Object> map) {
+        this.id = id;
+        this.type = type;
+        this.date = date;
+        this.map = map;
+        this.mod = true;
+    }
+
     public TimedDataWrapper(TimedData td) {
-        this.id = td.getId();
-        this.type = td.getType();
-        this.date = td.getDateUUID();
-        this.map = td.getJsonMap();
+        this(td.getId(), td.getType(), td.getDateUUID(), td.getJsonMap());
+    }
+
+    public TimedDataWrapper(String id, String type, Map<String, Object> map) {
+        this(id, type, new UUID(UUIDs.startOf(System.currentTimeMillis()).getMostSignificantBits(), System.nanoTime()), map);
     }
 
     public String getId() {
@@ -96,6 +107,10 @@ public class TimedDataWrapper {
         mod = true;
     }
 
+    public String getJson() {
+        return JSONObject.toJSONString(map);
+    }
+
     public void save() {
         if (mod) {
             // We don't need to re-read the data, everything is on the map
@@ -109,5 +124,32 @@ public class TimedDataWrapper {
 
     public String toString() {
         return "TDW{id=\"" + id + "\",type=\"" + type + "\",map=" + map + "}";
+    }
+
+    public static Iterable<TimedDataWrapper> iter(final Iterable<TimedData> iterable) {
+        return new Iterable<TimedDataWrapper>() {
+            @Override
+            public Iterator<TimedDataWrapper> iterator() {
+                return new Iterator<TimedDataWrapper>() {
+
+                    private final Iterator<TimedData> iterator = iterable.iterator();
+
+                    @Override
+                    public boolean hasNext() {
+                        return iterator.hasNext();
+                    }
+
+                    @Override
+                    public TimedDataWrapper next() {
+                        return new TimedDataWrapper(iterator.next());
+                    }
+
+                    @Override
+                    public void remove() {
+                        iterator().remove();
+                    }
+                };
+            }
+        };
     }
 }

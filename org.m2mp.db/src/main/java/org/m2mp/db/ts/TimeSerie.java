@@ -171,10 +171,10 @@ public class TimeSerie {
      */
     public static void deleteRoughly(String id, String type, Date fromDate, Date toDate) {
         if (fromDate == null) { // No start == 10 years back
-            fromDate = new Date(System.currentTimeMillis() - 10 * 365 * 24 * 3600 * 1000);
+            fromDate = new Date(System.currentTimeMillis() - 10L * 365 * 24 * 3600 * 1000);
         }
         if (toDate == null) { // No stop == 1 year after now
-            toDate = new Date(System.currentTimeMillis() + 365 * 24 * 3600 * 1000);
+            toDate = new Date(System.currentTimeMillis() + 365L * 24 * 3600 * 1000);
         }
         int fromPeriod = dateToPeriod(fromDate), toPeriod = dateToPeriod(toDate);
 

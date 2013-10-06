@@ -3,6 +3,7 @@ package org.m2mp.db.ts;
 import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.utils.UUIDs;
 import org.m2mp.db.DB;
+import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
 
@@ -20,6 +21,7 @@ public class TimeSerie {
      * Prepare the time serie table
      */
     public static void prepareTable() {
+        GeneralSetting.prepareTable();
         TableCreation.checkTable(new TableIncrementalDefinition() {
             @Override
             public String getTableDefName() {
@@ -94,7 +96,7 @@ public class TimeSerie {
         save(tdw.getId(), tdw.getType(), tdw.getDateUUID(), tdw.getJson());
     }
 
-    private static void save(String id, String type, UUID date, String data) {
+    public static void save(String id, String type, UUID date, String data) {
         int period = dateToPeriod(date);
         PreparedStatement reqInsert = DB.prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, period, type, date, data ) VALUES ( ?, ?, ?, ?, ? );");
 

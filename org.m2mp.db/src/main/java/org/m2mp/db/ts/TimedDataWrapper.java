@@ -3,10 +3,7 @@ package org.m2mp.db.ts;
 import com.datastax.driver.core.utils.UUIDs;
 import org.json.simple.JSONObject;
 
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Timed data wrapper.
@@ -23,11 +20,32 @@ public class TimedDataWrapper {
     private boolean mod;
 
     public TimedDataWrapper(String id, String type, UUID date, Map<String, Object> map) {
+        if (id != null) {
+            int p = id.indexOf('!');
+            if (p != -1) {
+                String srcId = id;
+                id = srcId.substring(0, p);
+                type = srcId.substring(p + 1);
+            }
+        }
+
         this.id = id;
         this.type = type;
         this.date = date;
         this.map = map;
         this.mod = true;
+    }
+
+    public TimedDataWrapper(String type, UUID date, Map<String, Object> map) {
+        this(null, type, date, map);
+    }
+
+    public TimedDataWrapper(String type, Date date, Map<String, Object> map) {
+        this(null, type, new UUID(UUIDs.startOf(date.getTime()).getMostSignificantBits(), System.nanoTime()), map);
+    }
+
+    public TimedDataWrapper(String type) {
+        this(type, new Date(), new TreeMap<String, Object>());
     }
 
     public TimedDataWrapper(TimedData td) {
@@ -36,6 +54,10 @@ public class TimedDataWrapper {
 
     public TimedDataWrapper(String id, String type, Map<String, Object> map) {
         this(id, type, new UUID(UUIDs.startOf(System.currentTimeMillis()).getMostSignificantBits(), System.nanoTime()), map);
+    }
+
+    public TimedDataWrapper(String id, String type) {
+        this(id, type, new TreeMap<String, Object>());
     }
 
     public String getId() {
@@ -68,12 +90,13 @@ public class TimedDataWrapper {
         modified();
     }
 
-    public Iterable<String> getStrings(String name) {
-        return (Iterable<String>) map.get(name);
+    public List<String> getStrings(String name) {
+        return (List<String>) map.get(name);
     }
 
     public void set(String name, Iterable<String> many) {
         map.put(name, many);
+        modified();
     }
 
     public String getString(String name) {
@@ -81,11 +104,33 @@ public class TimedDataWrapper {
     }
 
     public Long getLong(String name) {
-        return (Long) map.get(name);
+        Object obj = map.get(name);
+        if (obj instanceof Long) // New format
+            return (Long) obj;
+        else if (obj instanceof String) // Old format
+            return Long.parseLong((String) obj);
+        else
+            return null;
     }
 
     public Double getDouble(String name) {
-        return (Double) map.get(name);
+        Object obj = map.get(name);
+        if (obj instanceof Double) // New format
+            return (Double) obj;
+        else if (obj instanceof String) // Old format
+            return Double.parseDouble((String) obj);
+        else
+            return null;
+    }
+
+    public Boolean getBoolean(String name) {
+        Object obj = map.get(name);
+        if (obj instanceof Boolean) // New format
+            return (Boolean) obj;
+        else if (obj instanceof String) // Old format
+            return Boolean.parseBoolean((String) obj);
+        else
+            return null;
     }
 
     public String get(String name, String defaultValue) {
@@ -98,8 +143,17 @@ public class TimedDataWrapper {
         return value != null ? value : defaultValue;
     }
 
+    public int get(String name, int defaultValue) {
+        return (int) get(name, (long) defaultValue);
+    }
+
     public double get(String name, double defaultValue) {
         Double value = getDouble(name);
+        return value != null ? value : defaultValue;
+    }
+
+    public boolean get(String name, boolean defaultValue) {
+        Boolean value = getBoolean(name);
         return value != null ? value : defaultValue;
     }
 

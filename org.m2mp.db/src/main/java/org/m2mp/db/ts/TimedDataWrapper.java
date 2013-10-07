@@ -107,6 +107,8 @@ public class TimedDataWrapper {
         Object obj = map.get(name);
         if (obj instanceof Long) // New format
             return (Long) obj;
+        else if (obj instanceof Integer)
+            return new Long((Integer) obj);
         else if (obj instanceof String) // Old format
             return Long.parseLong((String) obj);
         else

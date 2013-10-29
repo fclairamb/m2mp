@@ -141,21 +141,6 @@ public class TimeSerie {
     }
 
     /**
-     * Get a precise data.
-     *
-     * @param id   Identifier
-     * @param date Date
-     * @return data or null if not found
-     */
-    public static TimedData get(String id, UUID date) {
-        ResultSet result = DB.execute(DB.prepare("SELECT id, type, date, data FROM " + TABLE_TIMESERIES + " WHERE id = ? AND period = ? AND date = ?;").bind(id, dateToPeriod(date), date));
-        for (Row row : result) {
-            return new TimedData(row.getString(0), row.getString(1), row.getUUID(2), row.getString(3));
-        }
-        return null;
-    }
-
-    /**
      * Delete a TimedData.
      *
      * @param td Timed data to delete
@@ -241,7 +226,7 @@ public class TimeSerie {
      * @return TimedData iterator
      */
     public static Iterable<TimedData> getData(String id) {
-        return getData(id, null);
+        return getData(id, (String) null);
     }
 
     /**
@@ -314,6 +299,22 @@ public class TimeSerie {
     public static Iterable<TimedData> getData(String id, String type, UUID dateBegin, UUID dateEnd, boolean reverse) {
         return new TSDataIterable(id, type, dateBegin, dateEnd, reverse);
     }
+
+    /**
+     * Get a precise data.
+     *
+     * @param id   Identifier
+     * @param date Date
+     * @return data or null if not found
+     */
+    public static TimedData getData(String id, UUID date) {
+        ResultSet result = DB.execute(DB.prepare("SELECT id, type, date, data FROM " + TABLE_TIMESERIES + " WHERE id = ? AND period = ? AND date = ?;").bind(id, dateToPeriod(date), date));
+        for (Row row : result) {
+            return new TimedData(row.getString(0), row.getString(1), row.getUUID(2), row.getString(3));
+        }
+        return null;
+    }
+
 
     public static final String TABLE_TIMESERIES = "TimeSeries";
 

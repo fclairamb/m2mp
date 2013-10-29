@@ -233,7 +233,7 @@ public class TimeSerieTest {
         insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
         insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
 
-        // We get everything and delete half of it
+        // We getData everything and delete half of it
         for (TimedData td : TimeSerie.getData(id)) {
             String mark = (String) td.getJsonMap().get("mark");
             if (mark.charAt(0) % 2 == 0) {
@@ -255,7 +255,7 @@ public class TimeSerieTest {
         last = insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
         insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
 
-        // We get half of the data using the ranges, and delete it
+        // We getData half of the data using the ranges, and delete it
         for (TimedData td : TimeSerie.getData(id, null, first.getDate(), last.getDate(), true)) {
             String mark = (String) td.getJsonMap().get("mark");
             // We also make sure we're fetching good results
@@ -343,7 +343,7 @@ public class TimeSerieTest {
         {// We delete the data for a period
             int period = 2013 * 12 + 8;
             for (TimedData td : TimeSerie.getData(id, null, period, true)) {
-                TimedData td2 = TimeSerie.get(td.getId(), td.getDateUUID());
+                TimedData td2 = TimeSerie.getData(td.getId(), td.getDateUUID());
                 Assert.assertTrue(td != td2); // Not the same instance
                 Assert.assertEquals(td.getData(), td2.getData()); // Same data
                 Assert.assertEquals(td.toString(), td2.toString());

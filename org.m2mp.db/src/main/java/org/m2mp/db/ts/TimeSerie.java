@@ -1,6 +1,8 @@
 package org.m2mp.db.ts;
 
 import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
 import com.datastax.driver.core.utils.UUIDs;
 import org.m2mp.db.DB;
 import org.m2mp.db.common.GeneralSetting;
@@ -124,7 +126,7 @@ public class TimeSerie {
     }
 
     /**
-     * Delete a precise event.
+     * Delete a precise data.
      *
      * @param date Date
      * @param id   Identifier
@@ -136,6 +138,21 @@ public class TimeSerie {
         if (type != null) {
             DB.execute(DB.prepare("DELETE FROM " + TABLE_TIMESERIES + " WHERE id=? AND period=? AND date=?;").bind(id + "!" + type, period, date));
         }
+    }
+
+    /**
+     * Get a precise data.
+     *
+     * @param id   Identifier
+     * @param date Date
+     * @return data or null if not found
+     */
+    public static TimedData get(String id, UUID date) {
+        ResultSet result = DB.execute(DB.prepare("SELECT id, type, date, data FROM " + TABLE_TIMESERIES + " WHERE id = ? AND period = ? AND date = ?;").bind(id, dateToPeriod(date), date));
+        for (Row row : result) {
+            return new TimedData(row.getString(0), row.getString(1), row.getUUID(2), row.getString(3));
+        }
+        return null;
     }
 
     /**

@@ -301,6 +301,11 @@ public class DbFile extends Entity {
         }
     }
 
+    public DbFile check() {
+        super.check();
+        return this;
+    }
+
     @Override
     protected int getObjectVersion() {
         return 7;

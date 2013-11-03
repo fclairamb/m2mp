@@ -148,7 +148,7 @@ public class RegistryNode {
      * Get the base path from a path
      *
      * @param path Path to check
-     * @return Base path to get
+     * @return Base path to getData
      */
     private static String convPathToBase(String path) {
         int p = path.lastIndexOf('/');
@@ -377,6 +377,12 @@ public class RegistryNode {
         return id != null ? UUID.fromString(id) : null;
     }
 
+    protected void setProperties(Map<String, String> properties) {
+        for (Map.Entry<String, String> prop : properties.entrySet()) {
+            setProperty(prop.getKey(), prop.getValue());
+        }
+    }
+
     public Map<String, String> getProperties() {
         if (properties == null) {
             ResultSet rs = DB.execute(DB.prepare("SELECT values FROM " + TABLE_REGISTRY + " WHERE path = ?;").bind(path));
@@ -449,6 +455,28 @@ public class RegistryNode {
         }
 
         return obj;
+    }
+
+    /**
+     * Copy a registry node to an other node.
+     *
+     * @param dst Destination to copy to
+     * @return if it worked
+     */
+    public boolean copyTo(RegistryNode dst) {
+        dst.check().setProperties(getProperties());
+        for (RegistryNode child : getChildren()) {
+            child.copyTo(dst.getChild(child.getName()));
+        }
+        return true;
+    }
+
+    public boolean moveTo(RegistryNode dst, boolean forReal) {
+        if (copyTo(dst)) {
+            delete(forReal);
+            return true;
+        }
+        return false;
     }
 
     public String toJsonString() {

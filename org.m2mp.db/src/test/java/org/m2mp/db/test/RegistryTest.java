@@ -175,4 +175,59 @@ public class RegistryTest {
         node = new RegistryNode("/test/json");
         System.out.println(node.toJsonString()); // it's not what I expected
     }
+
+    @Test
+    public void copyTest() {
+        RegistryNode root = new RegistryNode("/root/" + System.currentTimeMillis()).check();
+        { // We define A
+            RegistryNode a = root.getChild("a").check();
+            a.setProperty("p0", "abc");
+            a.setProperty("p1", "def");
+            RegistryNode a1 = a.getChild("a1").check();
+            a1.setProperty("p2", "ghi");
+            a1.setProperty("p3", "klm");
+        }
+        { // We copy it to B
+            root.getChild("a").copyTo(root.getChild("b"));
+        }
+        { // We check if B is like A
+            RegistryNode b = root.getChild("b");
+            Assert.assertEquals("abc", b.getPropertyString("p0"));
+            Assert.assertEquals("def", b.getPropertyString("p1"));
+            RegistryNode a1 = b.getChild("a1").check();
+            Assert.assertEquals("ghi", a1.getPropertyString("p2"));
+            Assert.assertEquals("klm", a1.getPropertyString("p3"));
+        }
+    }
+
+    @Test
+    public void moveTest() {
+        RegistryNode root = new RegistryNode("/root/" + System.currentTimeMillis()).check();
+        { // We define A
+            RegistryNode a = root.getChild("a").check();
+            a.setProperty("p0", "abc");
+            a.setProperty("p1", "def");
+            RegistryNode a1 = a.getChild("a1").check();
+            a1.setProperty("p2", "ghi");
+            a1.setProperty("p3", "klm");
+        }
+        { // We copy it to B
+            root.getChild("a").moveTo(root.getChild("b"), true);
+        }
+        { // We check if B is like A
+            RegistryNode b = root.getChild("b");
+            Assert.assertEquals("abc", b.getPropertyString("p0"));
+            Assert.assertEquals("def", b.getPropertyString("p1"));
+            RegistryNode a1 = b.getChild("a1").check();
+            Assert.assertEquals("ghi", a1.getPropertyString("p2"));
+            Assert.assertEquals("klm", a1.getPropertyString("p3"));
+        }
+        { // We check that A disappeared for real
+            RegistryNode a = root.getChild("a");
+            Assert.assertFalse(a.exists());
+
+            RegistryNode a1 = root.getChild("a1");
+            Assert.assertFalse(a1.exists());
+        }
+    }
 }

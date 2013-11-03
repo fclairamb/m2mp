@@ -251,15 +251,52 @@ public class RegistryNode {
         };
     }
 
+    public Iterable<String> getChildrenUndottedNames() {
+        final Iterator<String> iter = getChildrenNames().iterator();
+        return new Iterable<String>() {
+            @Override
+            public Iterator<String> iterator() {
+                return new Iterator<String>() {
+                    private String next;
+
+                    @Override
+                    public boolean hasNext() {
+                        while (iter.hasNext()) {
+                            next = iter.next();
+
+                            // We skip all names starting with "."
+                            if (next.startsWith(".")) {
+                                continue;
+                            }
+
+                            return true;
+                        }
+                        return false;
+                    }
+
+                    @Override
+                    public String next() {
+                        return next;
+                    }
+
+                    @Override
+                    public void remove() {
+                    }
+                };
+            }
+        };
+    }
+
     /**
      * Get children nodes.
      * <p/>
      * There's no limit on the number of children nodes that we can read.
      *
-     * @return all the children nodes
+     * @param includingHidden Include hidden children
+     * @return the children nodes
      */
-    public Iterable<RegistryNode> getChildren() {
-        final Iterator<String> iter = getChildrenNames().iterator();
+    public Iterable<RegistryNode> getChildren(boolean includingHidden) {
+        final Iterator<String> iter = (includingHidden ? getChildrenNames() : getChildrenUndottedNames()).iterator();
         return new Iterable<RegistryNode>() {
             @Override
             public Iterator<RegistryNode> iterator() {
@@ -280,6 +317,17 @@ public class RegistryNode {
                 };
             }
         };
+    }
+
+    /**
+     * Get children nodes.
+     * <br />
+     * This returns all the children (including hidden ones).
+     *
+     * @return all the children nodes
+     */
+    public Iterable<RegistryNode> getChildren() {
+        return getChildren(true);
     }
 
     /**

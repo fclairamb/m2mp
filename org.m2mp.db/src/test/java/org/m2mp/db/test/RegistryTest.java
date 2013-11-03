@@ -202,7 +202,7 @@ public class RegistryTest {
 
     @Test
     public void moveTest() {
-        RegistryNode root = new RegistryNode("/root/" + System.currentTimeMillis()).check();
+        RegistryNode root = new RegistryNode("/root/" + UUID.randomUUID()).check();
         { // We define A
             RegistryNode a = root.getChild("a").check();
             a.setProperty("p0", "abc");
@@ -229,5 +229,30 @@ public class RegistryTest {
             RegistryNode a1 = root.getChild("a1");
             Assert.assertFalse(a1.exists());
         }
+    }
+
+    @Test
+    public void dottedChildTests() {
+        RegistryNode root = new RegistryNode("/root/" + UUID.randomUUID()).check();
+        { // We define A
+            RegistryNode a = root.getChild("a").create();
+            a.getChild("a1").create();
+        }
+        { // We define B
+            RegistryNode b = root.getChild("b").create();
+            b.getChild("a2").create();
+            b.getChild(".a3").create();
+        }
+
+        // Names check
+        Assert.assertEquals(1, Lists.newArrayList(root.getChild("a").getChildrenNames()).size());
+        Assert.assertEquals(2, Lists.newArrayList(root.getChild("b").getChildrenNames()).size());
+        Assert.assertEquals(1, Lists.newArrayList(root.getChild("b").getChildrenUndottedNames()).size());
+
+        // API correctness check
+        Assert.assertEquals(1, Lists.newArrayList(root.getChild("a").getChildren()).size());
+        Assert.assertEquals(2, Lists.newArrayList(root.getChild("b").getChildren()).size());
+        Assert.assertEquals(2, Lists.newArrayList(root.getChild("b").getChildren(true)).size());
+        Assert.assertEquals(1, Lists.newArrayList(root.getChild("b").getChildren(false)).size());
     }
 }

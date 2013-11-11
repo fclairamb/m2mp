@@ -345,9 +345,9 @@ public class RegistryNode {
      *
      * @param withSubs Add the sub-children
      * @return Number of children.
-     *         <p/>
-     *         This method is *NOT* optimized at all. It's built for testing purpose
-     *         only at this stage purpose.
+     *         <p>
+     *         This method is *NOT* optimized at all.
+     *         </p>
      */
     public int getNbChildren(boolean withSubs) {
         int nb = 0;
@@ -457,12 +457,23 @@ public class RegistryNode {
         }
     }
 
+    public void setProperty(String name, String value, int ttl ) {
+        DB.execute(DB.prepare("UPDATE " + TABLE_REGISTRY + " USING TTL ? SET values[ ? ] = ? WHERE path = ?;").bind(ttl, name, value, path ));
+        if (properties != null) {
+            properties.put(name, value);
+        }
+    }
+
     public void setProperty(String name, boolean value) {
         setProperty(name, value ? "1" : "0");
     }
 
     public void setProperty(String name, long value) {
         setProperty(name, "" + value);
+    }
+
+    public void setProperty(String name, long value, int ttl) {
+        setProperty(name, "" + value, ttl );
     }
 
     public void setProperty(String name, Date date) {

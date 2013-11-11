@@ -255,4 +255,21 @@ public class RegistryTest {
         Assert.assertEquals(2, Lists.newArrayList(root.getChild("b").getChildren(true)).size());
         Assert.assertEquals(1, Lists.newArrayList(root.getChild("b").getChildren(false)).size());
     }
+
+
+
+    // Let's not do this one for now
+    public void propertyTTLTest() throws InterruptedException {
+        String path = "/root/" + UUID.randomUUID();
+        RegistryNode node = new RegistryNode(path).check();
+        node.setProperty("a1", "b1", 1);
+        node.setProperty("a2", "b2", 3);
+        node = new RegistryNode(path);
+        Assert.assertEquals("b1", node.getPropertyString("a1"));
+        Thread.sleep(1500);
+        Assert.assertEquals(null, node.getPropertyString("a1"));
+        Assert.assertEquals("b2", node.getPropertyString("a2"));
+        Thread.sleep(2000);
+        Assert.assertEquals(null, node.getPropertyString("a2"));
+    }
 }

@@ -29,6 +29,7 @@ public class DbFile extends Entity {
     private final static String PROPERTY_NAME = "fname";
     private final static String PROPERTY_TYPE = "ftype";
     private final static String PROPERTY_SIZE = "fsize";
+    private final static String PROPERTY_OK = "getOk";
     private final static String PROPERTY_BLOCK_SIZE = "blsize";
     final String path;
 
@@ -73,6 +74,30 @@ public class DbFile extends Entity {
      */
     public String getType() {
         return getProperty(PROPERTY_TYPE, null);
+    }
+
+    /**
+     * The file status. Ok usually means that the file was correctly written, that it wasn't dropped during write.
+     * <p/>
+     * This mechanism is usually done through writing to temporary file and then moving this file to its correct place
+     * once it is fully written. But we don't have (actual) move operations (by design, we don't want moving things too
+     * easily, things must stay were they are).
+     *
+     * @param ok OK status
+     */
+    public void setOk(boolean ok) {
+        setProperty(PROPERTY_OK, ok);
+    }
+
+    /**
+     * Get the file writing status.
+     * <p/>
+     * If it a file was written and closed. It's ok, if it was written and never closed we can't really expect it to be OK.
+     *
+     * @return OK status
+     */
+    public boolean getOk() {
+        return getProperty(PROPERTY_OK, false);
     }
 
     /**

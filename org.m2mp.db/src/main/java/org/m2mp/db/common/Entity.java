@@ -28,6 +28,10 @@ public abstract class Entity {
 		node.setProperty(name, value);
 	}
 
+    protected void setProperty( String name, String value, int ttl ) {
+        node.setProperty(name, value, ttl);
+    }
+
 	protected void setProperty(String name, long value) {
 		node.setProperty(name, value);
 	}

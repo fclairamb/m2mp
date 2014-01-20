@@ -34,12 +34,13 @@ public class TimeSerie {
             public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
                 List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
                 list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_TIMESERIES + " ( id text, period int, type text, date timeuuid, data text, PRIMARY KEY ((id, period), date) ) WITH CLUSTERING ORDER BY (date DESC);"));
+                list.add(new TableIncrementalDefinition.TableChange(2, "CREATE TABLE "+TABLE_TIMESERIES_INDEX+" ( id text, period int, type text, PRIMARY KEY (id, period) ) WITH CLUSTERING ORDER BY (period DESC)"));
                 return list;
             }
 
             @Override
             public int getTableDefVersion() {
-                return 1;
+                return 2;
             }
         });
     }
@@ -109,6 +110,9 @@ public class TimeSerie {
         if (type != null) {
             DB.execute(reqInsert.bind(id + "!" + type, period, type, date, data));
         }
+
+        // We don't really care if it could be executed or not, what matters is that we have at least one period per id + type saved
+        DB.executeLater(DB.prepare("INSERT INTO " + TABLE_TIMESERIES_INDEX + " ( id, type, period ) VALUES( ?, ?, ? );").bind(id, type, period));
     }
 
     /**
@@ -317,6 +321,7 @@ public class TimeSerie {
 
 
     public static final String TABLE_TIMESERIES = "TimeSeries";
+    public static final String TABLE_TIMESERIES_INDEX = "TimeSeries_Index";
 
 
 }

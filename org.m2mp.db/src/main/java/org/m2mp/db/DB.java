@@ -6,8 +6,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,6 +19,8 @@ public class DB {
 
     private DB() {
     }
+
+    private static Executor executor = Executors.newCachedThreadPool();
 
     private static String keyspaceName;
     private static Cluster cluster;
@@ -147,5 +148,22 @@ public class DB {
      */
     public static ResultSetFuture executeAsync(Query query) {
         return session.executeAsync(query);
+    }
+
+    /**
+     * Execute a query later.
+     * We can't really say when.
+     * @param query Query to execute
+     */
+    public static void executeLater(final Query query) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    session.executeAsync(query);
+                } catch (Exception e) {
+                }
+            }
+        });
     }
 }

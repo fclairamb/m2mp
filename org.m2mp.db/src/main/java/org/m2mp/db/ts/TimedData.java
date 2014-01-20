@@ -47,7 +47,6 @@ public class TimedData {
         this.id = id;
         this.type = type;
         this.date = new UUID(UUIDs.startOf(date.getTime()).getMostSignificantBits(), System.nanoTime());
-        // Note: System.nanoTime is initialized at each system boot in Linux's java implementation (so the collision risk is much lower than what could expect)
         this.data = data;
     }
 

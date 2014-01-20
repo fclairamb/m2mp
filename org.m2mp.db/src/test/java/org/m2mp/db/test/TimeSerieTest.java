@@ -28,6 +28,7 @@ public class TimeSerieTest {
         DB.keyspace("ks_test", true);
         try {
             DB.execute("drop table TimeSeries;");
+            DB.execute("drop table TimeSeries_Index;");
         } catch (Exception ex) {
         }
         TimeSerie.prepareTable();
@@ -44,8 +45,8 @@ public class TimeSerieTest {
         String id = "insert-with-type";
         Date d = new Date();
         for (int i = 0; i < 1000; i++) {
-            d.setTime(d.getTime() + 100);
-            TimeSerie.save(new TimedData(id, "loc", "{\"lat\":48.8,\"lon\":2.5}"));
+            d.setTime(d.getTime() + 8000);
+            TimeSerie.save(new TimedData(id, "loc", d, "{\"lat\":48.8,\"lon\":2.5,\"date_plus\":\""+d+"\", \"ok\":true}"));
         }
     }
 

@@ -75,8 +75,13 @@ public class Domain extends Entity {
     }
 
     public void setName(String name) {
+        if ( getIdFromName(name) != null )
+            throw new IllegalArgumentException("This domain name is already taken !");
+        String previousName = getName();
         setProperty(PROP_NAME, name);
         DB.execute(DB.prepare("INSERT INTO " + TABLE + " ( name, id ) VALUES ( ?, ? );").bind(name, domainId));
+        if ( previousName != null )
+            DB.execute(DB.prepare("DELETE FROM " + TABLE + " WHERE name = ?;").bind(previousName));
     }
 
     public static final String TABLE = "Domain";

@@ -44,6 +44,25 @@ public class DomainTest {
 
 		Domain d3 = Domain.get("d1");
 
-		Assert.assertEquals(d2.getId(), d3.getId());
+		Assert.assertEquals(d2, d3);
 	}
+
+    @Test(expected = IllegalArgumentException.class)
+    public void test_rename_wrong() {
+        Domain d1 = Domain.create("d3");
+        Domain.create("d4");
+
+        d1.setName("d4");
+    }
+
+    @Test
+    public void test_rename_ok() {
+        Domain d1 = Domain.create("d5");
+        d1.setName("d6");
+
+        Assert.assertEquals("d6", d1.getName());
+
+        // They should have the same id
+        Assert.assertEquals(Domain.get("d6"), d1);
+    }
 }

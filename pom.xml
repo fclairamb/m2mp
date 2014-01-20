@@ -11,8 +11,6 @@
         <module>org.m2mp.common</module>
         <module>org.m2mp.db</module>
         <module>org.m2mp.es</module>
-	<module>org.m2mp.msg</module>
-        <!-- <module>org.m2mp.launcher</module> -->
   </modules>
 
     <build>

@@ -257,8 +257,7 @@ public class RegistryTest {
     }
 
 
-
-    // Let's not do this one for now
+    @Test
     public void propertyTTLTest() throws InterruptedException {
         String path = "/root/" + UUID.randomUUID();
         RegistryNode node = new RegistryNode(path).check();
@@ -267,9 +266,11 @@ public class RegistryTest {
         node = new RegistryNode(path);
         Assert.assertEquals("b1", node.getPropertyString("a1"));
         Thread.sleep(1500);
+        node = new RegistryNode(path).check();
         Assert.assertEquals(null, node.getPropertyString("a1"));
         Assert.assertEquals("b2", node.getPropertyString("a2"));
         Thread.sleep(2000);
+        node = new RegistryNode(path).check();
         Assert.assertEquals(null, node.getPropertyString("a2"));
     }
 }

@@ -70,7 +70,13 @@ public class User extends Entity {
 		return u;
 	}
 
-    private void setUsername(String name) {
+	/**
+	 * Set the username
+	 * @param name Username
+	 * 
+	 * @deprecated We're keeping this a little bit longer
+	 */
+    public void setUsername(String name) {
         setProperty(PROP_NAME, name);
 		DB.execute(DB.prepare("INSERT INTO " + TABLE + " ( name, id ) VALUES ( ?, ? );").bind(name, userId));
 	}

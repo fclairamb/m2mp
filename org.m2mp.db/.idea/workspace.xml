@@ -2,14 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="640bd07e-04c1-4390-a94b-9b3572e958a4" name="Default" comment="Deleting some files.&#10;">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/compiler.xml" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/copyright/profiles_settings.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/encodings.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/scopes/scope_settings.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="" />
     </list>
     <ignored path="org.m2mp.iws" />
@@ -838,7 +832,7 @@
       <workItem from="1390911490788" duration="1290000" />
       <workItem from="1392827081198" duration="206000" />
       <workItem from="1393352534005" duration="1152000" />
-      <workItem from="1393356883134" duration="9182000" />
+      <workItem from="1393356883134" duration="9227000" />
     </task>
     <task id="LOCAL-00001" summary="Small changes around JSON management (there's still something wrong with the code though).">
       <created>1380339287858</created>
@@ -900,11 +894,15 @@
       <created>1393376410549</created>
       <updated>1393376410549</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Deleting some files.&#10;">
+      <created>1393377318056</created>
+      <updated>1393377318056</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="13821000" />
+    <option name="totallyTimeSpent" value="13866000" />
   </component>
   <component name="TodoView" selected-index="1">
     <todo-panel id="selected-file">
@@ -987,7 +985,8 @@
     <MESSAGE value="Few changes in the deletion code.&#10;&#10;Not much to change, everything is pretty much working well." />
     <MESSAGE value="Forgot to commit this very small changes to the API." />
     <MESSAGE value="Deleting some files." />
-    <option name="LAST_COMMIT_MESSAGE" value="Deleting some files." />
+    <MESSAGE value="Deleting some files.&#10;" />
+    <option name="LAST_COMMIT_MESSAGE" value="Deleting some files.&#10;" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="true" />
   </component>

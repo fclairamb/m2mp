@@ -1,5 +1,6 @@
 package org.m2mp.db.test;
 
+import com.datastax.driver.core.ResultSet;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -54,7 +55,6 @@ public class DbFileTest {
             }
         }
     }
-//	private static DB db;
 
     @BeforeClass
     public static void setUpClass() {
@@ -226,6 +226,55 @@ public class DbFileTest {
                 is.read(data);
                 Assert.assertArrayEquals(new byte[]{0x01, 0x02, 0x03, 0x04, 0x05}, data);
             }
+        }
+    }
+
+    @Test
+    public void deletingEverything() throws Exception {
+        cmpSmallSize();
+
+        { // We must have some data
+            ResultSet result = DB.execute("SELECT * FROM " + DbFile.TABLE_REGISTRYDATA + ";");
+            Assert.assertTrue(result.all().size() > 0);
+        }
+
+        new RegistryNode("/").delete(true);
+
+        { // We must NOT have some data
+            ResultSet result = DB.execute("SELECT * FROM " + DbFile.TABLE_REGISTRYDATA + ";");
+            Assert.assertEquals(0, result.all().size());
+        }
+        { // We must NOT have some data
+            ResultSet result = DB.execute("SELECT * FROM " + RegistryNode.TABLE_REGISTRY + ";");
+            Assert.assertEquals(0, result.all().size());
+        }
+    }
+
+    @Test
+    public void deletingEverythingCleanup() throws Exception {
+        cmpSmallSize();
+
+        { // We must have some data
+            ResultSet result = DB.execute("SELECT * FROM " + DbFile.TABLE_REGISTRYDATA + ";");
+            Assert.assertTrue(result.all().size() > 0);
+        }
+
+        new RegistryNode("/").delete();
+
+        { // We must have some data
+            ResultSet result = DB.execute("SELECT * FROM " + DbFile.TABLE_REGISTRYDATA + ";");
+            Assert.assertTrue(result.all().size() > 0);
+        }
+
+        RegistryNode.cleanup();
+
+        { // We must NOT have some data
+            ResultSet result = DB.execute("SELECT * FROM " + DbFile.TABLE_REGISTRYDATA + ";");
+            Assert.assertEquals(0, result.all().size());
+        }
+        { // We must NOT have some data
+            ResultSet result = DB.execute("SELECT * FROM " + RegistryNode.TABLE_REGISTRY + ";");
+            Assert.assertEquals(0, result.all().size());
         }
     }
 

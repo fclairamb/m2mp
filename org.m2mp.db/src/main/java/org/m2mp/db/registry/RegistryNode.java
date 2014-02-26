@@ -89,14 +89,17 @@ public class RegistryNode {
     /**
      * Delete the node.
      *
-     * @param forReal Delete its content and children contents
+     * If forReal is not applied, data is just *marked* as deleted. Which means it's still very present but not
+     * connected to its parent
+     *
+     * @param forReal To actually do it
      */
     public void delete(boolean forReal) {
         for (RegistryNode child : getChildren()) {
             child.delete(forReal);
         }
         if (forReal) {
-            DB.execute(DB.prepare("DELETE values, status FROM " + TABLE_REGISTRY + " WHERE path=?;").bind(path));
+            DB.execute(DB.prepare("DELETE FROM " + TABLE_REGISTRY + " WHERE path=?;").bind(path));
             DB.execute(DB.prepare("DELETE FROM " + TABLE_REGISTRY + "Data WHERE path=?;").bind(path));
             properties = null;
         } else {
@@ -106,6 +109,16 @@ public class RegistryNode {
         RegistryNode parent = getParentNode();
         if (parent != null) {
             parent.removeChild(getName());
+        }
+    }
+
+    /**
+     * Cleanup all the old values.
+     */
+    public static void cleanup() {
+        for (Row row : DB.execute(DB.prepare("SELECT path FROM " + TABLE_REGISTRY + " WHERE status=?;").bind(STATUS_DELETED))) {
+            RegistryNode node = new RegistryNode(row.getString(0));
+            node.delete(true);
         }
     }
 
@@ -207,12 +220,13 @@ public class RegistryNode {
                 List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
                 list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_REGISTRY + " ( path text PRIMARY KEY, values map<text,text>, status int );"));
                 list.add(new TableIncrementalDefinition.TableChange(2, "CREATE TABLE " + TABLE_REGISTRY + "Children ( path text, name text, PRIMARY KEY( path, name ) ) WITH CLUSTERING ORDER BY ( name ASC );"));
+                list.add(new TableIncrementalDefinition.TableChange(3, "CREATE INDEX ON " + TABLE_REGISTRY + " (status);"));
                 return list;
             }
 
             @Override
             public int getTableDefVersion() {
-                return 1;
+                return 3;
             }
         });
     }
@@ -555,7 +569,7 @@ public class RegistryNode {
             if (value instanceof JSONObject) {
                 getChild(key).check().loadJsonObject((JSONObject) value);
             } else {
-                // Everything becomes strings in here. I never said it was JSON-compatible storage.
+                // Everything (an integer or an array for example) becomes strings in here. I never said it was a JSON-compatible storage.
                 setProperty(key, value.toString());
             }
         }

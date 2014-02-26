@@ -2,15 +2,15 @@ package org.m2mp.db.entity;
 
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 import org.m2mp.db.DB;
-import static org.m2mp.db.entity.Domain.getIdFromName;
 import org.m2mp.db.common.Entity;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
 import org.m2mp.db.registry.RegistryNode;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * User data container.
@@ -70,8 +70,8 @@ public class User extends Entity {
 		return u;
 	}
 
-	public void setUsername(String name) {
-		setProperty(PROP_NAME, name);
+    private void setUsername(String name) {
+        setProperty(PROP_NAME, name);
 		DB.execute(DB.prepare("INSERT INTO " + TABLE + " ( name, id ) VALUES ( ?, ? );").bind(name, userId));
 	}
 

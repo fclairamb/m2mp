@@ -218,7 +218,7 @@ public class DbFile extends Entity {
 
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Column family preparation">
-    private static final String TABLE_REGISTRYDATA = RegistryNode.TABLE_REGISTRY + "Data";
+    public static final String TABLE_REGISTRYDATA = RegistryNode.TABLE_REGISTRY + "Data";
 
     public static void prepareTable() {
         RegistryNode.prepareTable();

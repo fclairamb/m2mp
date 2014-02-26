@@ -14,8 +14,9 @@ import java.util.UUID;
 
 /**
  * User data container.
- * 
- * This is mostly a code sample but it can be applied to pretty much all projects.
+ *
+ * This is mostly a code sample but it can be applied to pretty much all
+ * projects.
  *
  * @author Florent Clairambault
  */
@@ -72,12 +73,13 @@ public class User extends Entity {
 
 	/**
 	 * Set the username
+	 *
 	 * @param name Username
-	 * 
+	 *
 	 * @deprecated We're keeping this a little bit longer
 	 */
-    public void setUsername(String name) {
-        setProperty(PROP_NAME, name);
+	public void setUsername(String name) {
+		setProperty(PROP_NAME, name);
 		DB.execute(DB.prepare("INSERT INTO " + TABLE + " ( name, id ) VALUES ( ?, ? );").bind(name, userId));
 	}
 
@@ -127,8 +129,12 @@ public class User extends Entity {
 		});
 	}
 
+	public UUID getDomainId() {
+		return getPropertyUUID(PROP_DOMAIN);
+	}
+
 	public Domain getDomain() {
-		return new Domain(getPropertyUUID(PROP_DOMAIN));
+		return new Domain(getDomainId());
 	}
 
 	public void setDomain(Domain domain) {
@@ -147,7 +153,7 @@ public class User extends Entity {
 
 	@Override
 	public boolean equals(Object obj) {
-		if ( obj instanceof User ) {
+		if (obj instanceof User) {
 			User ou = (User) obj;
 			return ou.getId().equals(getId());
 		}

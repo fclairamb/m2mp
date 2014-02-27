@@ -8,7 +8,6 @@
     <name>Parent build project</name>
 
     <modules>
-        <module>org.m2mp.common</module>
         <module>org.m2mp.db</module>
         <module>org.m2mp.es</module>
   </modules>

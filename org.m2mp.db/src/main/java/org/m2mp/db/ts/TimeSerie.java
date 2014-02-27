@@ -34,7 +34,7 @@ public class TimeSerie {
             public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
                 List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
                 list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_TIMESERIES + " ( id text, period int, type text, date timeuuid, data text, PRIMARY KEY ((id, period), date) ) WITH CLUSTERING ORDER BY (date DESC);"));
-                list.add(new TableIncrementalDefinition.TableChange(2, "CREATE TABLE "+TABLE_TIMESERIES_INDEX+" ( id text, period int, type text, PRIMARY KEY (id, period) ) WITH CLUSTERING ORDER BY (period DESC)"));
+                list.add(new TableIncrementalDefinition.TableChange(2, "CREATE TABLE " + TABLE_TIMESERIES_INDEX + " ( id text, period int, type text, PRIMARY KEY (id, period) ) WITH CLUSTERING ORDER BY (period DESC)"));
                 return list;
             }
 

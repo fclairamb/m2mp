@@ -41,7 +41,7 @@ public class TimedDataWrapper {
     }
 
     public TimedDataWrapper(String type, Date date, Map<String, Object> map) {
-        this(null, type, new UUID(UUIDs.startOf(date.getTime()).getMostSignificantBits(), System.nanoTime()%1000), map);
+        this(null, type, new UUID(UUIDs.startOf(date.getTime()).getMostSignificantBits(), System.nanoTime() % 1000), map);
     }
 
     public TimedDataWrapper(String type) {
@@ -53,7 +53,7 @@ public class TimedDataWrapper {
     }
 
     public TimedDataWrapper(String id, String type, Map<String, Object> map) {
-        this(id, type, new UUID(UUIDs.startOf(System.currentTimeMillis()).getMostSignificantBits(), System.nanoTime()%1000), map);
+        this(id, type, new UUID(UUIDs.startOf(System.currentTimeMillis()).getMostSignificantBits(), System.nanoTime() % 1000), map);
     }
 
     public TimedDataWrapper(String id, String type) {
@@ -99,7 +99,7 @@ public class TimedDataWrapper {
         modified();
     }
 
-    public void del(String name ) {
+    public void del(String name) {
         map.remove(name);
         modified();
     }

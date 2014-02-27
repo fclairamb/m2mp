@@ -9,6 +9,7 @@ import org.m2mp.db.common.TableIncrementalDefinition;
 import org.m2mp.db.registry.RegistryNode;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -75,12 +76,12 @@ public class Domain extends Entity {
     }
 
     public void setName(String name) {
-        if ( getIdFromName(name) != null )
+        if (getIdFromName(name) != null)
             throw new IllegalArgumentException("This domain name is already taken !");
         String previousName = getName();
         setProperty(PROP_NAME, name);
         DB.execute(DB.prepare("INSERT INTO " + TABLE + " ( name, id ) VALUES ( ?, ? );").bind(name, domainId));
-        if ( previousName != null )
+        if (previousName != null)
             DB.execute(DB.prepare("DELETE FROM " + TABLE + " WHERE name = ?;").bind(previousName));
     }
 
@@ -167,5 +168,34 @@ public class Domain extends Entity {
     @Override
     public int hashCode() {
         return domainId.hashCode();
+    }
+
+    public Iterable<Domain> getAll() {
+        return new Iterable<Domain>() {
+
+            @Override
+            public Iterator<Domain> iterator() {
+                return new Iterator<Domain>() {
+
+
+                    @Override
+                    public boolean hasNext() {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public Domain next() {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public void remove() {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+                };
+            }
+
+            ;
+        };
     }
 }

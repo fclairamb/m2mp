@@ -6,7 +6,10 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -153,6 +156,7 @@ public class DB {
     /**
      * Execute a query later.
      * We can't really say when.
+     *
      * @param query Query to execute
      */
     public static void executeLater(final Query query) {

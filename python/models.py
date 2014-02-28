@@ -1,5 +1,6 @@
 import uuid
 import os
+import time
 from cassandra.cluster import Cluster
 
 
@@ -11,6 +12,8 @@ class RegistryNode:
     STATUS_UNDEFINED = -1
     STATUS_DELETED = 5
     STATUS_CREATED = 100
+
+    PROPERTY_DELETION_TIME = '.deletion-time'
 
     def __init__(self, path):
         if not path.endswith('/'):
@@ -34,7 +37,7 @@ class RegistryNode:
             return self.children_names
         rows = session.execute('select name from registrynodechildren where path=%s;', [self.path])
         self.children_names = [row[0] for row in rows]
-        return self.get_children_names
+        return self.children_names
 
     def add_child(self, name):
         session.execute('insert into registrynodechildren (path, name) values (%s, %s);', [ self.path, name ] )
@@ -89,6 +92,7 @@ class RegistryNode:
 
     def set_status(self, status):
         session.execute('update registrynode set status=%s where path=%s;', [status, self.path])
+        self.status = status
 
     def create(self):
         self.set_status(RegistryNode.STATUS_CREATED)
@@ -117,7 +121,9 @@ class RegistryNode:
             session.execute('delete from registrynode where path=%s;', self.path)
             self.properties = None
         else:
+            # Values aren't changed, it's pretty easy to undelete some data at this stage
             self.set_status(RegistryNode.STATUS_DELETED)
+            self.set_property(RegistryNode.PROPERTY_DELETION_TIME, str(int(time.time())))
 
         parent = self.get_parent()
         if parent:
@@ -147,8 +153,8 @@ class Domain:
         ins = Domain.get_by_name(name)
         if ins:
             return ins
-        id = uuid.uuid4()
-        session.execute('insert into domain (name, id) values (%s,%s);', [name, id])
+        id = uuid.uuid1()
+        session.execute('insert into domain (name, id) values (%s, %s);', [name, id])
         domain = Domain(id)
         domain.node.check()
         domain.node.set_property(Domain.PROPERTY_NAME, name)
@@ -166,6 +172,8 @@ class Domain:
 class User:
     PATH = '/user/'
 
+    PROPERTY_NAME = '__name'
+
     def __init__(self, id):
         self.id = id
         self.node = RegistryNode('{base}{id}/'.format(base=User.PATH, id=self.id))
@@ -176,6 +184,27 @@ class User:
             return User(row[0])
         return None
 
+    @staticmethod
+    def get_by_name_or_create(name):
+        ins = User.get_by_name(name)
+        if ins:
+            return ins
+        domain = Domain.get_by_name_or_create('user_'+name)
+        id = uuid.uuid1()
+        session.execute('insert into user (name, id, domain) values (%s, %s, %s);', [name, id, domain.id])
+        user = User(id)
+        user.node.check()
+        user.node.set_property(User.PROPERTY_NAME, name)
+        return user
+
+    def get_name(self):
+        return self.node.get_property(User.PROPERTY_NAME)
+
     def get_domain(self):
-        for row in session.execute('select domain from user where id=%s;', [self.id]):
+        for row in session.execute('select domain from user where name=%s;', [self.get_name()]):
             return Domain(row[0])
+
+    def delete(self):
+        name = self.get_name()
+        if name:
+            session.execute('delete from user where name=%s;', [name])

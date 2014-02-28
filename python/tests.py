@@ -1,5 +1,8 @@
 __author__ = 'florent'
 import unittest
+import datetime
+import json
+import uuid
 import models
 
 
@@ -59,5 +62,12 @@ class UserTestCase(unittest.TestCase):
 
         domain = models.Domain.get_by_name(domain_name)
         self.assertIsNotNone(domain)
+
+
+class TimeSeriesTestCase(unittest.TestCase):
+    def test_insert_data(self):
+        models.TimeSeries.save("my-device", "location", uuid.uuid1(),
+                               json.dumps({"lat": 48.8, "lon": 2.5, "spd": 25, "alt": 1000}))
+
 
 unittest.main()

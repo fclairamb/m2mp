@@ -1,8 +1,9 @@
 import uuid
 import os
 import time
-from cassandra.cluster import Cluster
+import datetime
 
+from cassandra.cluster import Cluster
 
 cluster = Cluster(['127.0.0.1'])
 session = cluster.connect('ks_test')
@@ -40,10 +41,10 @@ class RegistryNode:
         return self.children_names
 
     def add_child(self, name):
-        session.execute('insert into registrynodechildren (path, name) values (%s, %s);', [ self.path, name ] )
+        session.execute('insert into registrynodechildren (path, name) values (%s, %s);', [self.path, name])
 
     def remove_child(self, name):
-        session.execute('delete from registrynodechildren where path = %s and name = %s', [ self.path, name ] )
+        session.execute('delete from registrynodechildren where path = %s and name = %s', [self.path, name])
 
     def get_children(self):
         children = []
@@ -83,7 +84,7 @@ class RegistryNode:
 
     def get_status(self):
         if self.status is None:
-            for row in session.execute('select status from registrynode where path = %s;', [ self.path ]):
+            for row in session.execute('select status from registrynode where path = %s;', [self.path]):
                 self.status = row[0]
             if self.status is None:
                 self.status = RegistryNode.STATUS_UNDEFINED
@@ -189,7 +190,7 @@ class User:
         ins = User.get_by_name(name)
         if ins:
             return ins
-        domain = Domain.get_by_name_or_create('user_'+name)
+        domain = Domain.get_by_name_or_create('user_' + name)
         id = uuid.uuid1()
         session.execute('insert into user (name, id, domain) values (%s, %s, %s);', [name, id, domain.id])
         user = User(id)
@@ -208,3 +209,52 @@ class User:
         name = self.get_name()
         if name:
             session.execute('delete from user where name=%s;', [name])
+
+
+class TimeSeries:
+
+    def __init__(self, id):
+        pass
+
+    DTD_SECS_DELTA = (datetime.datetime(*time.gmtime(0)[0:3])-datetime.datetime(1582, 10, 15)).days * 86400
+
+    @staticmethod
+    def uuid1_to_date(u):
+        """Return a datetime.datetime object that represents the timestamp portion of a uuid1.
+
+        Parameters:
+        u -- a type 1 uuid.UUID value
+
+        Example usage:
+
+        print uuid1_to_ts(uuid.uuid1())
+        """
+        secs_uuid1 = u.time / 1e7
+        secs_epoch = secs_uuid1 - TimeSeries.DTD_SECS_DELTA
+        return datetime.datetime.fromtimestamp(secs_epoch)
+
+    @staticmethod
+    def date_to_period(date):
+        if type(date) is uuid.UUID:
+            date = TimeSeries.uuid1_to_date(date)
+        return date.year * 12 + date.month
+
+    @staticmethod
+    def save(id, type, date, data):
+        period = TimeSeries.date_to_period(date)
+        session.execute(
+            "insert into timeseries (id, period, type, date, data) values (%s, %s, %s, %s, %s);",
+            [id, period, type, date, data]
+        )
+
+        if type:
+            session.execute(
+                "insert into timeseries (id, period, type, date, data) values (%s, %s, %s, %s, %s);",
+                [id + "!" + type, period, None, date, data]
+            )
+
+        session.execute_async(
+            "insert into timeseries_index (id, type, period) values (%s, %s, %s);",
+            [id, type, period]
+        )
+

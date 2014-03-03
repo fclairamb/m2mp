@@ -1,3 +1,5 @@
+[![Build Status](https://drone.io/github.com/fclairamb/m2mp/status.png)](https://drone.io/github.com/fclairamb/m2mp/latest)
+
 It's the database setup I have used for few projects on top of cassandra. It contains three parts:
 
 * Time series handling

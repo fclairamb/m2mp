@@ -14,7 +14,9 @@ sudo chown `whoami` /var/lib/cassandra /var/log/cassandra
 bin/cassandra
 cd $DIR
 cd cql
-sleep 20 # this is wrong
+# sleep 20
+for i in {0..30}; do echo "Waiting server ($i)..." ; nc localhost 9042 </dev/null && break ; sleep 1; done;
+
 for f in `ls`; do cat $f | $DIR/apache-cassandra-2.0.3/bin/cqlsh; done
 cd $DIR
 cd go/m2mpdb

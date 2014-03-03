@@ -1,6 +1,3 @@
-M2M platform
-============
-
 It's the database setup I have used for few projects on top of cassandra. It contains three parts:
 
 * Time series handling

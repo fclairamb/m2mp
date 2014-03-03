@@ -10,6 +10,6 @@ sudo chown `whoami` /var/lib/cassandra /var/log/cassandra
 
 bin/cassandra
 
-for i in {0..30}; do echo "Waiting server ($i)..." ; nc localhost 9042 </dev/null && return 0 ; sleep 1; done;
+for i in {0..30}; do echo "Waiting server ($i)..." ; nc localhost 9042 </dev/null && exit 0 ; sleep 1; done;
 
-return 1
+exit 1

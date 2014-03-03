@@ -7,11 +7,19 @@ import (
 func TestRNValues(t *testing.T) {
 	NewSessionSimple("ks_test")
 
-	node := NewRegistryNode("/test")
-	node.Values["a"] = "bc"
-	node.Values["d"] = "ef"
-	if err := node.Save(); err != nil {
-		t.Fatal(err)
+	path := "/test"
+
+	{ // We define some value
+		node := NewRegistryNode(path).Check()
+		node.SetValue("a", "bc")
+		node.SetValue("d", "ef")
+	}
+
+	{ // We check them
+		node := NewRegistryNode(path)
+		if node.Value("a") != "bc" {
+			t.Fatalf("%s:a = %s != bc", node, node.Value("a"))
+		}
 	}
 }
 

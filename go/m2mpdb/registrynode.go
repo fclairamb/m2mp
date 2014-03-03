@@ -7,7 +7,7 @@ import (
 
 type RegistryNode struct {
 	Path          string
-	Values        map[string]string
+	values        map[string]string
 	status        int
 	childrenNames []string
 }
@@ -22,7 +22,7 @@ func NewRegistryNode(path string) *RegistryNode {
 	if !strings.HasSuffix(path, "/") {
 		path += "/"
 	}
-	return &RegistryNode{Path: path, status: RN_STATUS_UNDEFINED, Values: make(map[string]string), childrenNames: nil}
+	return &RegistryNode{Path: path, status: RN_STATUS_UNDEFINED, values: nil, childrenNames: nil}
 }
 
 func (node *RegistryNode) Name() string {
@@ -37,6 +37,24 @@ func (node *RegistryNode) Status() int {
 		}
 	}
 	return node.status
+}
+
+func (node *RegistryNode) Values() map[string]string {
+	if node.values == nil {
+		values := make(map[string]string)
+		shared.session.Query("select values from registrynode where path=?;", node.Path).Scan(&values)
+		node.values = values
+	}
+	return node.values
+}
+
+func (node *RegistryNode) Value(name string) string {
+	return node.Values()[name]
+}
+
+func (node *RegistryNode) SetValue(name, value string) error {
+	node.values = nil
+	return shared.session.Query("update registrynode set values[ ? ] = ? where path = ?;", name, value, node.Path).Exec()
 }
 
 func (node *RegistryNode) setStatus(status int) error {
@@ -147,10 +165,12 @@ func (node *RegistryNode) Children() []*RegistryNode {
 	return children
 }
 
+/*
 func (node *RegistryNode) Save() error {
 	query := shared.session.Query("insert into registrynode (path, values) values (?, ?); ", node.Path, node.Values)
 	return query.Exec()
 }
+*/
 
 func (node *RegistryNode) String() string {
 	return "RN{Path=" + node.Path + "}"

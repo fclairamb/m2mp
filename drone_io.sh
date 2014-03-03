@@ -11,7 +11,7 @@ go test -v -timeout 10s
 
 # Python
 cd $DIR/python
-sudo apt-get install build-essential python-dev
+sudo apt-get install build-essential python-dev libev-dev
 sudo pip install cassandra-driver
 python tests.py
 

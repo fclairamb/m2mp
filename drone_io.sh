@@ -16,6 +16,7 @@ sudo pip install cassandra-driver
 python tests.py
 
 # Java
+export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/jre
 cd $DIR/java/org.m2mp.db
 mvn install
 

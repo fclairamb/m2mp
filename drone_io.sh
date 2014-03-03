@@ -2,7 +2,7 @@
 ./drone_io_start_cassandra.sh
 ./load_cql.sh
 
-DIR `pwd`
+DIR=`pwd`
 
 # Go
 cd $DIR/go/m2mpdb

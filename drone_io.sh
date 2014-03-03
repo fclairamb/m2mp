@@ -11,6 +11,7 @@ go test -v -timeout 10s
 
 # Python
 cd $DIR/python
+sudo pip install cassandra-driver
 python tests.py
 
 # Java

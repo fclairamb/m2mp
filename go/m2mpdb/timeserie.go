@@ -3,7 +3,6 @@ package m2mpdb
 import (
 	"encoding/json"
 	"github.com/gocql/gocql"
-	"log"
 	"time"
 )
 
@@ -18,13 +17,11 @@ func SaveTSTime(id string, dataType string, time time.Time, data string) error {
 
 	query := shared.session.Query("insert into timeseries (id, period, type, date, data) values (?, ?, ?, ?, ?); ", id, period, dataType, u, data)
 	if err := query.Exec(); err != nil {
-		log.Println("Error ", err)
 		return err
 	}
 
 	query = shared.session.Query("insert into timeseries (id, period, date, data) values (?, ?, ?, ?); ", id+"!"+dataType, period, u, data)
 	if err := query.Exec(); err != nil {
-		log.Println("Error ", err)
 		return err
 	}
 
@@ -38,7 +35,6 @@ func SaveTSTimeObj(id string, dataType string, time time.Time, obj interface{}) 
 	if data, err := json.Marshal(obj); err == nil {
 		return SaveTSTime(id, dataType, time, string(data))
 	} else {
-		log.Println("Error", err)
 		return err
 	}
 }

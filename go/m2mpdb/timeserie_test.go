@@ -8,6 +8,7 @@ import (
 
 func TestTimeSerieSaving(t *testing.T) {
 	NewSessionSimple("ks_test")
+	defer Close()
 	SaveTSTime("device", "location", time.Now().UTC(), "Hello boy")
 }
 
@@ -26,6 +27,7 @@ type Location struct {
 
 func TestTimeSerieSavingObj(t *testing.T) {
 	NewSessionSimple("ks_test")
+	defer Close()
 
 	{ // Someone
 		me := &Person{FirstName: "Florent", LastName: "Clairambault", Age: 28}

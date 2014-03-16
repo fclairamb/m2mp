@@ -48,7 +48,7 @@ public class UserTest {
     @Test
     public void delete() {
         // Domain
-        Domain d = Domain.create("domain");
+        Domain d = Domain.create("domain2");
         Assert.assertTrue(d.exists());
         Assert.assertTrue(d.getNode().exists());
         d.delete();

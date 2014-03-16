@@ -44,4 +44,15 @@ public class UserTest {
 			Assert.assertEquals(user1.getId(), user2.getId());
 		}
 	}
+
+    @Test
+    public void delete() {
+        // Domain
+        Domain d = Domain.create("domain");
+        Assert.assertTrue(d.exists());
+        Assert.assertTrue(d.getNode().exists());
+        d.delete();
+        Assert.assertTrue(d.deleted());
+        Assert.assertTrue(d.getNode().deleted());
+    }
 }

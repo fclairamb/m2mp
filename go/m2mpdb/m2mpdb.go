@@ -39,7 +39,6 @@ func Close() {
 	if shared != nil {
 		shared.session.Close()
 	}
-
 }
 
 func WipeoutEverything(sure string) {

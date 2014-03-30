@@ -9,6 +9,10 @@ cd $DIR/go/m2mpdb
 go get
 go test -v -timeout 10s
 
+cd $DIR/go/m2mpdb/entities
+go get
+go test -v -timeout 10s
+
 # Python
 cd $DIR/python
 sudo apt-get install build-essential python-dev libev-dev

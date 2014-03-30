@@ -22,7 +22,7 @@ func NewRegistryNode(path string) *RegistryNode {
 	if !strings.HasSuffix(path, "/") {
 		path += "/"
 	}
-	return &RegistryNode{Path: path, status: RN_STATUS_UNDEFINED, values: nil, childrenNames: nil}
+	return &RegistryNode{Path: path /*, status: RN_STATUS_UNDEFINED, values: nil, childrenNames: nil*/}
 }
 
 func (node *RegistryNode) Name() string {
@@ -176,11 +176,9 @@ func (node *RegistryNode) String() string {
 	return "RN{Path=" + node.Path + "}"
 }
 
-func RegistryNodeCleanup() error {
+func RegistryNodeCleanup() (err error) {
 	iter := shared.session.Query("select path from registrynode where status=?;", RN_STATUS_DELETED).Iter()
 	defer iter.Close()
-
-	var err error
 
 	var path string
 	for iter.Scan(&path) {

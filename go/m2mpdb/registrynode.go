@@ -57,6 +57,13 @@ func (node *RegistryNode) SetValue(name, value string) error {
 	return shared.session.Query("update registrynode set values[ ? ] = ? where path = ?;", name, value, node.Path).Exec()
 }
 
+func (node *RegistryNode) DelValue(name string) error {
+	if node.values != nil {
+		delete(node.values, name)
+	}
+	return shared.session.Query("delete values[ ? ] from registrynode where path = ?;", name, node.Path).Exec()
+}
+
 func (node *RegistryNode) setStatus(status int) error {
 	node.status = status
 	return shared.session.Query("update registrynode set status=? where path=?;", node.status, node.Path).Exec()
@@ -136,6 +143,10 @@ func (node *RegistryNode) addChild(name string) error {
 func (node *RegistryNode) removeChild(name string) error {
 	node.childrenNames = nil
 	return shared.session.Query("delete from registrynodechildren where path=? and name=?;", node.Path, name).Exec()
+}
+
+func (node *RegistryNode) GetChild(name string) *RegistryNode {
+	return NewRegistryNode(node.Path + name + "/")
 }
 
 func (node *RegistryNode) ChildrenNames() []string {

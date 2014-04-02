@@ -25,7 +25,7 @@ func SaveTSTime(id string, dataType string, time time.Time, data string) error {
 		return err
 	}
 
-	// The goal is to do it in an unreliable way. I think it could be done through a channel. That way at most one command is executed at the same time.
+	// The goal is to do it in an unreliable way. It could be done through a channel. That way at most one command is executed at the same time.
 	go shared.session.Query("insert into timeseries_index (id, period, type) values (?, ?, ?);", id, period, dataType).Exec()
 
 	return nil

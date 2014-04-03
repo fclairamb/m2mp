@@ -62,9 +62,8 @@ func (d *User) Name() string {
 }
 
 // Get the User's id
-func (d *User) Id() gocql.UUID {
-	id, _ := gocql.ParseUUID(d.Node.Name())
-	return id
+func (d *User) Id() string {
+	return d.Node.Name()
 }
 
 // Delete the User
@@ -105,7 +104,7 @@ func (u *User) Rename(name string) error {
 
 	{ // We register the new name
 		node := m2mpdb.NewRegistryNode(USER_BY_NAME_NODE_PATH + name + "/").Create()
-		node.SetValue("id", u.Id().String())
+		node.SetValue("id", u.Id())
 		u.Node.SetValue("name", name)
 	}
 
@@ -116,15 +115,15 @@ func (u *User) SetDomain(d *Domain) error {
 	{ // We remove it from the previous domain
 		previousDomain := u.Domain()
 		if previousDomain != nil {
-			previousDomain.Node.GetChild("users").Check().DelValue(u.Id().String())
+			previousDomain.Node.GetChild("users").Check().DelValue(u.Id())
 		}
 	}
 
 	// We set the domain id
-	u.Node.SetValue("domain", d.Id().String())
+	u.Node.SetValue("domain", d.Id())
 
 	// And add it to the references of the new domain
-	d.Node.GetChild("users").Check().SetValue(u.Id().String(), "")
+	d.Node.GetChild("users").Check().SetValue(u.Id(), "")
 
 	return nil
 }
@@ -139,7 +138,7 @@ func (u *User) Domain() *Domain {
 	return NewDomainById(domainId)
 }
 
-func (d *Domain) GetUsers() []*User {
+func (d *Domain) Users() []*User {
 	users := []*User{}
 
 	for n, _ := range d.Node.GetChild("users").Values() {

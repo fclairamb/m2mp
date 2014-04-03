@@ -5,6 +5,7 @@ import (
 	"errors"
 	db "github.com/fclairamb/m2mp/go/m2mpdb"
 	"github.com/gocql/gocql"
+	"log"
 	"time"
 )
 
@@ -61,7 +62,35 @@ func NewDeviceByIdentCreate(ident string) (*Device, error) {
 	device.Node.Create()
 	device.Node.SetValue("ident", ident)
 
+	{ // We put it in the default domain
+		def, _ := NewDomainByNameCreate("default")
+		device.SetDomain(def)
+	}
+
 	return device, nil
+}
+
+func (d *Device) Delete() error {
+	if dom := d.Domain(); dom != nil {
+		dom.Node.GetChild("devices").DelValue(d.Id())
+	}
+	return d.Node.Delete(false)
+}
+
+func (d *Domain) Devices() []*Device {
+	devices := []*Device{}
+
+	for n, _ := range d.Node.GetChild("devices").Values() {
+		devId, err := gocql.ParseUUID(n)
+		if err == nil {
+			devices = append(devices, NewDeviceById(devId))
+		} else {
+			// This should never happen
+			log.Print("Invalid device id:", err)
+		}
+	}
+
+	return devices
 }
 
 func (d *Device) Id() string {
@@ -166,6 +195,33 @@ func (d *Device) Commands() map[string]string {
 // Acknowledge a command with its ID
 func (d *Device) AckCommand(cmdId string) error {
 	return d.getCommandsNode().DelValue(cmdId)
+}
+
+func (dev *Device) SetDomain(d *Domain) error {
+	{ // We remove it from the previous domain
+		previousDomain := dev.Domain()
+		if previousDomain != nil {
+			previousDomain.Node.GetChild("devices").Check().DelValue(dev.Id())
+		}
+	}
+
+	// We set the domain id
+	dev.Node.SetValue("domain", d.Id())
+
+	// And add it to the references of the new domain
+	d.Node.GetChild("devices").Check().SetValue(dev.Id(), "")
+
+	return nil
+}
+
+func (dev *Device) Domain() *Domain {
+	sDomainId := dev.Node.Values()["domain"]
+	domainId, err := gocql.ParseUUID(sDomainId)
+
+	if err != nil {
+		return nil
+	}
+	return NewDomainById(domainId)
 }
 
 func (d *Device) TSID() string {

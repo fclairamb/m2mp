@@ -62,9 +62,8 @@ func (d *Domain) Name() string {
 }
 
 // Get the domain's id
-func (d *Domain) Id() gocql.UUID {
-	id, _ := gocql.ParseUUID(d.Node.Name())
-	return id
+func (d *Domain) Id() string {
+	return d.Node.Name()
 }
 
 // Delete the domain
@@ -105,7 +104,7 @@ func (d *Domain) Rename(name string) error {
 
 	{ // We register the new name
 		node := m2mpdb.NewRegistryNode(DOMAIN_BY_NAME_NODE_PATH + name + "/").Create()
-		node.SetValue("id", d.Id().String())
+		node.SetValue("id", d.Id())
 		d.Node.SetValue("name", name)
 	}
 

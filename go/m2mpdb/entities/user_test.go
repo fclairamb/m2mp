@@ -151,7 +151,7 @@ func TestUserOnDomain(t *testing.T) {
 		}
 		found := false
 		nbUsers := 0
-		for _, u := range d.GetUsers() {
+		for _, u := range d.Users() {
 			nbUsers += 1
 			if u.Name() == "u6" {
 				found = true

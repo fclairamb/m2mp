@@ -1,7 +1,7 @@
 package entities
 
 import (
-	db "github.com/fclairamb/m2mp/go/m2mpdb"
+	db "github.com/fclairamb/m2mp/go/m2mp-db"
 	"testing"
 )
 

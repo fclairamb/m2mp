@@ -1,7 +1,7 @@
 package entities
 
 import (
-	db "github.com/fclairamb/m2mp/go/m2mpdb"
+	db "github.com/fclairamb/m2mp/go/m2mp-db"
 	"testing"
 )
 
@@ -54,8 +54,8 @@ func TestDeviceSetting(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		dev.SetSetting("set1","val1")
-		dev.SetSetting("set2","val2")
+		dev.SetSetting("set1", "val1")
+		dev.SetSetting("set2", "val2")
 	}
 
 	{ // We check them
@@ -65,24 +65,23 @@ func TestDeviceSetting(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		size := len( dev.Settings() )
+		size := len(dev.Settings())
 		if size != 2 {
-			t.Fatal("We have",size,"settings.")
+			t.Fatal("We have", size, "settings.")
 		}
 
-		size = len( dev.SettingsToSend() )
+		size = len(dev.SettingsToSend())
 		if size != 2 {
-			t.Fatal("We have",size,"settings to send.")
+			t.Fatal("We have", size, "settings to send.")
 		}
 
-		if  dev.Setting("set1") != "val1" {
+		if dev.Setting("set1") != "val1" {
 			t.Fatal("Wrong setting value")
 		}
 
 		if dev.Setting("set2") != "val2" {
 			t.Fatal("Wrong setting value")
 		}
-
 
 	}
 
@@ -104,14 +103,14 @@ func TestDeviceSetting(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		size := len( dev.Settings() )
+		size := len(dev.Settings())
 		if size != 2 {
-			t.Fatal("We have",size,"settings.")
+			t.Fatal("We have", size, "settings.")
 		}
 
-		size = len( dev.SettingsToSend() )
+		size = len(dev.SettingsToSend())
 		if size != 0 {
-			t.Fatal("We have",size,"settings to send.")
+			t.Fatal("We have", size, "settings to send.")
 		}
 	}
 }

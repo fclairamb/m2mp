@@ -3,7 +3,7 @@ package entities
 import (
 	"crypto/sha1"
 	"errors"
-	db "github.com/fclairamb/m2mp/go/m2mpdb"
+	db "github.com/fclairamb/m2mp/go/m2mp-db"
 	"github.com/gocql/gocql"
 	"log"
 	"time"

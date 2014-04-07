@@ -4,13 +4,13 @@ package entities
 import (
 	"errors"
 	"fmt"
-	"github.com/fclairamb/m2mp/go/m2mpdb"
+	db "github.com/fclairamb/m2mp/go/m2mp-db"
 	"github.com/gocql/gocql"
 )
 
 // Domain
 type Domain struct {
-	Node *m2mpdb.RegistryNode
+	Node *db.RegistryNode
 }
 
 const DOMAIN_NODE_PATH = "/domain/"
@@ -18,13 +18,13 @@ const DOMAIN_BY_NAME_NODE_PATH = DOMAIN_NODE_PATH + "by-name/"
 
 // Create a new domain instance with its it id
 func NewDomainById(id gocql.UUID) (d *Domain) {
-	d = &Domain{Node: m2mpdb.NewRegistryNode(DOMAIN_NODE_PATH + id.String())}
+	d = &Domain{Node: db.NewRegistryNode(DOMAIN_NODE_PATH + id.String())}
 	return
 }
 
 // Get a domain by name
 func NewDomainByName(name string) (*Domain, error) {
-	node := m2mpdb.NewRegistryNode(DOMAIN_BY_NAME_NODE_PATH + name)
+	node := db.NewRegistryNode(DOMAIN_BY_NAME_NODE_PATH + name)
 	if node.Exists() {
 		sid := node.Values()["id"]
 		id, err := gocql.ParseUUID(sid)
@@ -47,7 +47,7 @@ func NewDomainByNameCreate(name string) (*Domain, error) {
 	if err != nil {
 		return nil, err
 	}
-	node := m2mpdb.NewRegistryNode(DOMAIN_BY_NAME_NODE_PATH + name + "/").Create()
+	node := db.NewRegistryNode(DOMAIN_BY_NAME_NODE_PATH + name + "/").Create()
 	node.SetValue("id", id.String())
 	domain := NewDomainById(id)
 	domain.Node.Create()
@@ -71,7 +71,7 @@ func (d *Domain) Delete() error {
 	name := d.Name()
 
 	if name != "" { // By name reference
-		node := m2mpdb.NewRegistryNode(DOMAIN_BY_NAME_NODE_PATH + name)
+		node := db.NewRegistryNode(DOMAIN_BY_NAME_NODE_PATH + name)
 		node.Delete(false)
 	}
 
@@ -97,13 +97,13 @@ func (d *Domain) Rename(name string) error {
 	{ // We remove the previous name
 		previousName := d.Name()
 		if previousName != "" {
-			node := m2mpdb.NewRegistryNode(DOMAIN_BY_NAME_NODE_PATH + previousName)
+			node := db.NewRegistryNode(DOMAIN_BY_NAME_NODE_PATH + previousName)
 			node.Delete(false)
 		}
 	}
 
 	{ // We register the new name
-		node := m2mpdb.NewRegistryNode(DOMAIN_BY_NAME_NODE_PATH + name + "/").Create()
+		node := db.NewRegistryNode(DOMAIN_BY_NAME_NODE_PATH + name + "/").Create()
 		node.SetValue("id", d.Id())
 		d.Node.SetValue("name", name)
 	}

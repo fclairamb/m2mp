@@ -3,14 +3,14 @@ package entities
 import (
 	"errors"
 	"fmt"
-	"github.com/fclairamb/m2mp/go/m2mpdb"
+	db "github.com/fclairamb/m2mp/go/m2mp-db"
 	"github.com/gocql/gocql"
 	"log"
 )
 
 // User
 type User struct {
-	Node *m2mpdb.RegistryNode
+	Node *db.RegistryNode
 }
 
 const USER_NODE_PATH = "/user/"
@@ -18,13 +18,13 @@ const USER_BY_NAME_NODE_PATH = USER_NODE_PATH + "by-name/"
 
 // Create a new User instance with its it id
 func NewUserById(id gocql.UUID) (u *User) {
-	u = &User{Node: m2mpdb.NewRegistryNode(USER_NODE_PATH + id.String())}
+	u = &User{Node: db.NewRegistryNode(USER_NODE_PATH + id.String())}
 	return
 }
 
 // Get a user instance by its name
 func NewUserByName(name string) (*User, error) {
-	node := m2mpdb.NewRegistryNode(USER_BY_NAME_NODE_PATH + name)
+	node := db.NewRegistryNode(USER_BY_NAME_NODE_PATH + name)
 	if node.Exists() {
 		sid := node.Values()["id"]
 		id, err := gocql.ParseUUID(sid)
@@ -47,7 +47,7 @@ func NewUserByNameCreate(name string) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	node := m2mpdb.NewRegistryNode(USER_BY_NAME_NODE_PATH + name + "/").Create()
+	node := db.NewRegistryNode(USER_BY_NAME_NODE_PATH + name + "/").Create()
 	node.SetValue("id", id.String())
 	User := NewUserById(id)
 	User.Node.Create()
@@ -71,7 +71,7 @@ func (d *User) Delete() error {
 	name := d.Name()
 
 	if name != "" { // By name reference
-		node := m2mpdb.NewRegistryNode(USER_BY_NAME_NODE_PATH + name)
+		node := db.NewRegistryNode(USER_BY_NAME_NODE_PATH + name)
 		node.Delete(false)
 	}
 
@@ -97,13 +97,13 @@ func (u *User) Rename(name string) error {
 	{ // We remove the previous name
 		previousName := u.Name()
 		if previousName != "" {
-			node := m2mpdb.NewRegistryNode(USER_BY_NAME_NODE_PATH + previousName)
+			node := db.NewRegistryNode(USER_BY_NAME_NODE_PATH + previousName)
 			node.Delete(false)
 		}
 	}
 
 	{ // We register the new name
-		node := m2mpdb.NewRegistryNode(USER_BY_NAME_NODE_PATH + name + "/").Create()
+		node := db.NewRegistryNode(USER_BY_NAME_NODE_PATH + name + "/").Create()
 		node.SetValue("id", u.Id())
 		u.Node.SetValue("name", name)
 	}

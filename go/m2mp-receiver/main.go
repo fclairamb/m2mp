@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	db "github.com/fclairamb/m2mp/go/m2mp-db"
 	"log"
 	"os"
 	"strings"
@@ -44,6 +45,11 @@ func main() {
 	if par.LogLevel >= 3 {
 		log.Print("Starting !")
 	}
+
+	if err := db.NewSessionSimple("ks_test"); err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
 	server := NewServer()
 	defer server.Close()

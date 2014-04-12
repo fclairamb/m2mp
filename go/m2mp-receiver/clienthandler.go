@@ -11,21 +11,17 @@ import (
 )
 
 type MessagePing struct {
-	data byte
-}
-
-type MessageData struct {
-	channelName string
+	Data byte
 }
 
 type MessageDataSimple struct {
-	MessageData
-	data []byte
+	ChannelName string
+	Data        []byte
 }
 
 type MessageDataArray struct {
-	MessageData
-	data [][]byte
+	ChannelName string
+	Data        [][]byte
 }
 
 type ClientHandler struct {
@@ -99,12 +95,17 @@ func (ch *ClientHandler) sendData(channel string, data []byte) error {
 	return nil
 }
 
-func (ch *ClientHandler) handleData(channel string, data []byte) error {
+func (ch *ClientHandler) handlePing(msg *MessagePing) error {
+	_, err := ch.Conn.Write([]byte{0x02, msg.Data})
+	return err
+}
+
+func (ch *ClientHandler) handleData(msg *MessageDataSimple) error {
 	if par.LogLevel >= 7 {
-		log.Print(ch, " --> \"", channel, "\" : ", data)
+		log.Print(ch, " --> \"", msg.ChannelName, "\" : ", msg.Data)
 	}
 
-	tokens := strings.SplitN(channel, ":", 2)
+	tokens := strings.SplitN(msg.ChannelName, ":", 2)
 
 	switch tokens[0] {
 	case "_set": // settings have their own logic
@@ -116,15 +117,19 @@ func (ch *ClientHandler) handleData(channel string, data []byte) error {
 		{
 
 		}
+	case "_sta": // status have their own logic
+		{
+
+		}
 	case "echo": // echo is just replied
 		{
-			ch.sendData(channel, data)
+			ch.sendData(msg.ChannelName, msg.Data)
 		}
 
 	case "sen": // sensor is just stored
 		{
 			if ch.device != nil {
-				ch.device.SaveTSTime(channel, time.Now().UTC(), string(data))
+				ch.device.SaveTSTime(msg.ChannelName, time.Now().UTC(), string(msg.Data))
 			}
 		}
 	}
@@ -132,9 +137,9 @@ func (ch *ClientHandler) handleData(channel string, data []byte) error {
 	return nil
 }
 
-func (ch *ClientHandler) handleDataArray(channel string, data [][]byte) error {
+func (ch *ClientHandler) handleDataArray(msg *MessageDataArray) error {
 	if par.LogLevel >= 7 {
-		log.Print(ch, " --> \"", channel, "\" : ", data)
+		log.Print(ch, " --> \"", msg.ChannelName, "\" : ", msg.Data)
 	}
 
 	return nil
@@ -241,7 +246,7 @@ func (ch *ClientHandler) handleConnection() {
 
 				case 0x21, 0x41, 0x61: // Single byte array messages
 					{
-						err = ch.handleData(channelName, buffer[1:size-1])
+						err = ch.handleData(&MessageDataSimple{ChannelName: channelName, Data: buffer[1 : size-1]})
 					}
 				case 0x22, 0x42, 0x62: // Array of byte arrays messages
 					{
@@ -255,7 +260,7 @@ func (ch *ClientHandler) handleConnection() {
 							data = append(data, buffer[offset:offset+subSize])
 							offset += subSize
 						}
-						err = ch.handleDataArray(channelName, data)
+						err = ch.handleDataArray(&MessageDataArray{ChannelName: channelName, Data: data})
 					}
 				}
 				// And we finally handle the data

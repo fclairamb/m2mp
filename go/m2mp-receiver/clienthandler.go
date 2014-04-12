@@ -10,6 +10,24 @@ import (
 	"time"
 )
 
+type MessagePing struct {
+	data byte
+}
+
+type MessageData struct {
+	channelName string
+}
+
+type MessageDataSimple struct {
+	MessageData
+	data []byte
+}
+
+type MessageDataArray struct {
+	MessageData
+	data [][]byte
+}
+
 type ClientHandler struct {
 	Id             int
 	Conn           net.Conn
@@ -114,11 +132,24 @@ func (ch *ClientHandler) handleData(channel string, data []byte) error {
 	return nil
 }
 
+func (ch *ClientHandler) handleDataArray(channel string, data [][]byte) error {
+	if par.LogLevel >= 7 {
+		log.Print(ch, " --> \"", channel, "\" : ", data)
+	}
+
+	return nil
+}
+
+const BUFFER_SIZE = 1024
+
 func (ch *ClientHandler) handleConnection() {
 	// When things will go wrong, we will end it properly
 	defer ch.end()
-	buffer := make([]byte, 1024)
+	buffer := make([]byte, BUFFER_SIZE)
 	for {
+		if cap(buffer) > BUFFER_SIZE*2 {
+			buffer = make([]byte, BUFFER_SIZE)
+		}
 
 		_, err := ch.Conn.Read(buffer[0:2])
 
@@ -169,16 +200,17 @@ func (ch *ClientHandler) handleConnection() {
 					log.Print(ch, " --> \"", channelName, "\" created on ", channelId)
 				}
 			}
-		case 0x21, 0x41, 0x61:
+		// All the data messages
+		case 0x21, 0x41, 0x61, 0x22, 0x42, 0x62:
 			{
 				// We handle all size of messages at the same place
 				var sizeLength int
 				switch buffer[0] {
-				case 0x21:
+				case 0x21, 0x22:
 					sizeLength = 1 // 1 byte sized (0 to 255)
-				case 0x41:
+				case 0x41, 0x42:
 					sizeLength = 2 // 2 bytes sized (0 to 64K)
-				case 0x61:
+				case 0x61, 0x62:
 					sizeLength = 4 // 4 bytes sized (0 to 4G)
 				}
 				// We get the necessary remaining bytes of the size
@@ -205,49 +237,29 @@ func (ch *ClientHandler) handleConnection() {
 				// We get the channel id
 				channelId := int(buffer[0])
 				channelName := ch.recvChannels[channelId]
-
-				// And we finally handle the data
-				err = ch.handleData(channelName, buffer[1:size-1])
-			}
-		case 0x22, 0x42, 0x62:
-			{
-				// We handle all size of messages at the same place
-				var sizeLength int
 				switch buffer[0] {
-				case 0x21:
-					sizeLength = 1 // 1 byte sized (0 to 255)
-				case 0x41:
-					sizeLength = 2 // 2 bytes sized (0 to 64K)
-				case 0x61:
-					sizeLength = 4 // 4 bytes sized (0 to 4G)
-				}
-				// We get the necessary remaining bytes of the size
-				ch.Conn.Read(buffer[2 : sizeLength+1])
 
-				// We convert this to a size
-				var size int
-				{
-					s, _ := binary.Uvarint(buffer[1 : sizeLength+1])
-					size = int(s)
-				}
-
-				// We might have to increase the buffer size
-				if size > cap(buffer) {
-					if par.LogLevel >= 7 {
-						log.Printf("%s - Increasing buffer size to %d bytes.", ch, size)
+				case 0x21, 0x41, 0x61: // Single byte array messages
+					{
+						err = ch.handleData(channelName, buffer[1:size-1])
 					}
-					buffer = make([]byte, size)
+				case 0x22, 0x42, 0x62: // Array of byte arrays messages
+					{
+						offset := 1
+						data := make([][]byte, 5)
+						for offset < size {
+							s, _ := binary.Uvarint(buffer[offset : offset+sizeLength])
+							subSize := int(s)
+							offset += sizeLength
+							ch.Conn.Read(buffer[offset : offset+subSize])
+							data = append(data, buffer[offset:offset+subSize])
+							offset += subSize
+						}
+						err = ch.handleDataArray(channelName, data)
+					}
 				}
-
-				// We read everything (we get rid of existing buffer content)
-				ch.Conn.Read(buffer[:size])
-
-				// We get the channel id
-				channelId := int(buffer[0])
-				channelName := ch.recvChannels[channelId]
-
 				// And we finally handle the data
-				//TODO: later
+
 			}
 		default:
 			{

@@ -47,7 +47,7 @@ func main() {
 	}
 
 	if err := db.NewSessionSimple("ks_test"); err != nil {
-		log.Fatal(err)
+		log.Fatal("DB error: ", err)
 	}
 	defer db.Close()
 
@@ -55,7 +55,7 @@ func main() {
 	defer server.Close()
 
 	if err := server.Listen(); err != nil {
-		log.Fatal("Error loading server", err)
+		log.Fatal("Server error: ", err)
 	}
 
 	if par.LogLevel >= 2 {

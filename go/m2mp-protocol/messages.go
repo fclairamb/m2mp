@@ -34,3 +34,15 @@ type MessageDataArray struct {
 	Channel string
 	Data    [][]byte
 }
+
+func NewMessageDataArray(channel string) *MessageDataArray {
+	return &MessageDataArray{Channel: channel, Data: make([][]byte, 0, 4)}
+}
+
+func (msg *MessageDataArray) Add(data []byte) {
+	msg.Data = append(msg.Data, data)
+}
+
+func (msg *MessageDataArray) AddString(data string) {
+	msg.Add([]byte(data))
+}

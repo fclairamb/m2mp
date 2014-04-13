@@ -57,33 +57,35 @@ func (ch *ClientHandler) handleConnection() {
 		case *pr.MessageDataSimple:
 			ch.handleData(m)
 		case *pr.MessageIdentRequest:
-			{
-				var err error
-				if ch.LogLevel >= 5 {
-					log.Print(ch, " --> Identification: ", m.Ident)
-				}
-				ch.device, err = ent.NewDeviceByIdentCreate(m.Ident)
-				if err != nil {
-					log.Print("Problem with ", ch, " : ", err)
-				}
-
-				// OK
-				if err == nil {
-					ch.Conn.Send(&pr.MessageIdentResponse{Ok: true})
-				} else {
-					ch.Conn.Send(&pr.MessageIdentResponse{Ok: false})
-				}
-			}
-
+			ch.handleIdentRequest(m)
 		case *pr.MessagePingRequest:
 			{
 				ch.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
 			}
 		case *pr.EventDisconnected:
 			{
-				break
+				return
 			}
 		}
+	}
+}
+
+func (ch *ClientHandler) handleIdentRequest(m *pr.MessageIdentRequest) error {
+	var err error
+	ch.device, err = ent.NewDeviceByIdentCreate(m.Ident)
+	if err != nil {
+		log.Print("Problem with ", ch, " : ", err)
+	}
+
+	if ch.LogLevel >= 5 {
+		log.Print(ch, " --> Identification ", m.Ident, " : ", err == nil)
+	}
+
+	// OK
+	if err == nil {
+		return ch.Conn.Send(&pr.MessageIdentResponse{Ok: true})
+	} else {
+		return ch.Conn.Send(&pr.MessageIdentResponse{Ok: false})
 	}
 }
 
@@ -95,19 +97,6 @@ func (ch *ClientHandler) handleData(msg *pr.MessageDataSimple) error {
 	tokens := strings.SplitN(msg.Channel, ":", 2)
 
 	switch tokens[0] {
-	case "_set": // settings have their own logic
-		{
-
-		}
-
-	case "_cmd": // commands have their own logic
-		{
-
-		}
-	case "_sta": // status have their own logic
-		{
-
-		}
 	case "echo": // echo is just replied
 		{
 			ch.Conn.Send(msg)

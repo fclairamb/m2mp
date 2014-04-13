@@ -18,12 +18,12 @@ const (
 )
 
 const (
-	PROTO_IDENT_REQUEST  = 0x01
-	PROTO_IDENT_RESPONSE = 0X01
-	PROTO_CLIENT_PING    = 0x02
-	PROTO_SERVER_PONG    = 0x02
-	PROTO_SERVER_PING    = 0x03
-	PROTO_CLIENT_PONG    = 0x03
+	PROTO_IDENT_REQUEST  = 0x01 // Identification request
+	PROTO_IDENT_RESPONSE = 0X01 // Identification response
+	PROTO_CLIENT_PING    = 0x02 // Ping request (client to server)
+	PROTO_SERVER_PONG    = 0x02 // Pong request (server to client)
+	PROTO_SERVER_PING    = 0x03 // Ping request (server to client)
+	PROTO_CLIENT_PONG    = 0x03 // Pong request (client to server)
 	PROTO_DATA_SIMPLE_1B = 0x21
 	PROTO_DATA_SIMPLE_2B = 0x41
 	PROTO_DATA_SIMPLE_4B = 0x61
@@ -76,6 +76,10 @@ func (pt *ProtoHandler) Send(msg interface{}) error {
 		{
 			return pt.sendIdentificationResponse(m)
 		}
+	case *MessageIdentRequest:
+		{
+			return pt.sendIdentificationRequest(m)
+		}
 	case *MessagePingRequest:
 		{
 			return pt.sendPing(m)
@@ -89,9 +93,9 @@ func (pt *ProtoHandler) Send(msg interface{}) error {
 }
 
 func (pt *ProtoHandler) sendData(msg *MessageDataSimple) error {
-	if pt.LogLevel >= 5 {
-		log.Print(pt, " <-- \"", msg.Channel, "\" : ", msg.Data)
-	}
+	//if pt.LogLevel >= 5 {
+	//	log.Print(pt, " <-- \"", msg.Channel, "\" : ", msg.Data)
+	//}
 
 	var channelId int
 
@@ -109,7 +113,7 @@ func (pt *ProtoHandler) sendData(msg *MessageDataSimple) error {
 		pt.sendChannels[msg.Channel] = channelId
 
 		if pt.LogLevel >= 8 {
-			log.Print(pt, " --> \"", msg.Channel, "\" created on ", channelId)
+			log.Print(pt, " <-- \"", msg.Channel, "\" created on ", channelId)
 		}
 
 		_, err := pt.Conn.Write(frame)
@@ -148,6 +152,13 @@ func (pt *ProtoHandler) sendIdentificationResponse(msg *MessageIdentResponse) (e
 	return
 }
 
+func (pt *ProtoHandler) sendIdentificationRequest(msg *MessageIdentRequest) (err error) {
+	data := []byte{PROTO_IDENT_REQUEST, byte(len(msg.Ident))}
+	data = append(data, []byte(msg.Ident)...)
+	_, err = pt.Conn.Write(data)
+	return
+}
+
 func (pt *ProtoHandler) Recv() interface{} {
 	msg := pt.actualRecv()
 	if pt.LogLevel >= 7 {
@@ -179,10 +190,14 @@ func (pt *ProtoHandler) actualRecv() interface{} {
 
 		case 0x01: // Identification
 			{
-				size := buffer[1]
-				pt.Conn.Read(buffer[:size])
-				ident := string(buffer[:size])
-				return &MessageIdentRequest{Ident: ident}
+				if pt.mode == MODE_SERVER {
+					size := buffer[1]
+					pt.Conn.Read(buffer[:size])
+					ident := string(buffer[:size])
+					return &MessageIdentRequest{Ident: ident}
+				} else {
+					return &MessageIdentResponse{Ok: (buffer[1] == 0x01)}
+				}
 			}
 
 		case 0x02, 0x03: // Ping

@@ -117,6 +117,10 @@ func (d *Device) getSettingsToSendNode() *db.RegistryNode {
 	return d.Node.GetChild("settings-to-send").Check()
 }
 
+func (d *Device) getStatusNode() *db.RegistryNode {
+	return d.Node.GetChild("status").Check()
+}
+
 func (d *Device) getServerSettingsNode() *db.RegistryNode {
 	return d.Node.GetChild("server-settings").Check()
 }
@@ -136,6 +140,14 @@ func (d *Device) AddCommand(cmd string) (string, error) {
 		return "", err
 	}
 	return cmdId.String(), nil
+}
+
+func (d *Device) Status(name string) string {
+	return d.getStatusNode().Value(name)
+}
+
+func (d *Device) SetStatus(name, value string) error {
+	return d.getStatusNode().SetValue(name, value)
 }
 
 func (d *Device) Setting(name string) string {

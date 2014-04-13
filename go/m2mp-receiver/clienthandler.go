@@ -11,21 +11,33 @@ import (
 )
 
 type ClientHandler struct {
-	Id             int
-	daddy          *Server
-	connectionTime time.Time
-	device         *ent.Device
-	Conn           *pr.ProtoHandler
-	LogLevel       int
+	Id               int
+	daddy            *Server
+	connectionTime   time.Time
+	device           *ent.Device
+	Conn             *pr.ProtoHandler
+	connRecv         chan interface{}
+	LogLevel         int
+	lastReceivedData time.Time
+	lastSentData     time.Time
+	ticker           *time.Ticker
+	pingCounter      byte
+	//connSend         chan interface{}
 }
 
 func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
+	now := time.Now().UTC()
 	ch := &ClientHandler{
-		daddy:          daddy,
-		Id:             id,
-		Conn:           pr.NewProtoHandlerServer(conn),
-		connectionTime: time.Now().UTC(),
-		LogLevel:       9,
+		daddy:            daddy,
+		Id:               id,
+		Conn:             pr.NewProtoHandlerServer(conn),
+		connectionTime:   now,
+		LogLevel:         9,
+		connRecv:         make(chan interface{}, 3),
+		ticker:           time.NewTicker(time.Second * 30),
+		lastReceivedData: now,
+		lastSentData:     now,
+		//connSend:       make(chan interface{}, 3),
 	}
 
 	return ch
@@ -35,7 +47,8 @@ func (ch *ClientHandler) Start() {
 	if par.LogLevel >= 3 {
 		log.Print("Added ", ch, " / ", ch.daddy.NbClients())
 	}
-	go ch.handleConnection()
+	go ch.runRecv()
+	go ch.runCoreHandling()
 }
 
 func (ch *ClientHandler) Disconnect() error {
@@ -49,24 +62,74 @@ func (ch *ClientHandler) end() {
 	}
 }
 
-func (ch *ClientHandler) handleConnection() {
+func (ch *ClientHandler) runRecv() {
 	defer ch.end()
 	for {
 		msg := ch.Conn.Recv()
-		switch m := msg.(type) {
-		case *pr.MessageDataSimple:
-			ch.handleData(m)
-		case *pr.MessageIdentRequest:
-			ch.handleIdentRequest(m)
-		case *pr.MessagePingRequest:
-			{
-				ch.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
-			}
+		ch.connRecv <- msg
+		switch msg.(type) {
 		case *pr.EventDisconnected:
 			{
 				return
 			}
 		}
+	}
+}
+
+func (ch *ClientHandler) Send(m interface{}) error {
+	err := ch.Conn.Send(m)
+	ch.lastSentData = time.Now().UTC()
+	return err
+}
+
+func (ch *ClientHandler) receivedData() {
+	ch.lastReceivedData = time.Now().UTC()
+}
+
+func (ch *ClientHandler) considerCurrentStatus() {
+	now := time.Now().UTC()
+	if ch.LogLevel >= 5 {
+		log.Print(ch, " - Considering current status (", now, ")")
+	}
+	if now.Sub(ch.lastReceivedData) > time.Duration(time.Minute*1) &&
+		now.Sub(ch.lastSentData) > time.Duration(time.Second*30) {
+		ch.Send(&pr.MessagePingRequest{Data: ch.pingCounter})
+		ch.pingCounter += 1
+	}
+}
+
+func (ch *ClientHandler) runCoreHandling() {
+	for {
+		select {
+		// We
+		case msg := <-ch.connRecv:
+			{
+				switch m := msg.(type) {
+				case *pr.MessageDataSimple:
+					ch.receivedData()
+					ch.handleData(m)
+				case *pr.MessageIdentRequest:
+					ch.receivedData()
+					ch.handleIdentRequest(m)
+				case *pr.MessagePingRequest:
+					{
+						ch.receivedData()
+						ch.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
+					}
+				case *pr.EventDisconnected:
+					{
+						return
+					}
+				}
+
+			}
+		case <-ch.ticker.C:
+			{
+
+			}
+		}
+
+		ch.considerCurrentStatus()
 	}
 }
 
@@ -83,9 +146,9 @@ func (ch *ClientHandler) handleIdentRequest(m *pr.MessageIdentRequest) error {
 
 	// OK
 	if err == nil {
-		return ch.Conn.Send(&pr.MessageIdentResponse{Ok: true})
+		return ch.Send(&pr.MessageIdentResponse{Ok: true})
 	} else {
-		return ch.Conn.Send(&pr.MessageIdentResponse{Ok: false})
+		return ch.Send(&pr.MessageIdentResponse{Ok: false})
 	}
 }
 

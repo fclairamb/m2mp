@@ -9,8 +9,8 @@ func TestDeviceCreation(t *testing.T) {
 	if err := db.NewSessionSimple("ks_test"); err != nil {
 		t.Fatal(err)
 	}
-	db.WipeoutEverything("yes")
 	defer db.Close()
+	db.WipeoutEverything("yes")
 
 	{ // Creating device
 		dev, err := NewDeviceByIdentCreate("imei:1234")

@@ -53,7 +53,6 @@ func (c *Client) runCore() {
 		select {
 		case msg := <-c.Recv:
 			{
-				c.Recv <- msg
 				switch m := msg.(type) {
 				case *pr.EventDisconnected:
 					{
@@ -63,6 +62,10 @@ func (c *Client) runCore() {
 				case *pr.MessageIdentResponse:
 					{
 						c.Connected = m.Ok
+					}
+				case *pr.MessagePingRequest:
+					{
+						c.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
 					}
 				}
 			}

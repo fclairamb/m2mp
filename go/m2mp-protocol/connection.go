@@ -206,13 +206,13 @@ func (pt *ProtoHandler) actualRecv() interface{} {
 					if buffer[0] == PROTO_CLIENT_PING { // receives a client ping
 						return &MessagePingRequest{Data: buffer[1]}
 					} else if buffer[0] == PROTO_CLIENT_PONG { // receives a client pong
-						return &MessagePingRequest{Data: buffer[1]}
+						return &MessagePingResponse{Data: buffer[1]}
 					}
 				} else { // Client
 					if buffer[0] == PROTO_SERVER_PING { // receives a server ping
 						return &MessagePingRequest{Data: buffer[1]}
-					} else if buffer[0] == PROTO_CLIENT_PONG {
-						return &MessagePingRequest{Data: buffer[1]}
+					} else if buffer[0] == PROTO_SERVER_PONG {
+						return &MessagePingResponse{Data: buffer[1]}
 					}
 				}
 			}

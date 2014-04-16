@@ -108,6 +108,9 @@ func (ch *ClientHandler) runCoreHandling() {
 				case *pr.MessageDataSimple:
 					ch.receivedData()
 					ch.handleData(m)
+				case *pr.MessageDataArray:
+					ch.receivedData()
+					ch.handleDataArray(m)
 				case *pr.MessageIdentRequest:
 					ch.receivedData()
 					ch.handleIdentRequest(m)
@@ -125,7 +128,9 @@ func (ch *ClientHandler) runCoreHandling() {
 			}
 		case <-ch.ticker.C:
 			{
-
+				if ch.LogLevel >= 5 {
+					log.Print(ch, " - Tick")
+				}
 			}
 		}
 
@@ -146,10 +151,42 @@ func (ch *ClientHandler) handleIdentRequest(m *pr.MessageIdentRequest) error {
 
 	// OK
 	if err == nil {
-		return ch.Send(&pr.MessageIdentResponse{Ok: true})
+		err = ch.Send(&pr.MessageIdentResponse{Ok: true})
+		if err == nil {
+			err = ch.justIdentified()
+		}
+		return err
 	} else {
 		return ch.Send(&pr.MessageIdentResponse{Ok: false})
 	}
+}
+
+func (ch *ClientHandler) checkCapacities() error {
+	status := ch.device.Status("cap")
+	if status == "" {
+		msg := pr.NewMessageDataArray("_sta")
+		msg.AddString("g")
+		msg.AddString("cap")
+		return ch.Send(msg)
+	}
+	return nil
+}
+
+func (ch *ClientHandler) justIdentified() error {
+	err := ch.sendSettings()
+
+	if err == nil {
+		err = ch.sendCommands()
+	}
+
+	if err == nil {
+		err = ch.checkCapacities()
+	}
+
+	// Testing
+	ch.Send(&pr.MessageDataSimple{Channel: "test", Data: []byte("HELLO SON !")})
+
+	return err
 }
 
 func (ch *ClientHandler) handleData(msg *pr.MessageDataSimple) error {
@@ -177,10 +214,82 @@ func (ch *ClientHandler) handleData(msg *pr.MessageDataSimple) error {
 }
 
 func (ch *ClientHandler) handleDataArray(msg *pr.MessageDataArray) error {
+
 	if par.LogLevel >= 7 {
 		log.Print(ch, " --> \"", msg.Channel, "\" : ", msg.Data)
 	}
 
+	if msg.Channel == "_set" {
+		return ch.handleDataArraySettings(msg)
+	} else if msg.Channel == "_sta" {
+		return ch.handleDataArrayStatus(msg)
+	}
+
+	return nil
+}
+
+func (ch *ClientHandler) handleDataArraySettings(msg *pr.MessageDataArray) error {
+	if ch.device == nil {
+		log.Print("We don't have a device yet !")
+		return nil
+	}
+
+	if strings.Contains(string(msg.Data[0]), "g") {
+		for i := 1; i < len(msg.Data); i++ {
+			v := string(msg.Data[i])
+			tokens := strings.SplitN(v, "=", 2)
+			if len(tokens) == 2 {
+				ch.device.SetSetting(tokens[0], tokens[1])
+			}
+		}
+	}
+	return nil
+}
+
+func (ch *ClientHandler) handleDataArrayStatus(msg *pr.MessageDataArray) error {
+	if ch.device == nil {
+		log.Print("We don't have a device yet !")
+		return nil
+	}
+
+	if strings.Contains(string(msg.Data[0]), "g") {
+		for i := 1; i < len(msg.Data); i++ {
+			v := string(msg.Data[i])
+			tokens := strings.SplitN(v, "=", 2)
+			if len(tokens) == 2 {
+				ch.device.SetStatus(tokens[0], tokens[1])
+			}
+		}
+	}
+	return nil
+}
+
+func (ch *ClientHandler) sendSettings() error {
+	msg := pr.NewMessageDataArray("_set")
+	msg.AddString("sg")
+	c := 0
+	for k, v := range ch.device.Settings() {
+		msg.AddString(fmt.Sprintf("%s=%s", k, v))
+		c += 1
+	}
+	if c != 0 {
+		return ch.Send(msg)
+	} else {
+		return nil
+	}
+}
+
+func (ch *ClientHandler) sendCommands() error {
+
+	for k, v := range ch.device.Settings() {
+		msg := pr.NewMessageDataArray("_cmd")
+		msg.AddString("e")
+		msg.AddString(fmt.Sprintf("%s=%s", k, v))
+		if err := ch.Send(msg); err != nil {
+			log.Print(ch, " - Send( ", msg, " ): ", err)
+			return err
+		}
+	}
 	return nil
 }
 

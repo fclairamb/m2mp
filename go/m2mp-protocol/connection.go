@@ -31,8 +31,8 @@ const (
 	PROTO_DATA_ARRAY_2B  = 0x42
 	PROTO_DATA_ARRAY_4B  = 0x62
 
-	PROTO_MAX_SIZE_1B = 254     // 255 - 1 (for channel)
-	PROTO_MAX_SIZE_2B = 65533   // 64K - 1 (for channel)
+	PROTO_MAX_SIZE_1B = 4       // 254     // 255 - 1 (for channel)
+	PROTO_MAX_SIZE_2B = 16      // 65533   // 64K - 1 (for channel)
 	PROTO_MAX_SIZE_4B = 1048576 // 1MB (we don't want to send more than 1MB at this stage)
 )
 
@@ -71,7 +71,10 @@ func (pt *ProtoHandler) Send(msg interface{}) error {
 		{
 			return pt.sendData(m)
 		}
-
+	case *MessageDataArray:
+		{
+			return pt.sendDataArray(m)
+		}
 	case *MessageIdentResponse:
 		{
 			return pt.sendIdentificationResponse(m)
@@ -92,35 +95,80 @@ func (pt *ProtoHandler) Send(msg interface{}) error {
 	return errors.New(fmt.Sprint("I don't know how to send this : ", msg))
 }
 
-func (pt *ProtoHandler) sendData(msg *MessageDataSimple) error {
-	//if pt.LogLevel >= 5 {
-	//	log.Print(pt, " <-- \"", msg.Channel, "\" : ", msg.Data)
-	//}
-
-	var channelId int
-
-	if id, ok := pt.sendChannels[msg.Channel]; ok {
+func (pt *ProtoHandler) getSendChannel(channel string) (channelId int, err error) {
+	if id, ok := pt.sendChannels[channel]; ok {
 		channelId = id
+		err = nil
 	} else {
 		channelId = len(pt.sendChannels)
 		if channelId >= 255 {
 			pt.sendChannels = make(map[string]int)
 			channelId = 0
 		}
-		frame := []byte{0x20, byte(1 + len(msg.Channel)), byte(channelId)}
-		frame = append(frame, []byte(msg.Channel)...)
+		frame := []byte{0x20, byte(1 + len(channel)), byte(channelId)}
+		frame = append(frame, []byte(channel)...)
 
-		pt.sendChannels[msg.Channel] = channelId
+		pt.sendChannels[channel] = channelId
 
 		if pt.LogLevel >= 8 {
-			log.Print(pt, " <-- \"", msg.Channel, "\" created on ", channelId)
+			log.Print(pt, " <-- \"", channel, "\" created on ", channelId)
 		}
 
-		_, err := pt.Conn.Write(frame)
+		_, err = pt.Conn.Write(frame)
+	}
+	return
+}
+
+func (pt *ProtoHandler) sendDataArray(msg *MessageDataArray) error {
+	return nil
+}
+
+func (pt *ProtoHandler) sendData(msg *MessageDataSimple) error {
+	channelId, err := pt.getSendChannel(msg.Channel)
+
+	if err != nil {
 		return err
 	}
 
-	return nil
+	size := len(msg.Data) + 1
+
+	sizeLength := sizeToSizeLength(size)
+
+	frame := make([]byte, 1+sizeLength+size)
+
+	switch sizeLength {
+	case 1:
+		frame[0] = PROTO_DATA_SIMPLE_1B
+	case 2:
+		frame[0] = PROTO_DATA_SIMPLE_2B
+	case 4:
+		frame[0] = PROTO_DATA_SIMPLE_4B
+	}
+
+	offset := 1
+	binary.PutUvarint(frame[1:], uint64(size))
+	offset += sizeLength
+
+	frame[offset] = byte(channelId)
+
+	copy(frame[1+sizeLength+1:], msg.Data)
+
+	_, err = pt.Conn.Write(frame)
+
+	return err
+}
+
+func sizeToSizeLength(length int) (sizeLength int) {
+
+	if length > PROTO_MAX_SIZE_4B {
+		sizeLength = 4
+	} else if length > PROTO_MAX_SIZE_2B {
+		sizeLength = 2
+	} else {
+		sizeLength = 1
+	}
+
+	return
 }
 
 func (pt *ProtoHandler) sendPing(msg *MessagePingRequest) (err error) {

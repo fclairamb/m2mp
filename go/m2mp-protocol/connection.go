@@ -31,8 +31,8 @@ const (
 	PROTO_DATA_ARRAY_2B  = 0x42
 	PROTO_DATA_ARRAY_4B  = 0x62
 
-	PROTO_MAX_SIZE_1B = 4       // 254     // 255 - 1 (for channel)
-	PROTO_MAX_SIZE_2B = 16      // 65533   // 64K - 1 (for channel)
+	PROTO_MAX_SIZE_1B = 254     // 255 - 1 (for channel)
+	PROTO_MAX_SIZE_2B = 65534   // 64K - 1 (for channel)
 	PROTO_MAX_SIZE_4B = 1048576 // 1MB (we don't want to send more than 1MB at this stage)
 )
 
@@ -119,8 +119,84 @@ func (pt *ProtoHandler) getSendChannel(channel string) (channelId int, err error
 	return
 }
 
+func writeLength(target []byte, nb, size int) {
+	if size == 1 {
+		target[0] = uint8(nb)
+	} else if size == 2 {
+		binary.LittleEndian.PutUint16(target, uint16(nb))
+	} else if size == 4 {
+		binary.LittleEndian.PutUint32(target, uint32(nb))
+	}
+}
+
 func (pt *ProtoHandler) sendDataArray(msg *MessageDataArray) error {
-	return nil
+	channelId, err := pt.getSendChannel(msg.Channel)
+
+	if err != nil {
+		return err
+	}
+
+	maxSize := 1 + len(msg.Data)*4
+	{
+		for _, v := range msg.Data {
+			maxSize += len(v)
+		}
+	}
+
+	log.Print("maxSize=", maxSize)
+
+	var sizeLength int
+	{
+		if maxSize > PROTO_MAX_SIZE_2B {
+			sizeLength = 4
+		} else if maxSize > PROTO_MAX_SIZE_1B {
+			sizeLength = 2
+		} else {
+			sizeLength = 1
+		}
+	}
+
+	log.Print("sizeLength=", sizeLength)
+
+	size := 1 + len(msg.Data)*sizeLength
+	{
+		for _, v := range msg.Data {
+			size += len(v)
+		}
+	}
+
+	log.Print("size=", size)
+
+	frame := make([]byte, 1+sizeLength+size)
+
+	switch sizeLength {
+	case 1:
+		frame[0] = PROTO_DATA_ARRAY_1B
+	case 2:
+		frame[0] = PROTO_DATA_ARRAY_2B
+	case 4:
+		frame[0] = PROTO_DATA_ARRAY_4B
+	}
+
+	offset := 1
+	writeLength(frame[offset:], size, sizeLength)
+	offset += sizeLength
+
+	frame[offset] = byte(channelId)
+	offset += 1
+
+	for _, v := range msg.Data {
+		writeLength(frame[offset:], len(v), sizeLength)
+		offset += sizeLength
+		copy(frame[offset:], v)
+		offset += len(v)
+	}
+
+	log.Print("Sending ", frame)
+
+	_, err = pt.Conn.Write(frame)
+
+	return err
 }
 
 func (pt *ProtoHandler) sendData(msg *MessageDataSimple) error {
@@ -132,10 +208,20 @@ func (pt *ProtoHandler) sendData(msg *MessageDataSimple) error {
 
 	size := len(msg.Data) + 1
 
-	sizeLength := sizeToSizeLength(size)
+	var sizeLength int
+	{
+		if size > PROTO_MAX_SIZE_2B {
+			sizeLength = 4
+		} else if size > PROTO_MAX_SIZE_1B {
+			sizeLength = 2
+		} else {
+			sizeLength = 1
+		}
+	}
 
 	frame := make([]byte, 1+sizeLength+size)
 
+	// Frame type
 	switch sizeLength {
 	case 1:
 		frame[0] = PROTO_DATA_SIMPLE_1B
@@ -145,30 +231,22 @@ func (pt *ProtoHandler) sendData(msg *MessageDataSimple) error {
 		frame[0] = PROTO_DATA_SIMPLE_4B
 	}
 
+	// Frame length
 	offset := 1
-	binary.PutUvarint(frame[1:], uint64(size))
+	writeLength(frame[1:], size, sizeLength)
 	offset += sizeLength
 
+	// Channel
 	frame[offset] = byte(channelId)
+	offset += 1
 
-	copy(frame[1+sizeLength+1:], msg.Data)
+	// Data
+	copy(frame[offset:], msg.Data)
 
+	// We send the frame
 	_, err = pt.Conn.Write(frame)
 
 	return err
-}
-
-func sizeToSizeLength(length int) (sizeLength int) {
-
-	if length > PROTO_MAX_SIZE_4B {
-		sizeLength = 4
-	} else if length > PROTO_MAX_SIZE_2B {
-		sizeLength = 2
-	} else {
-		sizeLength = 1
-	}
-
-	return
 }
 
 func (pt *ProtoHandler) sendPing(msg *MessagePingRequest) (err error) {
@@ -323,12 +401,11 @@ func (pt *ProtoHandler) actualRecv() interface{} {
 				case 0x22, 0x42, 0x62: // Array of byte arrays messages
 					{
 						offset := 1
-						data := make([][]byte, 5)
+						data := make([][]byte, 0, 5) // 5 is arbitrary, it's likely to be something like that
 						for offset < size {
 							s, _ := binary.Uvarint(buffer[offset : offset+sizeLength])
 							subSize := int(s)
 							offset += sizeLength
-							pt.Conn.Read(buffer[offset : offset+subSize])
 							data = append(data, buffer[offset:offset+subSize])
 							offset += subSize
 						}

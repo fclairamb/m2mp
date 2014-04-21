@@ -109,6 +109,10 @@ func (d *Device) getCommandsNode() *db.RegistryNode {
 	return d.Node.GetChild("commands").Check()
 }
 
+func (d *Device) getCommandsResponseNode() *db.RegistryNode {
+	return d.Node.GetChild("commands-response").Check()
+}
+
 func (d *Device) getSettingsNode() *db.RegistryNode {
 	return d.Node.GetChild("settings").Check()
 }
@@ -207,6 +211,11 @@ func (d *Device) Commands() map[string]string {
 // Acknowledge a command with its ID
 func (d *Device) AckCommand(cmdId string) error {
 	return d.getCommandsNode().DelValue(cmdId)
+}
+
+func (d *Device) AckCommandWithResponse(cmdId, response string) error {
+	d.AckCommand(cmdId)
+	return d.getCommandsResponseNode().SetValue(cmdId, response)
 }
 
 func (dev *Device) SetDomain(d *Domain) error {

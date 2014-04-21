@@ -415,7 +415,7 @@ func (pt *ProtoHandler) actualRecv() interface{} {
 			}
 		default:
 			{
-				log.Printf("%s - Unhandled header: 0x%02X", pt, buffer[0:1])
+				log.Printf("%s - Unhandled message header: 0x%02X", pt, buffer[0:1])
 				pt.Conn.Close()
 				return &EventDisconnected{Error: errors.New(fmt.Sprintf("Unhandled header: 0x%02X", buffer[0:1]))}
 			}

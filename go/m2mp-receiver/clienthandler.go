@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	ent "github.com/fclairamb/m2mp/go/m2mp-db/entities"
 	pr "github.com/fclairamb/m2mp/go/m2mp-protocol"
@@ -183,6 +184,10 @@ func (ch *ClientHandler) justIdentified() error {
 		err = ch.checkCapacities()
 	}
 
+	if err == nil {
+		err = ch.checkSettings()
+	}
+
 	// Testing
 	ch.Send(&pr.MessageDataSimple{Channel: "test", Data: []byte("HELLO SON !")})
 
@@ -223,6 +228,8 @@ func (ch *ClientHandler) handleDataArray(msg *pr.MessageDataArray) error {
 		return ch.handleDataArraySettings(msg)
 	} else if msg.Channel == "_sta" {
 		return ch.handleDataArrayStatus(msg)
+	} else if msg.Channel == "_cmd" {
+		return ch.handleDataArrayCommand(msg)
 	}
 
 	return nil
@@ -234,12 +241,14 @@ func (ch *ClientHandler) handleDataArraySettings(msg *pr.MessageDataArray) error
 		return nil
 	}
 
-	if strings.Contains(string(msg.Data[0]), "g") {
+	requestType := string(msg.Data[0])
+
+	if strings.Contains(requestType, "g") {
 		for i := 1; i < len(msg.Data); i++ {
 			v := string(msg.Data[i])
 			tokens := strings.SplitN(v, "=", 2)
 			if len(tokens) == 2 {
-				ch.device.SetSetting(tokens[0], tokens[1])
+				ch.device.AckSetting(tokens[0], tokens[1])
 			}
 		}
 	}
@@ -252,7 +261,9 @@ func (ch *ClientHandler) handleDataArrayStatus(msg *pr.MessageDataArray) error {
 		return nil
 	}
 
-	if strings.Contains(string(msg.Data[0]), "g") {
+	requestType := string(msg.Data[0])
+
+	if strings.Contains(requestType, "g") {
 		for i := 1; i < len(msg.Data); i++ {
 			v := string(msg.Data[i])
 			tokens := strings.SplitN(v, "=", 2)
@@ -264,11 +275,38 @@ func (ch *ClientHandler) handleDataArrayStatus(msg *pr.MessageDataArray) error {
 	return nil
 }
 
+func (ch *ClientHandler) handleDataArrayCommand(msg *pr.MessageDataArray) error {
+	if ch.device == nil {
+		log.Print("We don't have a device yet !")
+		return nil
+	}
+
+	requestType := string(msg.Data[0])
+
+	if strings.Contains(requestType, "a") { // acknowledge
+		if len(msg.Data) >= 2 {
+			cmdId := string(msg.Data[1])
+			if len(msg.Data) > 2 {
+				var buffer bytes.Buffer
+				for _, d := range msg.Data[2:] {
+					buffer.WriteString(string(d))
+					buffer.WriteString("\n")
+				}
+				ch.device.AckCommandWithResponse(cmdId, buffer.String())
+			} else {
+				ch.device.AckCommand(cmdId)
+			}
+		}
+	}
+
+	return nil
+}
+
 func (ch *ClientHandler) sendSettings() error {
 	msg := pr.NewMessageDataArray("_set")
 	msg.AddString("sg")
 	c := 0
-	for k, v := range ch.device.Settings() {
+	for k, v := range ch.device.SettingsToSend() {
 		msg.AddString(fmt.Sprintf("%s=%s", k, v))
 		c += 1
 	}
@@ -279,12 +317,24 @@ func (ch *ClientHandler) sendSettings() error {
 	}
 }
 
+func (ch *ClientHandler) checkSettings() error {
+	if len(ch.device.Settings()) == 0 {
+		msg := pr.NewMessageDataArray("_set")
+		msg.AddString("ga")
+		return ch.Send(msg)
+	}
+	return nil
+}
+
 func (ch *ClientHandler) sendCommands() error {
 
-	for k, v := range ch.device.Settings() {
+	for k, v := range ch.device.Commands() {
 		msg := pr.NewMessageDataArray("_cmd")
 		msg.AddString("e")
-		msg.AddString(fmt.Sprintf("%s=%s", k, v))
+		msg.AddString(k)
+		for _, s := range strings.Split(v, "\n") {
+			msg.AddString(s)
+		}
 		if err := ch.Send(msg); err != nil {
 			log.Print(ch, " - Send( ", msg, " ): ", err)
 			return err

@@ -10,10 +10,12 @@ import (
 )
 
 type Parameters struct {
-	LogLevel    int
-	ListenPort  int
-	logFilename string
-	logFile     *os.File
+	LogLevel       int
+	ListenPort     int
+	HttpListenPort int
+	LogFilename    string
+	logFile        *os.File
+	PprofPrefix    string
 }
 
 func NewParameters() *Parameters {
@@ -25,9 +27,10 @@ func NewParameters() *Parameters {
 
 func (par *Parameters) parseFromFlag() {
 	flag.IntVar(&par.LogLevel, "loglevel", 9, "Logging level")
-	flag.StringVar(&par.logFilename, "logfilename", "receiver.log", "Logging file")
+	flag.StringVar(&par.LogFilename, "logfilename", "receiver.log", "Logging file")
 	flag.IntVar(&par.ListenPort, "listen", 3000, "Listening port")
-
+	flag.IntVar(&par.HttpListenPort, "httpListen", 6060, "Http listening port (for profiling)")
+	flag.StringVar(&par.PprofPrefix, "pprof", "pp", "pprof prefix")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "usage: receiver")
 		flag.PrintDefaults()
@@ -39,7 +42,7 @@ func (par *Parameters) parseFromFlag() {
 
 func (par *Parameters) setupLog() error {
 	var err error
-	if par.logFile, err = os.OpenFile(par.logFilename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660); err != nil {
+	if par.logFile, err = os.OpenFile(par.LogFilename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660); err != nil {
 		return errors.New(fmt.Sprintf("Could not open log file (%s)", err))
 	} else {
 		log.SetOutput(io.MultiWriter(par.logFile, os.Stdout))

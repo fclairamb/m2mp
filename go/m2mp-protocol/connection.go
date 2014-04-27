@@ -143,7 +143,7 @@ func (pt *ProtoHandler) sendDataArray(msg *MessageDataArray) error {
 		}
 	}
 
-	log.Print("maxSize=", maxSize)
+	//log.Print("maxSize=", maxSize)
 
 	var sizeLength int
 	{
@@ -156,7 +156,7 @@ func (pt *ProtoHandler) sendDataArray(msg *MessageDataArray) error {
 		}
 	}
 
-	log.Print("sizeLength=", sizeLength)
+	//log.Print("sizeLength=", sizeLength)
 
 	size := 1 + len(msg.Data)*sizeLength
 	{
@@ -165,7 +165,7 @@ func (pt *ProtoHandler) sendDataArray(msg *MessageDataArray) error {
 		}
 	}
 
-	log.Print("size=", size)
+	//log.Print("size=", size)
 
 	frame := make([]byte, 1+sizeLength+size)
 
@@ -192,7 +192,7 @@ func (pt *ProtoHandler) sendDataArray(msg *MessageDataArray) error {
 		offset += len(v)
 	}
 
-	log.Print("Sending ", frame)
+	//log.Print("Sending ", frame)
 
 	_, err = pt.Conn.Write(frame)
 

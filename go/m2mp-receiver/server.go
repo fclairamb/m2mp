@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"sync"
+	"time"
 )
 
 type Server struct {
@@ -38,10 +39,12 @@ func (s *Server) acceptIncomingConnections() {
 	for {
 		conn, err := s.listener.Accept()
 		if err != nil {
-			log.Print("Error while listening: ", err)
-			break
+			log.Print("ERROR: Error while listening: ", err)
+			time.Sleep(time.Second)
+			continue
 		}
 		s.handleIncomingConnection(conn)
+		log.Println("Number of clients:", s.NbClients())
 	}
 }
 

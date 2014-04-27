@@ -46,7 +46,7 @@ func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
 
 func (ch *ClientHandler) Start() {
 	if par.LogLevel >= 3 {
-		log.Print("Added ", ch, " / ", ch.daddy.NbClients())
+		log.Print("Added ", ch)
 	}
 	go ch.runRecv()
 	go ch.runCoreHandling()
@@ -61,6 +61,7 @@ func (ch *ClientHandler) end() {
 	if par.LogLevel >= 3 {
 		log.Print("Removed ", ch)
 	}
+	ch.ticker.Stop()
 }
 
 func (ch *ClientHandler) runRecv() {
@@ -69,6 +70,7 @@ func (ch *ClientHandler) runRecv() {
 		msg := ch.Conn.Recv()
 		ch.connRecv <- msg
 		switch msg.(type) {
+		// If this is a disconnection event, then we should quit the go routine
 		case *pr.EventDisconnected:
 			{
 				return
@@ -102,7 +104,7 @@ func (ch *ClientHandler) considerCurrentStatus() {
 func (ch *ClientHandler) runCoreHandling() {
 	for {
 		select {
-		// We
+		// We receive all events coming from the connection, the ticker (and later the server)
 		case msg := <-ch.connRecv:
 			{
 				switch m := msg.(type) {
@@ -120,6 +122,7 @@ func (ch *ClientHandler) runCoreHandling() {
 						ch.receivedData()
 						ch.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
 					}
+				// If this is a disconnection event, we should quit the current go routine
 				case *pr.EventDisconnected:
 					{
 						return

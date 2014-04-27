@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	msg "github.com/fclairamb/m2mp/go/m2mp-messaging"
+	//"github.com/likexian/simplejson"
 	"log"
 	"net"
 	"sync"
@@ -13,11 +15,11 @@ type Server struct {
 	listener      net.Listener
 	clients       map[int]*ClientHandler
 	clientCounter int
+	msg           *msg.Client
 }
 
 func NewServer() *Server {
 	s := &Server{clients: make(map[int]*ClientHandler)}
-
 	return s
 }
 
@@ -62,7 +64,7 @@ func (s *Server) removeClientHandler(ch *ClientHandler) {
 	delete(s.clients, ch.Id)
 }
 
-func (s *Server) Listen() error {
+func (s *Server) listen() error {
 	var err error = nil
 	s.listener, err = net.Listen("tcp", fmt.Sprintf(":%d", par.ListenPort))
 	if err != nil {
@@ -74,6 +76,37 @@ func (s *Server) Listen() error {
 	}
 
 	go s.acceptIncomingConnections()
+
+	return err
+}
+
+func (s *Server) handleMessaging(m *msg.JsonWrapper) {
+	log.Print("Handling ", m)
+}
+
+func (s *Server) runMessaging() error {
+	for {
+		m := <-s.msg.Recv
+		if m != nil {
+			return nil
+		}
+		s.handleMessaging(m)
+	}
+}
+
+func (s *Server) Start() error {
+	err := s.listen()
+
+	s.msg, err = msg.NewClientUsingHost(msg.TOPIC_RECEIVERS)
+
+	if err == nil {
+		log.Print("Opening MQ ", par.MQServer)
+		err = s.msg.Start(par.MQServer)
+	}
+
+	if err == nil {
+		go s.runMessaging()
+	}
 
 	return err
 }

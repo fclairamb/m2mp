@@ -52,7 +52,7 @@ func (ch *ClientHandler) Start() {
 	go ch.runCoreHandling()
 }
 
-func (ch *ClientHandler) Disconnect() error {
+func (ch *ClientHandler) Close() error {
 	return ch.Conn.Conn.Close()
 }
 

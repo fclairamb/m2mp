@@ -16,6 +16,7 @@ type Parameters struct {
 	LogFilename    string
 	logFile        *os.File
 	PprofPrefix    string
+	MQServer       string
 }
 
 func NewParameters() *Parameters {
@@ -31,6 +32,7 @@ func (par *Parameters) parseFromFlag() {
 	flag.IntVar(&par.ListenPort, "listen", 3000, "Listening port")
 	flag.IntVar(&par.HttpListenPort, "httpListen", 6060, "Http listening port (for profiling)")
 	flag.StringVar(&par.PprofPrefix, "pprof", "pp", "pprof prefix")
+	flag.StringVar(&par.MQServer, "mqserver", "nsq:localhost:4150", "NSQ Server")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "usage: receiver")
 		flag.PrintDefaults()

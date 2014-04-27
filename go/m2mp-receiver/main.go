@@ -131,7 +131,7 @@ func main() {
 	server = NewServer()
 	defer server.Close()
 
-	if err := server.Listen(); err != nil {
+	if err := server.Start(); err != nil {
 		log.Fatal("Server error: ", err)
 	}
 	defer server.Close()

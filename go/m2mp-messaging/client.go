@@ -13,7 +13,9 @@ import (
 
 type Client struct {
 	reader *nsq.Reader
+	writer *nsq.Writer
 	Recv   chan *JsonWrapper
+	from   string
 }
 
 func (c *Client) HandleMessage(m *nsq.Message) error {
@@ -22,24 +24,11 @@ func (c *Client) HandleMessage(m *nsq.Message) error {
 		log.Print("Error: ", err)
 	}
 
-	var msg *JsonWrapper
-	{
-		var from, to, call string
-		if from, err = json.Get("from").String(); err != nil {
-			log.Print("MSG/From: ", err)
-		}
+	msg := NewJsonWrapperFromJson(json)
 
-		if to, err = json.Get("to").String(); err != nil {
-			log.Print("MSG/To: ", err)
-		}
-
-		if call, err = json.Get("call").String(); err != nil {
-			log.Print("MSG/Call: ", err)
-		}
-		msg = &JsonWrapper{Data: json, From: from, To: to, Call: call}
-	}
-
-	if err == nil {
+	if err = msg.Check(); err != nil {
+		log.Print("Invalid message: ", err)
+	} else {
 		c.Recv <- msg
 	}
 
@@ -53,6 +42,9 @@ func NewClient(topic, channel string) (clt *Client, err error) {
 		return
 	}
 	clt.reader.AddHandler(clt)
+
+	clt.from = clt.reader.TopicName + "/" + clt.reader.ChannelName
+
 	return
 }
 
@@ -63,6 +55,15 @@ func NewClientUsingHost(topic string) (clt *Client, err error) {
 		return
 	}
 	return NewClient(topic, hostname)
+}
+
+func NewClientUsingHostTemp(topic string) (clt *Client, err error) {
+	var hostname string
+	hostname, err = os.Hostname()
+	if err != nil {
+		return
+	}
+	return NewClient(topic, "#"+hostname)
 }
 
 func NewClientGlobal(topic string) (clt *Client, err error) {
@@ -77,18 +78,33 @@ func (c *Client) StartLookup(addr string) error {
 	return c.reader.ConnectToLookupd(addr)
 }
 
-func (c *Client) Start(addr string) error {
+func (c *Client) Start(addr string) (err error) {
 	tokens := strings.SplitN(addr, ":", 2)
+
 	switch tokens[0] {
 	case "nsq":
-		return c.StartNSQ(tokens[1])
+		err = c.StartNSQ(tokens[1])
 	case "lookup":
-		return c.StartLookup(tokens[1])
+		err = c.StartLookup(tokens[1])
 	default:
-		return errors.New(fmt.Sprint("Could not handle address type \"", tokens[0], "\""))
+		err = errors.New(fmt.Sprint("Could not handle address type \"", tokens[0], "\""))
 	}
+
+	c.writer = nsq.NewWriter(addr)
+	return
+}
+
+func (c *Client) Publish(msg *JsonWrapper) error {
+	if msg.From() == "" {
+		msg.SetFrom(c.from)
+	}
+
+	tokens := strings.SplitN(msg.To(), ":", 2)
+	_, _, err := c.writer.Publish(tokens[0], []byte(msg.String()))
+	return err
 }
 
 func (c *Client) Stop() {
 	c.reader.Stop()
+	c.writer.Stop()
 }

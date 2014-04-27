@@ -40,7 +40,7 @@ func (s *Server) acceptIncomingConnections() {
 		conn, err := s.listener.Accept()
 		if err != nil {
 			log.Print("ERROR: Error while listening: ", err)
-			time.Sleep(time.Second)
+			time.Sleep(time.Millisecond * 50)
 			continue
 		}
 		s.handleIncomingConnection(conn)

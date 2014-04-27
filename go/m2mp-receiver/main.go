@@ -22,10 +22,68 @@ func init() {
 	waitForRc = make(chan int)
 }
 
-func showMemStats() {
+func getMemStats() string {
 	var stats runtime.MemStats
 	runtime.ReadMemStats(&stats)
-	log.Print("Heap in use: ", stats.HeapInuse, ", Heap objects: ", stats.HeapObjects, ", Go routines: ", runtime.NumGoroutine())
+	return fmt.Sprint("Heap in use: ", stats.HeapInuse, ", Heap objects: ", stats.HeapObjects, ", Go routines: ", runtime.NumGoroutine())
+}
+
+func handleSimpleCommand(line string) string {
+	tokens := strings.Split(line, " ")
+	switch tokens[0] {
+	case "":
+		return ""
+
+	case "quit":
+		waitForRc <- 0
+		return "Done !"
+
+	case "gc":
+		runtime.GC()
+		return getMemStats()
+
+	case "pp":
+		if len(tokens) < 2 {
+			return ""
+		}
+		if tokens[1] == "mem" {
+			name := ""
+			if len(tokens) == 3 {
+				name = strings.Trim(tokens[2], " ")
+			}
+			if name == "" {
+				name = time.Now().UTC().Format("2006-01-02_15-04-05")
+			}
+			fileName := fmt.Sprintf("%s_%s", par.PprofPrefix, name)
+			f, err := os.Create(fileName)
+			if err != nil {
+				log.Fatal(err)
+			}
+			runtime.GC()
+			pprof.WriteHeapProfile(f)
+			f.Close()
+			return fmt.Sprint("Saved", fileName)
+		} else if len(tokens) == 3 && tokens[1] == "rate" {
+			if rate, err := strconv.Atoi(tokens[2]); err == nil {
+				runtime.MemProfileRate = rate
+			} else {
+				return fmt.Sprint("Wrong rate: ", err)
+			}
+		} else {
+			return fmt.Sprintf("PP command \"%s\" not understood !\n", line)
+		}
+
+	case "mem":
+		return getMemStats()
+
+	case "nb":
+		return fmt.Sprint("Number of clients: ", server.NbClients())
+
+	default:
+		return fmt.Sprintf("\"%s\" not understood !\n", tokens[0])
+	}
+
+	return ""
 }
 
 func console_handling() {
@@ -38,58 +96,13 @@ func console_handling() {
 			continue
 		}
 		line = strings.TrimRight(line, "\n")
-
-		tokens := strings.Split(line, " ")
-		switch tokens[0] {
-		case "":
-			continue
-
-		case "quit":
-			waitForRc <- 0
-
-		case "gc":
-			runtime.GC()
-			showMemStats()
-
-		case "pp":
-			if len(tokens) < 2 {
-				continue
-			}
-			if tokens[1] == "mem" {
-				name := ""
-				if len(tokens) == 3 {
-					name = strings.Trim(tokens[2], " ")
-				}
-				if name == "" {
-					name = time.Now().UTC().Format("2006-01-02_15-04-05")
-				}
-				fileName := fmt.Sprintf("%s_%s", par.PprofPrefix, name)
-				f, err := os.Create(fileName)
-				if err != nil {
-					log.Fatal(err)
-				}
-				runtime.GC()
-				pprof.WriteHeapProfile(f)
-				f.Close()
-				log.Println("Saved", fileName)
-			} else if len(tokens) == 3 && tokens[1] == "rate" {
-				if rate, err := strconv.Atoi(tokens[2]); err == nil {
-					runtime.MemProfileRate = rate
-				} else {
-					log.Println("Wrong rate:", err)
-				}
-			} else {
-				fmt.Printf("PP command \"%s\" not understood !\n", line)
-			}
-
-		case "mem":
-			showMemStats()
-
-		default:
-			fmt.Printf("\"%s\" not understood !\n", tokens[0])
+		if response := handleSimpleCommand(line); response != "" {
+			log.Println(response)
 		}
 	}
 }
+
+var server *Server
 
 func main() {
 	par = NewParameters()
@@ -115,7 +128,7 @@ func main() {
 	}
 	defer db.Close()
 
-	server := NewServer()
+	server = NewServer()
 	defer server.Close()
 
 	if err := server.Listen(); err != nil {

@@ -63,7 +63,7 @@ func NewClientUsingHostTemp(topic string) (clt *Client, err error) {
 	if err != nil {
 		return
 	}
-	return NewClient(topic, "#"+hostname)
+	return NewClient(topic, hostname+"#ephemeral")
 }
 
 func NewClientGlobal(topic string) (clt *Client, err error) {
@@ -81,16 +81,19 @@ func (c *Client) StartLookup(addr string) error {
 func (c *Client) Start(addr string) (err error) {
 	tokens := strings.SplitN(addr, ":", 2)
 
+	target := "localhost:4150"
+
 	switch tokens[0] {
 	case "nsq":
 		err = c.StartNSQ(tokens[1])
+		target = tokens[1]
 	case "lookup":
 		err = c.StartLookup(tokens[1])
 	default:
 		err = errors.New(fmt.Sprint("Could not handle address type \"", tokens[0], "\""))
 	}
 
-	c.writer = nsq.NewWriter(addr)
+	c.writer = nsq.NewWriter(target)
 	return
 }
 
@@ -100,6 +103,7 @@ func (c *Client) Publish(msg *JsonWrapper) error {
 	}
 
 	tokens := strings.SplitN(msg.To(), ":", 2)
+	log.Print("Publishing to ", tokens[0], " with ", msg.String())
 	_, _, err := c.writer.Publish(tokens[0], []byte(msg.String()))
 	return err
 }

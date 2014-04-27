@@ -108,7 +108,17 @@ func (s *Server) Start() error {
 		go s.runMessaging()
 	}
 
+	if err == nil {
+		m := msg.NewMessageEvent("new_receiver")
+		m.Data.Set("tcp_port", fmt.Sprint(par.ListenPort))
+		s.SendMessage(m)
+	}
+
 	return err
+}
+
+func (s *Server) SendMessage(m *msg.JsonWrapper) error {
+	return s.msg.Publish(m)
 }
 
 func (s *Server) Close() {

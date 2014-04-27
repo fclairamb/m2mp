@@ -10,6 +10,11 @@ type JsonWrapper struct {
 	Data *simple.Json
 }
 
+func NewJsonWrapper() *JsonWrapper {
+	json, _ := simple.Loads("{}")
+	return &JsonWrapper{Data: json}
+}
+
 func NewJsonWrapperFromJson(json *simple.Json) *JsonWrapper {
 	return &JsonWrapper{Data: json}
 }
@@ -60,6 +65,13 @@ func (jw *JsonWrapper) Check() error {
 }
 
 func (jw *JsonWrapper) String() string {
-	str, _ := jw.Data.String()
+	str, _ := simple.Dumps(jw.Data)
 	return str
+}
+
+func NewMessageEvent(eventType string) *JsonWrapper {
+	msg := NewJsonWrapper()
+	msg.SetTo(TOPIC_GENERAL_EVENTS)
+	msg.SetCall(eventType)
+	return msg
 }

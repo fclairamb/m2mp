@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	ent "github.com/fclairamb/m2mp/go/m2mp-db/entities"
+	mq "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	pr "github.com/fclairamb/m2mp/go/m2mp-protocol"
 	"log"
 	"net"
@@ -50,6 +51,13 @@ func (ch *ClientHandler) Start() {
 	}
 	go ch.runRecv()
 	go ch.runCoreHandling()
+
+	{
+		m := mq.NewMessageEvent("device_connected")
+		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
+		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
+		ch.daddy.SendMessage(m)
+	}
 }
 
 func (ch *ClientHandler) Close() error {
@@ -62,6 +70,16 @@ func (ch *ClientHandler) end() {
 		log.Print("Removed ", ch)
 	}
 	ch.ticker.Stop()
+
+	{
+		m := mq.NewMessageEvent("device_disconnected")
+		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
+		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
+		if ch.device != nil {
+			m.Data.Set("device_id", ch.device.Id())
+		}
+		ch.daddy.SendMessage(m)
+	}
 }
 
 func (ch *ClientHandler) runRecv() {
@@ -191,8 +209,13 @@ func (ch *ClientHandler) justIdentified() error {
 		err = ch.checkSettings()
 	}
 
-	// Testing
-	ch.Send(&pr.MessageDataSimple{Channel: "test", Data: []byte("HELLO SON !")})
+	{
+		m := mq.NewMessageEvent("device_identified")
+		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
+		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
+		m.Data.Set("device_id", ch.device.Id())
+		ch.daddy.SendMessage(m)
+	}
 
 	return err
 }

@@ -7,8 +7,11 @@ import (
 )
 
 type Parameters struct {
+	Test           bool
 	ListenPort     int
 	HttpListenPort int
+	LogFilename    string
+	logFile        *os.File
 	PprofPrefix    string
 	MQServer       string
 }
@@ -16,10 +19,14 @@ type Parameters struct {
 func NewParameters() *Parameters {
 	par := &Parameters{}
 	par.parseFromFlag()
+	if par.Test {
+		par.SwitchToTestMode()
+	}
 	return par
 }
 
 func (par *Parameters) parseFromFlag() {
+	flag.BoolVar(&par.Test, "test", false, "Test")
 	flag.IntVar(&par.ListenPort, "listen", 3000, "Listening port")
 	flag.IntVar(&par.HttpListenPort, "httpListen", 6060, "Http listening port (for profiling)")
 	flag.StringVar(&par.PprofPrefix, "pprof", "pp", "pprof prefix")
@@ -33,6 +40,11 @@ func (par *Parameters) parseFromFlag() {
 	flag.Parse()
 }
 
-func (par *Parameters) Close() error {
-	return nil
+func (par *Parameters) SwitchToTestMode() {
+	par.ListenPort += 10
+	par.HttpListenPort += 10
+}
+
+func (par *Parameters) Close() {
+
 }

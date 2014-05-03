@@ -6,8 +6,6 @@ import (
 	ent "github.com/fclairamb/m2mp/go/m2mp-db/entities"
 	mq "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	pr "github.com/fclairamb/m2mp/go/m2mp-protocol"
-	"github.com/fclairamb/m2mp/go/m2log"
-	"log"
 	"net"
 	"strings"
 	"time"
@@ -47,8 +45,8 @@ func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
 }
 
 func (ch *ClientHandler) Start() {
-	if m2log.Level >= 3 {
-		log.Print("Added ", ch)
+	if ch.LogLevel >= 3 {
+		log.Debug("Added %s", ch)
 	}
 	go ch.runRecv()
 	go ch.runCoreHandling()
@@ -67,8 +65,8 @@ func (ch *ClientHandler) Close() error {
 
 func (ch *ClientHandler) end() {
 	ch.daddy.removeClientHandler(ch)
-	if m2log.Level >= 3 {
-		log.Print("Removed ", ch)
+	if ch.LogLevel >= 3 {
+		log.Debug("Removed %s", ch)
 	}
 	ch.ticker.Stop()
 
@@ -110,8 +108,8 @@ func (ch *ClientHandler) receivedData() {
 
 func (ch *ClientHandler) considerCurrentStatus() {
 	now := time.Now().UTC()
-	if m2log.Level >= 5 {
-		log.Print(ch, " - Considering current status (", now, ")")
+	if ch.LogLevel >= 5 {
+		log.Debug("%s - Considering current status (%s)", ch, now)
 	}
 	if now.Sub(ch.lastReceivedData) > time.Duration(time.Minute*1) &&
 		now.Sub(ch.lastSentData) > time.Duration(time.Second*30) {
@@ -141,7 +139,7 @@ func (ch *ClientHandler) runCoreHandling() {
 						ch.receivedData()
 						ch.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
 					}
-				// If this is a disconnection event, we should quit the current go routine
+					// If this is a disconnection event, we should quit the current go routine
 				case *pr.EventDisconnected:
 					{
 						return
@@ -151,8 +149,8 @@ func (ch *ClientHandler) runCoreHandling() {
 			}
 		case <-ch.ticker.C:
 			{
-				if m2log.Level >= 5 {
-					log.Print(ch, " - Tick")
+				if ch.LogLevel >= 5 {
+					log.Debug("%s - Tick", ch)
 				}
 			}
 		}
@@ -165,11 +163,11 @@ func (ch *ClientHandler) handleIdentRequest(m *pr.MessageIdentRequest) error {
 	var err error
 	ch.device, err = ent.NewDeviceByIdentCreate(m.Ident)
 	if err != nil {
-		log.Print("Problem with ", ch, " : ", err)
+		log.Warning("Problem with %s: %s", ch, err)
 	}
 
-	if m2log.Level >= 5 {
-		log.Print(ch, " --> Identification ", m.Ident, " : ", err == nil)
+	if ch.LogLevel >= 5 {
+		log.Debug("%s --> Identification %s : %s", ch, m.Ident, err)
 	}
 
 	// OK
@@ -247,8 +245,8 @@ func (ch *ClientHandler) handleData(msg *pr.MessageDataSimple) error {
 
 func (ch *ClientHandler) handleDataArray(msg *pr.MessageDataArray) error {
 
-	if m2log.Level >= 7 {
-		log.Print(ch, " --> \"", msg.Channel, "\" : ", msg.Data)
+	if ch.LogLevel >= 7 {
+		log.Debug("%s --> \"%s\" : %s", ch, msg.Channel, msg.Data)
 	}
 
 	if msg.Channel == "_set" {
@@ -264,7 +262,7 @@ func (ch *ClientHandler) handleDataArray(msg *pr.MessageDataArray) error {
 
 func (ch *ClientHandler) handleDataArraySettings(msg *pr.MessageDataArray) error {
 	if ch.device == nil {
-		log.Print("We don't have a device yet !")
+		log.Warning("We don't have a device yet !")
 		return nil
 	}
 
@@ -284,7 +282,7 @@ func (ch *ClientHandler) handleDataArraySettings(msg *pr.MessageDataArray) error
 
 func (ch *ClientHandler) handleDataArrayStatus(msg *pr.MessageDataArray) error {
 	if ch.device == nil {
-		log.Print("We don't have a device yet !")
+		log.Warning("We don't have a device yet !")
 		return nil
 	}
 
@@ -304,7 +302,7 @@ func (ch *ClientHandler) handleDataArrayStatus(msg *pr.MessageDataArray) error {
 
 func (ch *ClientHandler) handleDataArrayCommand(msg *pr.MessageDataArray) error {
 	if ch.device == nil {
-		log.Print("We don't have a device yet !")
+		log.Warning("We don't have a device yet !")
 		return nil
 	}
 
@@ -363,7 +361,7 @@ func (ch *ClientHandler) sendCommands() error {
 			msg.AddString(s)
 		}
 		if err := ch.Send(msg); err != nil {
-			log.Print(ch, " - Send( ", msg, " ): ", err)
+			log.Debug("%s - Send( %s ): %s", ch, msg.Channel, msg.Data)
 			return err
 		}
 	}

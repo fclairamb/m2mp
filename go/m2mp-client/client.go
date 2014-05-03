@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	pr "github.com/fclairamb/m2mp/go/m2mp-protocol"
-	"log"
 	"net"
 	"os"
 	"strings"
@@ -31,7 +30,7 @@ func NewClient(target, ident string) *Client {
 	clt.status["cap"] = "sen"
 
 	if err := clt.loadSettings(); err != nil {
-		log.Print("Settings: ", err)
+		log.Debug("Settings: ", err)
 	}
 
 	return clt
@@ -184,32 +183,32 @@ func (c *Client) setSetting(name, value string) error {
 func (c *Client) runCore() {
 	for {
 		if err := c.considerAction(); err != nil {
-			log.Println(err)
+			log.Error("considerAction: %s", err)
 			break
 		}
 		select {
 		case msg := <-c.Recv:
+		{
+			switch m := msg.(type) {
+			case *pr.EventDisconnected:
 			{
-				switch m := msg.(type) {
-				case *pr.EventDisconnected:
-					{
-						log.Println("We got disconnected !")
-						break
-					}
-				case *pr.MessageIdentResponse:
-					{
-						c.Connected = m.Ok
-					}
-				case *pr.MessagePingRequest:
-					{
-						c.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
-					}
-				}
+				log.Error("We got disconnected !")
+				break
 			}
+			case *pr.MessageIdentResponse:
+			{
+				c.Connected = m.Ok
+			}
+			case *pr.MessagePingRequest:
+			{
+				c.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
+			}
+			}
+		}
 		case <-c.ticker.C:
-			{
+		{
 
-			}
+		}
 		}
 	}
 }

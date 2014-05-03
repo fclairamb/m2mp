@@ -1,12 +1,10 @@
 package m2mpmsg
 
 import (
-	"github.com/bitly/go-nsq"
+	nsq "github.com/bitly/go-nsq"
 	"github.com/likexian/simplejson"
-	// "github.com/bitly/nsq/util"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 )
@@ -21,13 +19,13 @@ type Client struct {
 func (c *Client) HandleMessage(m *nsq.Message) error {
 	json, err := simplejson.Loads(string(m.Body))
 	if err != nil {
-		log.Print("Error: ", err)
+		log.Warning("Error: ", err)
 	}
 
 	msg := NewJsonWrapperFromJson(json)
 
 	if err = msg.Check(); err != nil {
-		log.Print("Invalid message: ", err)
+		log.Warning("Invalid message: ", err)
 	} else {
 		c.Recv <- msg
 	}
@@ -43,7 +41,7 @@ func NewClient(topic, channel string) (clt *Client, err error) {
 	}
 	clt.reader.AddHandler(clt)
 
-	clt.from = clt.reader.TopicName + "/" + clt.reader.ChannelName
+	clt.from = clt.reader.TopicName+"/"+clt.reader.ChannelName
 
 	return
 }
@@ -103,7 +101,7 @@ func (c *Client) Publish(msg *JsonWrapper) error {
 	}
 
 	tokens := strings.SplitN(msg.To(), ":", 2)
-	log.Print("Publishing to ", tokens[0], " with ", msg.String())
+	log.Debug("Publishing to %s with %s", tokens[0], msg.String())
 	_, _, err := c.writer.Publish(tokens[0], []byte(msg.String()))
 	return err
 }

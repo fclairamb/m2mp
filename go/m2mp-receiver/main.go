@@ -3,9 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
-	db "github.com/fclairamb/m2mp/go/m2mp-db"
 	"github.com/fclairamb/m2mp/go/m2log"
-	"log"
+	db "github.com/fclairamb/m2mp/go/m2mp-db"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -98,7 +97,7 @@ func console_handling() {
 		}
 		line = strings.TrimRight(line, "\n")
 		if response := handleSimpleCommand(line); response != "" {
-			log.Println(response)
+			log.Error(response)
 		}
 	}
 }
@@ -106,12 +105,11 @@ func console_handling() {
 var server *Server
 
 func main() {
-	m2log.Start()
 	par = NewParameters()
 	defer par.Close()
 
 	if m2log.Level >= 3 {
-		log.Print("Starting !")
+		log.Debug("Starting !")
 	}
 
 	if par.HttpListenPort > 0 {
@@ -120,7 +118,7 @@ func main() {
 			if err := http.ListenAndServe(port, nil); err != nil {
 				log.Fatal("HTTP listening error: ", err)
 			} else {
-				fmt.Println("HTTP listening on ", port)
+				log.Debug("HTTP listening on %d", port)
 			}
 		}()
 	}
@@ -139,7 +137,7 @@ func main() {
 	defer server.Close()
 
 	if m2log.Level >= 2 {
-		log.Print("Ready !")
+		log.Notice("Ready !")
 	}
 
 	go console_handling()

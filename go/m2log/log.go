@@ -2,46 +2,70 @@ package m2log
 
 import (
 	"flag"
-	"io"
 	"log"
 	"os"
 	"time"
+	logging "github.com/op/go-logging"
 )
 
 var file *os.File
-var fileName string
+var FileName string
 var Level int
+var stdoutBackend *logging.LogBackend
+var fileBackend *logging.LogBackend
+var logger *logging.Logger
 
-func Start() {
-	Rotate()
+func GetLogger() *logging.Logger {
+	if logger == nil {
+		logging.SetFormatter(logging.MustStringFormatter("▶ %{level:.1s} 0x%{id:x} %{message}"))
 
-	// We reopen the log file very hour
-	go func() {
-		ticker := time.NewTicker(time.Hour)
-		for {
-			<-ticker.C // This is what makes us wait
-			Rotate()
-		}
-	}()
+		stdoutBackend = logging.NewLogBackend(os.Stdout, "", log.LstdFlags|log.Lshortfile)
+		stdoutBackend.Color = true
+
+		reopenLogFile()
+
+		logger = logging.MustGetLogger("m2log")
+
+		// We reopen the log file very hour
+		go func() {
+			ticker := time.NewTicker(time.Hour)
+			for {
+				<-ticker.C // This is what makes us wait
+				reopenLogFile()
+			}
+		}()
+	}
+	return logger
 }
 
-func Rotate() {
+func logFile() *os.File {
 	var err error
-	log.SetOutput(os.Stdout)
 	if file != nil {
-		file.Close()
-		log.Print("=== ROTATION ===")
+		err = file.Close()
 	}
-	if file, err = os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660); err != nil {
-		log.Fatal("Could not open log file", fileName, " ! ", err)
+
+	if file, err = os.OpenFile(FileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660); err == nil {
+		return file
+	} else if file, err := os.OpenFile("/tmp/"+os.Args[0], os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660); err == nil {
+		return file
 	} else {
-		log.SetOutput(io.MultiWriter(file, os.Stdout))
+		return nil
 	}
 }
+
+func reopenLogFile() {
+	if file := logFile(); file != nil {
+		fileBackend = logging.NewLogBackend(file, "", log.LstdFlags|log.Lshortfile)
+		logging.SetBackend(stdoutBackend, fileBackend)
+	} else {
+		logging.SetBackend(stdoutBackend)
+	}
+}
+
 
 func init() {
 	// We setup logging
-	flag.StringVar(&fileName, "logfile", os.Args[0] + ".log", "Log file")
+	flag.StringVar(&FileName, "logfile", os.Args[0]+".log", "Log file")
 	flag.IntVar(&Level, "loglevel", 5, "Log level (from 0 to 9)")
-	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
+	//	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
 }

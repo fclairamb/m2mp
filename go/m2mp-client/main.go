@@ -3,10 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"strings"
-	"github.com/fclairamb/m2mp/go/m2log"
 )
 
 func console_handling() {
@@ -34,8 +32,6 @@ func console_handling() {
 var waitForRc chan int
 
 func main() {
-	m2log.Start()
-
 	waitForRc = make(chan int)
 	clt := NewClient("localhost:3000", "test:1234")
 	clt.Start()

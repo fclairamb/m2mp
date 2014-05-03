@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"log"
 	"net"
 )
 
@@ -41,6 +40,8 @@ type ProtoHandler struct {
 	mode         byte
 	sendChannels map[string]int
 	recvChannels map[int]string
+
+	// Logging is done on a connection basis to be to focus on some connections
 	LogLevel     int
 }
 
@@ -64,33 +65,33 @@ func NewProtoHandlerServer(c net.Conn) (pt *ProtoHandler) {
 
 func (pt *ProtoHandler) Send(msg interface{}) error {
 	if pt.LogLevel >= 7 {
-		log.Printf("%s --> %#v", pt, msg)
+		log.Debug("%s --> %#v", pt, msg)
 	}
 	switch m := msg.(type) {
 	case *MessageDataSimple:
-		{
-			return pt.sendData(m)
-		}
+	{
+		return pt.sendData(m)
+	}
 	case *MessageDataArray:
-		{
-			return pt.sendDataArray(m)
-		}
+	{
+		return pt.sendDataArray(m)
+	}
 	case *MessageIdentResponse:
-		{
-			return pt.sendIdentificationResponse(m)
-		}
+	{
+		return pt.sendIdentificationResponse(m)
+	}
 	case *MessageIdentRequest:
-		{
-			return pt.sendIdentificationRequest(m)
-		}
+	{
+		return pt.sendIdentificationRequest(m)
+	}
 	case *MessagePingRequest:
-		{
-			return pt.sendPing(m)
-		}
+	{
+		return pt.sendPing(m)
+	}
 	case *MessagePingResponse:
-		{
-			return pt.sendPong(m)
-		}
+	{
+		return pt.sendPong(m)
+	}
 	}
 	return errors.New(fmt.Sprint("I don't know how to send this : ", msg))
 }
@@ -111,7 +112,7 @@ func (pt *ProtoHandler) getSendChannel(channel string) (channelId int, err error
 		pt.sendChannels[channel] = channelId
 
 		if pt.LogLevel >= 8 {
-			log.Print(pt, " <-- \"", channel, "\" created on ", channelId)
+			log.Debug("%s <-- \"%s\" created on %d", pt, channel, channelId)
 		}
 
 		_, err = pt.Conn.Write(frame)
@@ -136,7 +137,7 @@ func (pt *ProtoHandler) sendDataArray(msg *MessageDataArray) error {
 		return err
 	}
 
-	maxSize := 1 + len(msg.Data)*4
+	maxSize := 1 + len(msg.Data) * 4
 	{
 		for _, v := range msg.Data {
 			maxSize += len(v)
@@ -158,7 +159,7 @@ func (pt *ProtoHandler) sendDataArray(msg *MessageDataArray) error {
 
 	//log.Print("sizeLength=", sizeLength)
 
-	size := 1 + len(msg.Data)*sizeLength
+	size := 1 + len(msg.Data) * sizeLength
 	{
 		for _, v := range msg.Data {
 			size += len(v)
@@ -288,7 +289,7 @@ func (pt *ProtoHandler) sendIdentificationRequest(msg *MessageIdentRequest) (err
 func (pt *ProtoHandler) Recv() interface{} {
 	msg := pt.actualRecv()
 	if pt.LogLevel >= 7 {
-		log.Printf("%s <-- %#v", pt, msg)
+		log.Debug("%s <-- %#v", pt, msg)
 	}
 	return msg
 }
@@ -307,7 +308,7 @@ func (pt *ProtoHandler) actualRecv() interface{} {
 
 		if err != nil {
 			if pt.LogLevel >= 3 {
-				log.Print("Problem with ", pt, " : ", err)
+				log.Warning("Problem with %s: %s", pt, err)
 			}
 			return &EventDisconnected{Error: err}
 		}
@@ -315,110 +316,110 @@ func (pt *ProtoHandler) actualRecv() interface{} {
 		switch buffer[0] {
 
 		case 0x01: // Identification
-			{
-				if pt.mode == MODE_SERVER {
-					size := buffer[1]
-					pt.Conn.Read(buffer[:size])
-					ident := string(buffer[:size])
-					return &MessageIdentRequest{Ident: ident}
-				} else {
-					return &MessageIdentResponse{Ok: (buffer[1] == 0x01)}
-				}
-			}
-
-		case 0x02, 0x03: // Ping
-			{
-				if pt.mode == MODE_SERVER { // Server
-					if buffer[0] == PROTO_CLIENT_PING { // receives a client ping
-						return &MessagePingRequest{Data: buffer[1]}
-					} else if buffer[0] == PROTO_CLIENT_PONG { // receives a client pong
-						return &MessagePingResponse{Data: buffer[1]}
-					}
-				} else { // Client
-					if buffer[0] == PROTO_SERVER_PING { // receives a server ping
-						return &MessagePingRequest{Data: buffer[1]}
-					} else if buffer[0] == PROTO_SERVER_PONG {
-						return &MessagePingResponse{Data: buffer[1]}
-					}
-				}
-			}
-
-		case 0x20: // Named channel
-			{
+		{
+			if pt.mode == MODE_SERVER {
 				size := buffer[1]
 				pt.Conn.Read(buffer[:size])
-				channelId := int(buffer[0])
-				channelName := string(buffer[1:size])
-				pt.recvChannels[channelId] = channelName
-				if pt.LogLevel >= 7 {
-					log.Print(pt, " --> \"", channelName, "\" created on ", channelId)
+				ident := string(buffer[:size])
+				return &MessageIdentRequest{Ident: ident}
+			} else {
+				return &MessageIdentResponse{Ok: (buffer[1] == 0x01)}
+			}
+		}
+
+		case 0x02, 0x03: // Ping
+		{
+			if pt.mode == MODE_SERVER { // Server
+				if buffer[0] == PROTO_CLIENT_PING { // receives a client ping
+					return &MessagePingRequest{Data: buffer[1]}
+				} else if buffer[0] == PROTO_CLIENT_PONG { // receives a client pong
+					return &MessagePingResponse{Data: buffer[1]}
+				}
+			} else { // Client
+				if buffer[0] == PROTO_SERVER_PING { // receives a server ping
+					return &MessagePingRequest{Data: buffer[1]}
+				} else if buffer[0] == PROTO_SERVER_PONG {
+					return &MessagePingResponse{Data: buffer[1]}
 				}
 			}
-		// All the data messages
+		}
+
+		case 0x20: // Named channel
+		{
+			size := buffer[1]
+			pt.Conn.Read(buffer[:size])
+			channelId := int(buffer[0])
+			channelName := string(buffer[1:size])
+			pt.recvChannels[channelId] = channelName
+			if pt.LogLevel >= 7 {
+				log.Debug("%s --> \"%s\" created on %d", pt, channelName, channelId)
+			}
+		}
+			// All the data messages
 		case 0x21, 0x41, 0x61, 0x22, 0x42, 0x62:
-			{
-				// We handle all size of messages at the same place
-				var sizeLength int
-				ft := buffer[0]
-				switch ft {
-				case 0x21, 0x22:
-					sizeLength = 1 // 1 byte sized (0 to 255)
-				case 0x41, 0x42:
-					sizeLength = 2 // 2 bytes sized (0 to 64K)
-				case 0x61, 0x62:
-					sizeLength = 4 // 4 bytes sized (0 to 4G)
-				}
-				// We get the necessary remaining bytes of the size
-				pt.Conn.Read(buffer[2 : sizeLength+1])
-
-				// We convert this to a size
-				var size int
-				{
-					s, _ := binary.Uvarint(buffer[1 : sizeLength+1])
-					size = int(s)
-				}
-
-				// We might have to increase the buffer size
-				if size > cap(buffer) {
-					if pt.LogLevel >= 7 {
-						log.Printf("%s - Increasing buffer size to %d bytes.", pt, size)
-					}
-					buffer = make([]byte, size)
-				}
-
-				// We read everything (we get rid of existing buffer content)
-				pt.Conn.Read(buffer[:size])
-
-				// We get the channel id
-				channelId := int(buffer[0])
-				channelName := pt.recvChannels[channelId]
-				switch ft {
-
-				case 0x21, 0x41, 0x61: // Single byte array messages
-					{
-						return &MessageDataSimple{Channel: channelName, Data: buffer[1 : size-1]}
-					}
-				case 0x22, 0x42, 0x62: // Array of byte arrays messages
-					{
-						offset := 1
-						data := make([][]byte, 0, 5) // 5 is arbitrary, it's likely to be something like that
-						for offset < size {
-							s, _ := binary.Uvarint(buffer[offset : offset+sizeLength])
-							subSize := int(s)
-							offset += sizeLength
-							data = append(data, buffer[offset:offset+subSize])
-							offset += subSize
-						}
-						return &MessageDataArray{Channel: channelName, Data: data}
-					}
-				}
+		{
+			// We handle all size of messages at the same place
+			var sizeLength int
+			ft := buffer[0]
+			switch ft {
+			case 0x21, 0x22:
+				sizeLength = 1 // 1 byte sized (0 to 255)
+			case 0x41, 0x42:
+				sizeLength = 2 // 2 bytes sized (0 to 64K)
+			case 0x61, 0x62:
+				sizeLength = 4 // 4 bytes sized (0 to 4G)
 			}
+			// We get the necessary remaining bytes of the size
+			pt.Conn.Read(buffer[2 : sizeLength + 1])
+
+			// We convert this to a size
+			var size int
+			{
+				s, _ := binary.Uvarint(buffer[1 : sizeLength + 1])
+				size = int(s)
+			}
+
+			// We might have to increase the buffer size
+			if size > cap(buffer) {
+				if pt.LogLevel >= 7 {
+					log.Debug("%s - Increasing buffer size to %d bytes.", pt, size)
+				}
+				buffer = make([]byte, size)
+			}
+
+			// We read everything (we get rid of existing buffer content)
+			pt.Conn.Read(buffer[:size])
+
+			// We get the channel id
+			channelId := int(buffer[0])
+			channelName := pt.recvChannels[channelId]
+			switch ft {
+
+			case 0x21, 0x41, 0x61: // Single byte array messages
+			{
+				return &MessageDataSimple{Channel: channelName, Data: buffer[1 : size - 1]}
+			}
+			case 0x22, 0x42, 0x62: // Array of byte arrays messages
+			{
+				offset := 1
+				data := make([][]byte, 0, 5) // 5 is arbitrary, it's likely to be something like that
+				for offset < size {
+					s, _ := binary.Uvarint(buffer[offset : offset + sizeLength])
+					subSize := int(s)
+					offset += sizeLength
+					data = append(data, buffer[offset:offset+subSize])
+					offset += subSize
+				}
+				return &MessageDataArray{Channel: channelName, Data: data}
+			}
+			}
+		}
 		default:
-			{
-				log.Printf("%s - Unhandled message header: 0x%02X", pt, buffer[0:1])
-				pt.Conn.Close()
-				return &EventDisconnected{Error: errors.New(fmt.Sprintf("Unhandled header: 0x%02X", buffer[0:1]))}
-			}
+		{
+			log.Debug("%s - Unhandled message header: 0x%02X", pt, buffer[0])
+			pt.Conn.Close()
+			return &EventDisconnected{Error: errors.New(fmt.Sprintf("Unhandled header: 0x%02X", buffer[0:1]))}
+		}
 		}
 	}
 

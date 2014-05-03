@@ -18,7 +18,7 @@ const DOMAIN_BY_NAME_NODE_PATH = DOMAIN_NODE_PATH + "by-name/"
 
 // Create a new domain instance with its it id
 func NewDomainById(id gocql.UUID) (d *Domain) {
-	d = &Domain{Node: db.NewRegistryNode(DOMAIN_NODE_PATH + id.String())}
+	d = &Domain{Node: db.NewRegistryNode(DOMAIN_NODE_PATH+id.String())}
 	return
 }
 

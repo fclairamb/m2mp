@@ -26,7 +26,7 @@ func NewRegistryNode(path string) *RegistryNode {
 }
 
 func (node *RegistryNode) Name() string {
-	return filepath.Base(node.Path[:len(node.Path)-1])
+	return filepath.Base(node.Path[:len(node.Path) - 1])
 }
 
 func (node *RegistryNode) Status() int {
@@ -133,7 +133,7 @@ func (node *RegistryNode) Parent() *RegistryNode {
 	if node.Path == "/" {
 		return nil
 	}
-	return NewRegistryNode(filepath.Dir(node.Path[:len(node.Path)-1]))
+	return NewRegistryNode(filepath.Dir(node.Path[:len(node.Path) - 1]))
 }
 
 func (node *RegistryNode) addChild(name string) error {

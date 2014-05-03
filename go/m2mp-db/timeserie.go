@@ -7,7 +7,7 @@ import (
 )
 
 func timeToPeriod(t time.Time) int {
-	return t.Year()*12 + int(t.Month())
+	return t.Year() * 12 + int(t.Month())
 }
 
 func SaveTSTime(id string, dataType string, time time.Time, data string) error {

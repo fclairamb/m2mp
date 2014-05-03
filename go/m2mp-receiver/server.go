@@ -2,10 +2,8 @@ package main
 
 import (
 	"fmt"
-	msg "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	"github.com/fclairamb/m2mp/go/m2log"
-	//"github.com/likexian/simplejson"
-	"log"
+	msg "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	"net"
 	"sync"
 	"time"
@@ -42,12 +40,12 @@ func (s *Server) acceptIncomingConnections() {
 	for {
 		conn, err := s.listener.Accept()
 		if err != nil {
-			log.Print("ERROR: Error while listening: ", err)
+			log.Error("Error while listening: ", err)
 			time.Sleep(time.Millisecond * 50)
 			continue
 		}
 		s.handleIncomingConnection(conn)
-		log.Println("Number of clients:", s.NbClients())
+		log.Debug("Number of clients:", s.NbClients())
 	}
 }
 
@@ -73,7 +71,7 @@ func (s *Server) listen() error {
 	}
 
 	if m2log.Level >= 2 {
-		log.Print("Listening on ", s.listener.Addr(), " ...")
+		log.Notice("Listening on %s...", s.listener.Addr())
 	}
 
 	go s.acceptIncomingConnections()
@@ -82,7 +80,7 @@ func (s *Server) listen() error {
 }
 
 func (s *Server) handleMessaging(m *msg.JsonWrapper) {
-	log.Print("Handling ", m)
+	log.Debug("Handling ", m)
 }
 
 func (s *Server) runMessaging() error {
@@ -101,7 +99,7 @@ func (s *Server) Start() error {
 	s.msg, err = msg.NewClientUsingHost(msg.TOPIC_RECEIVERS)
 
 	if err == nil {
-		log.Print("Opening MQ ", par.MQServer)
+		log.Debug("Opening MQ %s", par.MQServer)
 		err = s.msg.Start(par.MQServer)
 	}
 

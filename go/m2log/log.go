@@ -2,10 +2,11 @@ package m2log
 
 import (
 	"flag"
+	logging "github.com/op/go-logging"
+	"io"
 	"log"
 	"os"
 	"time"
-	logging "github.com/op/go-logging"
 )
 
 var file *os.File
@@ -15,16 +16,21 @@ var stdoutBackend *logging.LogBackend
 var fileBackend *logging.LogBackend
 var logger *logging.Logger
 
+const LOG_FLAGS = log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile
+
 func GetLogger() *logging.Logger {
 	if logger == nil {
 		logging.SetFormatter(logging.MustStringFormatter("▶ %{level:.1s} 0x%{id:x} %{message}"))
 
-		stdoutBackend = logging.NewLogBackend(os.Stdout, "", log.LstdFlags|log.Lshortfile)
+		stdoutBackend = logging.NewLogBackend(os.Stdout, "", LOG_FLAGS)
 		stdoutBackend.Color = true
 
 		reopenLogFile()
 
 		logger = logging.MustGetLogger("m2log")
+
+		// Standard logging
+		log.SetFlags(LOG_FLAGS)
 
 		// We reopen the log file very hour
 		go func() {
@@ -57,11 +63,15 @@ func reopenLogFile() {
 	if file := logFile(); file != nil {
 		fileBackend = logging.NewLogBackend(file, "", log.LstdFlags|log.Lshortfile)
 		logging.SetBackend(stdoutBackend, fileBackend)
+
+		// Standard logging
+		log.SetOutput(io.MultiWriter(file, os.Stdout))
 	} else {
 		logging.SetBackend(stdoutBackend)
+
+		log.SetOutput(os.Stdout)
 	}
 }
-
 
 func init() {
 	// We setup logging

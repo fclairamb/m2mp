@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	db "github.com/fclairamb/m2mp/go/m2mp-db"
+	"github.com/fclairamb/m2mp/go/m2log"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -105,10 +106,11 @@ func console_handling() {
 var server *Server
 
 func main() {
+	m2log.Start()
 	par = NewParameters()
 	defer par.Close()
 
-	if par.LogLevel >= 3 {
+	if m2log.Level >= 3 {
 		log.Print("Starting !")
 	}
 
@@ -136,7 +138,7 @@ func main() {
 	}
 	defer server.Close()
 
-	if par.LogLevel >= 2 {
+	if m2log.Level >= 2 {
 		log.Print("Ready !")
 	}
 

@@ -6,6 +6,7 @@ import (
 	ent "github.com/fclairamb/m2mp/go/m2mp-db/entities"
 	mq "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	pr "github.com/fclairamb/m2mp/go/m2mp-protocol"
+	"github.com/fclairamb/m2mp/go/m2log"
 	"log"
 	"net"
 	"strings"
@@ -46,7 +47,7 @@ func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
 }
 
 func (ch *ClientHandler) Start() {
-	if par.LogLevel >= 3 {
+	if m2log.Level >= 3 {
 		log.Print("Added ", ch)
 	}
 	go ch.runRecv()
@@ -66,7 +67,7 @@ func (ch *ClientHandler) Close() error {
 
 func (ch *ClientHandler) end() {
 	ch.daddy.removeClientHandler(ch)
-	if par.LogLevel >= 3 {
+	if m2log.Level >= 3 {
 		log.Print("Removed ", ch)
 	}
 	ch.ticker.Stop()
@@ -109,7 +110,7 @@ func (ch *ClientHandler) receivedData() {
 
 func (ch *ClientHandler) considerCurrentStatus() {
 	now := time.Now().UTC()
-	if ch.LogLevel >= 5 {
+	if m2log.Level >= 5 {
 		log.Print(ch, " - Considering current status (", now, ")")
 	}
 	if now.Sub(ch.lastReceivedData) > time.Duration(time.Minute*1) &&
@@ -150,7 +151,7 @@ func (ch *ClientHandler) runCoreHandling() {
 			}
 		case <-ch.ticker.C:
 			{
-				if ch.LogLevel >= 5 {
+				if m2log.Level >= 5 {
 					log.Print(ch, " - Tick")
 				}
 			}
@@ -167,7 +168,7 @@ func (ch *ClientHandler) handleIdentRequest(m *pr.MessageIdentRequest) error {
 		log.Print("Problem with ", ch, " : ", err)
 	}
 
-	if ch.LogLevel >= 5 {
+	if m2log.Level >= 5 {
 		log.Print(ch, " --> Identification ", m.Ident, " : ", err == nil)
 	}
 
@@ -246,7 +247,7 @@ func (ch *ClientHandler) handleData(msg *pr.MessageDataSimple) error {
 
 func (ch *ClientHandler) handleDataArray(msg *pr.MessageDataArray) error {
 
-	if par.LogLevel >= 7 {
+	if m2log.Level >= 7 {
 		log.Print(ch, " --> \"", msg.Channel, "\" : ", msg.Data)
 	}
 

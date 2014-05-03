@@ -13,11 +13,25 @@ var fileName string
 var Level int
 
 func Start() {
-	// Whatever
+	Rotate()
+
+	// We reopen the log file very hour
+	go func() {
+		ticker := time.NewTicker(time.Hour)
+		for {
+			<-ticker.C // This is what makes us wait
+			Rotate()
+		}
+	}()
 }
 
-func log_set_file() {
+func Rotate() {
 	var err error
+	log.SetOutput(os.Stdout)
+	if file != nil {
+		file.Close()
+		log.Print("=== ROTATION ===")
+	}
 	if file, err = os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0660); err != nil {
 		log.Fatal("Could not open log file", fileName, " ! ", err)
 	} else {
@@ -30,15 +44,4 @@ func init() {
 	flag.StringVar(&fileName, "logfile", os.Args[0] + ".log", "Log file")
 	flag.IntVar(&Level, "loglevel", 5, "Log level (from 0 to 9)")
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
-	log_set_file()
-
-
-	// We reopen the log file very hour
-	go func() {
-		ticker := time.NewTicker(time.Hour)
-		for {
-			<-ticker.C // This is what makes us wait
-			log_set_file()
-		}
-	}()
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	msg "github.com/fclairamb/m2mp/go/m2mp-messaging"
+	"github.com/fclairamb/m2mp/go/m2log"
 	//"github.com/likexian/simplejson"
 	"log"
 	"net"
@@ -71,7 +72,7 @@ func (s *Server) listen() error {
 		return err
 	}
 
-	if par.LogLevel >= 2 {
+	if m2log.Level >= 2 {
 		log.Print("Listening on ", s.listener.Addr(), " ...")
 	}
 

@@ -12,6 +12,7 @@ import (
 const (
 	DEVICE_NODE_PATH          = "/device/"
 	DEVICE_BY_IDENT_NODE_PATH = DEVICE_NODE_PATH + "by-ident/"
+	DEVICE_DEFAULT_NODE_PATH  = "/device/default/"
 )
 
 // Device
@@ -21,6 +22,10 @@ type Device struct {
 
 	// I removed all the caching code around settings, settingsToSend, commands, serverSettings, etc. because
 	// we don't care about performance at this stage and it might lead to caching issues
+}
+
+func NewDeviceDefault() *Device {
+	return &Device{Node: db.NewRegistryNode(DEVICE_DEFAULT_NODE_PATH)}
 }
 
 // Device by ID

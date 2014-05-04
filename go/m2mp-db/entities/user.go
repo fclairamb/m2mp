@@ -18,7 +18,7 @@ const USER_BY_NAME_NODE_PATH = USER_NODE_PATH + "by-name/"
 
 // Create a new User instance with its it id
 func NewUserById(id gocql.UUID) (u *User) {
-	u = &User{Node: db.NewRegistryNode(USER_NODE_PATH+id.String())}
+	u = &User{Node: db.NewRegistryNode(USER_NODE_PATH + id.String())}
 	return
 }
 

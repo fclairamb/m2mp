@@ -69,7 +69,7 @@ public class DbFileInputStream extends InputStream {
     @Override
     public synchronized void reset() throws IOException {
         readOffset = 0;
-        blockNb = 0;
+        blockNb = -1;
         blockOffset = 0;
     }
 

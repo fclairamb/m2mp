@@ -142,7 +142,7 @@ public class DbFileTest {
 
     @Test
     public void skipBytes2() throws Exception {
-        int nbBlocks = 2, blockSize = 512 * 1024;
+        int nbBlocks = 2, blockSize = 16 * 1024;
 
         File file1;
         DbFile file2;
@@ -167,6 +167,39 @@ public class DbFileTest {
             String hash1 = Hashing.sha1(is1);
             String hash2 = Hashing.sha1(is2);
             Assert.assertEquals(hash1, hash2);
+        }
+    }
+
+    @Test
+    public void readReset() throws Exception {
+        int nbBlocks = 2, blockSize = 16 * 1024;
+
+        File file1;
+        DbFile file2;
+
+        { // File on disk
+            file1 = new File("/tmp/test-" + (nbBlocks * blockSize));
+            file1.deleteOnExit();
+            try (OutputStream os = new FileOutputStream(file1)) {
+                writeFile(os, nbBlocks, blockSize, 256);
+            }
+        }
+        { // File on DB
+            file2 = new DbFile(new RegistryNode("/this/is/my/file-" + (nbBlocks * blockSize)).check());
+            try (OutputStream os = new DbFileOutputStream(file2)) {
+                writeFile(os, nbBlocks, blockSize, 256);
+            }
+        }
+
+        try (InputStream is2 = new DbFileInputStream(file2)) {
+            for (int i = 0; i < 2; i++) {
+                is2.reset();
+                try (InputStream is1 = new FileInputStream(file1)) {
+                    String hash1 = Hashing.sha1(is1);
+                    String hash2 = Hashing.sha1(is2);
+                    Assert.assertEquals(hash1, hash2);
+                }
+            }
         }
     }
 

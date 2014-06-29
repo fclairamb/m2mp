@@ -1,9 +1,11 @@
 #!/bin/bash
 export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/jre
 
-curl -LO http://archive.apache.org/dist/cassandra/2.0.5/apache-cassandra-2.0.5-bin.tar.gz
-tar xf apache-cassandra-2.0.5-bin.tar.gz
-ln -s apache-cassandra-2.0.5 cassandra
+CASSANDRA_VERSION=2.0.7
+
+curl -LO http://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz
+tar xf apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz
+ln -s apache-cassandra-${CASSANDRA_VERSION} cassandra
 cd cassandra
 
 sudo mkdir -p /var/lib/cassandra /var/log/cassandra

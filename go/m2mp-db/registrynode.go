@@ -22,11 +22,11 @@ func NewRegistryNode(path string) *RegistryNode {
 	if !strings.HasSuffix(path, "/") {
 		path += "/"
 	}
-	return &RegistryNode{Path: path, status: RN_STATUS_UNDEFINED, values: nil, childrenNames: nil}
+	return &RegistryNode{Path: path /*, status: RN_STATUS_UNDEFINED, values: nil, childrenNames: nil*/}
 }
 
 func (node *RegistryNode) Name() string {
-	return filepath.Base(node.Path[:len(node.Path)-1])
+	return filepath.Base(node.Path[:len(node.Path) - 1])
 }
 
 func (node *RegistryNode) Status() int {
@@ -55,6 +55,13 @@ func (node *RegistryNode) Value(name string) string {
 func (node *RegistryNode) SetValue(name, value string) error {
 	node.values = nil
 	return shared.session.Query("update registrynode set values[ ? ] = ? where path = ?;", name, value, node.Path).Exec()
+}
+
+func (node *RegistryNode) DelValue(name string) error {
+	if node.values != nil {
+		delete(node.values, name)
+	}
+	return shared.session.Query("delete values[ ? ] from registrynode where path = ?;", name, node.Path).Exec()
 }
 
 func (node *RegistryNode) setStatus(status int) error {
@@ -126,7 +133,7 @@ func (node *RegistryNode) Parent() *RegistryNode {
 	if node.Path == "/" {
 		return nil
 	}
-	return NewRegistryNode(filepath.Dir(node.Path[:len(node.Path)-1]))
+	return NewRegistryNode(filepath.Dir(node.Path[:len(node.Path) - 1]))
 }
 
 func (node *RegistryNode) addChild(name string) error {
@@ -136,6 +143,10 @@ func (node *RegistryNode) addChild(name string) error {
 func (node *RegistryNode) removeChild(name string) error {
 	node.childrenNames = nil
 	return shared.session.Query("delete from registrynodechildren where path=? and name=?;", node.Path, name).Exec()
+}
+
+func (node *RegistryNode) GetChild(name string) *RegistryNode {
+	return NewRegistryNode(node.Path + name + "/")
 }
 
 func (node *RegistryNode) ChildrenNames() []string {
@@ -176,11 +187,9 @@ func (node *RegistryNode) String() string {
 	return "RN{Path=" + node.Path + "}"
 }
 
-func RegistryNodeCleanup() error {
+func RegistryNodeCleanup() (err error) {
 	iter := shared.session.Query("select path from registrynode where status=?;", RN_STATUS_DELETED).Iter()
 	defer iter.Close()
-
-	var err error
 
 	var path string
 	for iter.Scan(&path) {

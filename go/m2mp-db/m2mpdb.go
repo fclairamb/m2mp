@@ -1,11 +1,9 @@
+// M2MP DB handling
 package m2mpdb
 
 import (
 	"github.com/gocql/gocql"
 )
-
-// This should become a mixup between PostgreSQL and cassandra.
-// SQL should be used for everything that shouldn't grow too much <1M and cassandra should be used for the rest (time series typically)
 
 type Session struct {
 	session *gocql.Session
@@ -39,7 +37,6 @@ func Close() {
 	if shared != nil {
 		shared.session.Close()
 	}
-
 }
 
 func WipeoutEverything(sure string) {

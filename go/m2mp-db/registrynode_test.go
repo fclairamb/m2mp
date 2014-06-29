@@ -20,6 +20,25 @@ func TestRNValues(t *testing.T) {
 		if node.Value("a") != "bc" {
 			t.Fatalf("%s:a = %s != bc", node, node.Value("a"))
 		}
+		if node.Value("d") != "ef" {
+			t.Fatalf("%s:d = %s != ef", node, node.Value("d"))
+		}
+	}
+
+	{ // We delete one
+		node := NewRegistryNode(path)
+		node.DelValue("d")
+
+		if node.Value("d") != "" {
+			t.Fatalf("%s:d != nil (%s)", node, node.Value("d"))
+		}
+	}
+
+	{ // We check that we can't have it
+		node := NewRegistryNode(path)
+		if node.Value("d") != "" {
+			t.Fatalf("%s:d != nil (%s)", node, node.Value("d"))
+		}
 	}
 }
 

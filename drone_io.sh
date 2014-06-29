@@ -5,7 +5,11 @@
 DIR=`pwd`
 
 # Go
-cd $DIR/go/m2mpdb
+cd $DIR/go/m2mp-db
+go get
+go test -v -timeout 10s
+
+cd $DIR/go/m2mp-db/entities
 go get
 go test -v -timeout 10s
 

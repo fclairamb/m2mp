@@ -62,10 +62,7 @@ public class DbFileInputStream extends InputStream {
     }
 
     private void getNextChunk() {
-        if (blockNb == -1) {
-            blockNb = 0;
-        }
-        getChunk(blockNb++);
+        getChunk(++blockNb);
         blockOffset = 0;
     }
 

@@ -75,6 +75,9 @@ public class DbFileInputStream extends InputStream {
 
     @Override
     public long skip(long n) throws IOException {
+
+        if (n == 0) return 0; // skip 0 has to be a no-op
+
         if (readOffset + n > size) {
             n = size - readOffset;
         }

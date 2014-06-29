@@ -127,7 +127,7 @@ public class DbFileTest {
             String hash1 = Hashing.sha1(is1);
             String hash2 = Hashing.sha1(is2);
             Assert.assertEquals(hash1, hash2);
-            Assert.assertEquals(hash1, "f04977267a391b2c8f7ad8e070f149bc19b0fc25");
+            Assert.assertEquals(hash1, "db8caa7f1d67d4c96a7f1f3131976ed31c6200b8");
         }
 
         try (InputStream is1 = new FileInputStream(file1); InputStream is2 = new DbFileInputStream(file2)) {
@@ -136,7 +136,7 @@ public class DbFileTest {
             String hash1 = Hashing.sha1(is1);
             String hash2 = Hashing.sha1(is2);
             Assert.assertEquals(hash1, hash2);
-            Assert.assertEquals(hash1, "93f05113e12bd875fe7075fd7e662c8e2f76dbb0");
+            Assert.assertEquals(hash1, "8825548a545d511e5bea41cb9a723f9ce4ca449a");
         }
     }
 

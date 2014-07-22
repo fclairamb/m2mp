@@ -89,8 +89,9 @@ func (node *RegistryNode) Check() *RegistryNode {
 }
 
 // Delete a node
-//  if forReal is true, we actually delete the node
-//  if forReal is false, we just mark it for future deletion (faster and allows risky tests)
+//
+// if forReal is true, we actually delete the node
+// if forReal is false, we just mark it for future deletion (faster and allows risky tests)
 func (node *RegistryNode) Delete(forReal bool) error {
 	var err error
 
@@ -189,7 +190,6 @@ func (node *RegistryNode) Children() []*RegistryNode {
 
 	return children
 }
-
 
 func (node *RegistryNode) String() string {
 	return "RN{Path=" + node.Path + "}"

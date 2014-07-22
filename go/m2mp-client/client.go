@@ -53,7 +53,7 @@ func (c *Client) runRecv() {
 		case *pr.EventDisconnected:
 			return
 		case *pr.MessageDataArray:
-			if m.Channel == "__sta" { // If we are on the status channel, we handle things directly
+			if m.Channel == "_sta" { // If we are on the status channel, we handle things directly
 				requestType := string(m.Data[0])
 				if requestType == "g" {
 					name := string(m.Data[1])
@@ -188,27 +188,33 @@ func (c *Client) runCore() {
 		}
 		select {
 		case msg := <-c.Recv:
-		{
-			switch m := msg.(type) {
-			case *pr.EventDisconnected:
 			{
-				log.Error("We got disconnected !")
-				break
-			}
-			case *pr.MessageIdentResponse:
-			{
-				c.Connected = m.Ok
-			}
-			case *pr.MessagePingRequest:
-			{
-				c.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
-			}
-			}
-		}
-		case <-c.ticker.C:
-		{
+				switch m := msg.(type) {
+				case *pr.EventDisconnected:
+					{
+						log.Error("We got disconnected !")
+						break
+					}
+				case *pr.MessageIdentResponse:
+					{
+						c.Connected = m.Ok
 
-		}
+						if c.Connected {
+							log.Notice("We are identified to %s !", c.Conn)
+						} else {
+							log.Warning("We got refused !")
+						}
+					}
+				case *pr.MessagePingRequest:
+					{
+						c.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
+					}
+				}
+			}
+		case <-c.ticker.C:
+			{
+
+			}
 		}
 	}
 }

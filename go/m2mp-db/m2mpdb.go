@@ -3,6 +3,7 @@ package m2mpdb
 
 import (
 	"github.com/gocql/gocql"
+	"time"
 )
 
 type Session struct {
@@ -24,6 +25,7 @@ func NewSessionSimple(keyspace string) error {
 	cluster := gocql.NewCluster("localhost")
 	cluster.Keyspace = keyspace
 	cluster.Consistency = gocql.One
+	cluster.StartupTimeout = 20 * time.Second
 	session, err := cluster.CreateSession()
 
 	if err == nil {

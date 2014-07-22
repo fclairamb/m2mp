@@ -12,17 +12,18 @@ import (
 )
 
 type ClientHandler struct {
-	Id               int
-	daddy            *Server
-	connectionTime   time.Time
-	device           *ent.Device
-	Conn             *pr.ProtoHandler
-	connRecv         chan interface{}
-	LogLevel         int
-	lastReceivedData time.Time
-	lastSentData     time.Time
-	ticker           *time.Ticker
-	pingCounter      byte
+	Id                      int
+	daddy                   *Server
+	connectionTime          time.Time
+	device                  *ent.Device
+	deviceChannelTranslator *ent.DeviceChannelTrans
+	Conn                    *pr.ProtoHandler
+	connRecv                chan interface{}
+	LogLevel                int
+	lastReceivedData        time.Time
+	lastSentData            time.Time
+	ticker                  *time.Ticker
+	pingCounter             byte
 	//connSend         chan interface{}
 }
 
@@ -74,6 +75,7 @@ func (ch *ClientHandler) end() {
 		m := mq.NewMessageEvent("device_disconnected")
 		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
+		m.Data.Set("connection_time", fmt.Sprint(int64(time.Now().UTC().Sub(ch.connectionTime).Seconds())))
 		if ch.device != nil {
 			m.Data.Set("device_id", ch.device.Id())
 		}
@@ -163,11 +165,7 @@ func (ch *ClientHandler) handleIdentRequest(m *pr.MessageIdentRequest) error {
 	var err error
 	ch.device, err = ent.NewDeviceByIdentCreate(m.Ident)
 	if err != nil {
-		log.Warning("Problem with %s: %s", ch, err)
-	}
-
-	if ch.LogLevel >= 5 {
-		log.Debug("%s --> Identification %s : %s", ch, m.Ident, err)
+		log.Warning("%s --> (error) %s", ch, err)
 	}
 
 	// OK
@@ -191,6 +189,13 @@ func (ch *ClientHandler) checkCapacities() error {
 		return ch.Send(msg)
 	}
 	return nil
+}
+
+func (ch *ClientHandler) getDeviceChannelTranslator() *ent.DeviceChannelTrans {
+	if ch.deviceChannelTranslator == nil && ch.device != nil {
+		ch.deviceChannelTranslator = ent.NewDeviceChannelTrans(ch.device)
+	}
+	return ch.deviceChannelTranslator
 }
 
 func (ch *ClientHandler) justIdentified() error {
@@ -232,10 +237,19 @@ func (ch *ClientHandler) handleData(msg *pr.MessageDataSimple) error {
 			ch.Conn.Send(msg)
 		}
 
-	case "sen": // sensor is just stored
+	default:
 		{
-			if ch.device != nil {
-				ch.device.SaveTSTime(msg.Channel, time.Now().UTC(), string(msg.Data))
+			if dct := ch.getDeviceChannelTranslator(); dct != nil {
+				if target := dct.GetTarget(msg.Channel); target != nil {
+					msg := mq.NewJsonWrapper()
+					msg.SetTo(*target)
+					msg.SetFrom(fmt.Sprintf(":conn:%d",ch.Id))
+					msg.SetCall("data_simple")
+					ch.daddy.SendMessage(msg)
+					log.Debug("Sending %s", msg)
+				} else if tokens[0] == "sen" {
+					ch.device.SaveTSTime(msg.Channel, time.Now().UTC(), string(msg.Data))
+				}
 			}
 		}
 	}

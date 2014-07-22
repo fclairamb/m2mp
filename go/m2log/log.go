@@ -16,7 +16,7 @@ var stdoutBackend *logging.LogBackend
 var fileBackend *logging.LogBackend
 var logger *logging.Logger
 
-const LOG_FLAGS = log.Ldate|log.Ltime|log.Lmicroseconds|log.Lshortfile
+const LOG_FLAGS = log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile
 
 func GetLogger() *logging.Logger {
 	if logger == nil {

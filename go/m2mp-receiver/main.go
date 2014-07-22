@@ -123,6 +123,7 @@ func main() {
 		}()
 	}
 
+	log.Debug("Connecting to DB...")
 	if err := db.NewSessionSimple("ks_test"); err != nil {
 		log.Fatal("DB error: ", err)
 	}

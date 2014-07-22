@@ -26,7 +26,7 @@ func NewRegistryNode(path string) *RegistryNode {
 }
 
 func (node *RegistryNode) Name() string {
-	return filepath.Base(node.Path[:len(node.Path) - 1])
+	return filepath.Base(node.Path[:len(node.Path)-1])
 }
 
 func (node *RegistryNode) Status() int {
@@ -78,6 +78,8 @@ func (node *RegistryNode) Create() *RegistryNode {
 	return node
 }
 
+// Check if the node exists
+// If not, create it
 func (node *RegistryNode) Check() *RegistryNode {
 	switch node.Status() {
 	case RN_STATUS_UNDEFINED, RN_STATUS_DELETED:
@@ -86,6 +88,9 @@ func (node *RegistryNode) Check() *RegistryNode {
 	return node
 }
 
+// Delete a node
+//  if forReal is true, we actually delete the node
+//  if forReal is false, we just mark it for future deletion (faster and allows risky tests)
 func (node *RegistryNode) Delete(forReal bool) error {
 	var err error
 
@@ -117,38 +122,46 @@ func (node *RegistryNode) Delete(forReal bool) error {
 	return err
 }
 
+// Check if the node exists
 func (node *RegistryNode) Exists() bool {
 	return node.Status() == RN_STATUS_CREATED
 }
 
+// Check if the node was marked for deletion
 func (node *RegistryNode) Deleted() bool {
 	return node.Status() == RN_STATUS_DELETED
 }
 
+// Check if the node exists or existed
 func (node *RegistryNode) Existed() bool {
 	return node.Status() != RN_STATUS_UNDEFINED
 }
 
+// Get the parent node
 func (node *RegistryNode) Parent() *RegistryNode {
 	if node.Path == "/" {
 		return nil
 	}
-	return NewRegistryNode(filepath.Dir(node.Path[:len(node.Path) - 1]))
+	return NewRegistryNode(filepath.Dir(node.Path[:len(node.Path)-1]))
 }
 
+// Internal: add a child
 func (node *RegistryNode) addChild(name string) error {
 	return shared.session.Query("insert into registrynodechildren (path, name) values (?, ?);", node.Path, name).Exec()
 }
 
+// Internal: remove a child
 func (node *RegistryNode) removeChild(name string) error {
 	node.childrenNames = nil
 	return shared.session.Query("delete from registrynodechildren where path=? and name=?;", node.Path, name).Exec()
 }
 
+// Get a child
 func (node *RegistryNode) GetChild(name string) *RegistryNode {
 	return NewRegistryNode(node.Path + name + "/")
 }
 
+// Get all the children names
 func (node *RegistryNode) ChildrenNames() []string {
 	if node.childrenNames == nil {
 		iter := shared.session.Query("select name from registrynodechildren where path=?;", node.Path).Iter()
@@ -166,6 +179,7 @@ func (node *RegistryNode) ChildrenNames() []string {
 	return node.childrenNames
 }
 
+// Get all the children
 func (node *RegistryNode) Children() []*RegistryNode {
 	children := make([]*RegistryNode, 0, 10)
 
@@ -176,17 +190,12 @@ func (node *RegistryNode) Children() []*RegistryNode {
 	return children
 }
 
-/*
-func (node *RegistryNode) Save() error {
-	query := shared.session.Query("insert into registrynode (path, values) values (?, ?); ", node.Path, node.Values)
-	return query.Exec()
-}
-*/
 
 func (node *RegistryNode) String() string {
 	return "RN{Path=" + node.Path + "}"
 }
 
+// Delete all the nodes marked for deletion (and their subnodes)
 func RegistryNodeCleanup() (err error) {
 	iter := shared.session.Query("select path from registrynode where status=?;", RN_STATUS_DELETED).Iter()
 	defer iter.Close()

@@ -24,7 +24,7 @@ func console_handling() {
 		} else if tokens[0] == "quit" {
 			waitForRc <- 0
 		} else {
-			fmt.Printf("\"%s\" not understood !", tokens[0])
+			log.Debug("\"%s\" not understood !", tokens[0])
 		}
 	}
 }
@@ -32,9 +32,21 @@ func console_handling() {
 var waitForRc chan int
 
 func main() {
+	par := NewParameters()
+
 	waitForRc = make(chan int)
-	clt := NewClient("localhost:3000", "test:1234")
+	clt := NewClient(par.Server, par.Ident)
 	clt.Start()
 
-	os.Exit(<-waitForRc)
+	if par.Console {
+		go console_handling()
+	}
+
+	rc := <-waitForRc
+	if rc == 0 {
+		log.Info("Bye bye...")
+	} else {
+		log.Info("Quitting with RC %d", rc)
+	}
+	os.Exit(rc)
 }

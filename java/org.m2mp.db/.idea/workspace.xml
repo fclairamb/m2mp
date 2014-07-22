@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="640bd07e-04c1-4390-a94b-9b3572e958a4" name="Default" comment="Deleting some files.&#10;">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/copyright/profiles_settings.xml" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/scopes/scope_settings.xml" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/copyright/profiles_settings.xml" afterPath="" />
     </list>
     <ignored path="org.m2mp.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -72,95 +72,7 @@
     <favorites_list name="org.m2mp" />
   </component>
   <component name="FileEditorManager">
-    <leaf>
-      <file leaf-file-name="RegistryNode.java" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/registry/RegistryNode.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="144" column="5" selection-start="3606" selection-end="3606" vertical-scroll-proportion="1.341791" vertical-offset="1231" max-vertical-offset="9705">
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#6943#7524#0" expanded="true" />
-                <element signature="e#7513#7514#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="UserTest.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/UserTest.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="38" column="9" selection-start="773" selection-end="773" vertical-scroll-proportion="0.0" vertical-offset="13" max-vertical-offset="675">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="DbFileOutputStream.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/registry/file/DbFileOutputStream.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="82" column="21" selection-start="2057" selection-end="2057" vertical-scroll-proportion="0.0" vertical-offset="892" max-vertical-offset="1575">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="DbFileTest.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/DbFileTest.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="253" column="28" selection-start="8946" selection-end="8946" vertical-scroll-proportion="0.0" vertical-offset="3337" max-vertical-offset="4725">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="RegistryTest.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/RegistryTest.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="99" column="13" selection-start="2958" selection-end="2958" vertical-scroll-proportion="0.0" vertical-offset="3020" max-vertical-offset="4020">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Domain.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/Domain.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="147" column="0" selection-start="4547" selection-end="4547" vertical-scroll-proportion="0.0" vertical-offset="1475" max-vertical-offset="2445">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="PerformanceTest.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/PerformanceTest.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="20" column="0" selection-start="423" selection-end="781" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="810">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="DomainTest.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/DomainTest.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="28" column="9" selection-start="661" selection-end="661" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1005">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="User.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/User.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="130" column="5" selection-start="3765" selection-end="3765" vertical-scroll-proportion="0.0" vertical-offset="958" max-vertical-offset="2205">
-              <folding>
-                <element signature="imports" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <leaf />
   </component>
   <component name="FindManager">
     <FindUsagesManager>
@@ -230,6 +142,8 @@
     <OptionsSetting value="true" id="Update" />
     <OptionsSetting value="true" id="Status" />
     <OptionsSetting value="true" id="Edit" />
+    <OptionsSetting value="true" id="Undo Check Out" />
+    <OptionsSetting value="true" id="Get Latest Version" />
     <ConfirmationsSetting value="0" id="Add" />
     <ConfirmationsSetting value="0" id="Remove" />
   </component>
@@ -249,7 +163,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -258,33 +171,10 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
           </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="org.m2mp.db" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="org.m2mp.db" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="org.m2mp.db" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="org.m2mp.db" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
         </subPane>
       </pane>
       <pane id="PackagesPane" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -296,7 +186,7 @@
     <property name="recentsLimit" value="5" />
     <property name="options.lastSelected" value="MavenSettings" />
     <property name="MemberChooser.sorted" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/.." />
     <property name="project.structure.side.proportion" value="0.2" />
     <property name="MemberChooser.copyJavadoc" value="false" />
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
@@ -833,6 +723,8 @@
       <workItem from="1392827081198" duration="206000" />
       <workItem from="1393352534005" duration="1152000" />
       <workItem from="1393356883134" duration="9227000" />
+      <workItem from="1393728379783" duration="277000" />
+      <workItem from="1396214780320" duration="479000" />
     </task>
     <task id="LOCAL-00001" summary="Small changes around JSON management (there's still something wrong with the code though).">
       <created>1380339287858</created>
@@ -902,7 +794,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="13866000" />
+    <option name="totallyTimeSpent" value="14622000" />
   </component>
   <component name="TodoView" selected-index="1">
     <todo-panel id="selected-file">
@@ -925,7 +817,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-2" y="25" width="1924" height="1177" extended-state="6" />
+    <frame x="-2" y="25" width="1924" height="1177" extended-state="0" />
     <editor active="false" />
     <layout>
       <window_info id="Palette&#9;" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -933,28 +825,28 @@
       <window_info id="Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32797733" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.36956522" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3291262" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4773157" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32819384" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24920128" sideWeight="0.6291262" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32977587" sideWeight="0.60022026" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25079873" sideWeight="0.6291262" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3289225" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Coverage" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32977587" sideWeight="0.6475728" order="6" side_tool="true" content_ui="tabs" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25052083" sideWeight="0.6291262" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32839963" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="JetGradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32797733" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4773157" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Coverage" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32977587" sideWeight="0.6475728" order="6" side_tool="true" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -1000,67 +892,47 @@
   <component name="editorHistoryManager">
     <entry file="file://$USER_HOME$/Dropbox/tests/go/timeserver/main.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="0" selection-start="56" selection-end="56" vertical-scroll-proportion="0.0" vertical-offset="105" max-vertical-offset="390">
-          <folding />
-        </state>
+        <state line="7" column="0" selection-start="56" selection-end="56" vertical-scroll-proportion="0.0" vertical-offset="105" max-vertical-offset="390" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/TimeSerieTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="243" column="59" selection-start="8868" selection-end="8868" vertical-scroll-proportion="0.0" vertical-offset="3645" max-vertical-offset="6615">
-          <folding />
-        </state>
+        <state line="243" column="59" selection-start="8868" selection-end="8868" vertical-scroll-proportion="0.0" vertical-offset="3645" max-vertical-offset="6615" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedData.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="50" column="5" selection-start="1395" selection-end="1395" vertical-scroll-proportion="0.0" vertical-offset="750" max-vertical-offset="2175">
-          <folding />
-        </state>
+        <state line="50" column="5" selection-start="1395" selection-end="1395" vertical-scroll-proportion="0.0" vertical-offset="750" max-vertical-offset="2175" />
       </provider>
     </entry>
     <entry file="jar://$MAVEN_REPOSITORY$/org/apache/cassandra/cassandra-all/1.2.6/cassandra-all-1.2.6-sources.jar!/org/apache/cassandra/utils/UUIDGen.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="39" column="23" selection-start="1414" selection-end="1414" vertical-scroll-proportion="0.0" vertical-offset="585" max-vertical-offset="4755">
-          <folding />
-        </state>
+        <state line="39" column="23" selection-start="1414" selection-end="1414" vertical-scroll-proportion="0.0" vertical-offset="585" max-vertical-offset="4755" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimeSerie.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="288" column="38" selection-start="9990" selection-end="9990" vertical-scroll-proportion="0.0" vertical-offset="4320" max-vertical-offset="4995">
-          <folding />
-        </state>
+        <state line="288" column="38" selection-start="9990" selection-end="9990" vertical-scroll-proportion="0.0" vertical-offset="4320" max-vertical-offset="4995" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/Domain.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="159" column="5" selection-start="4790" selection-end="4790" vertical-scroll-proportion="0.0" vertical-offset="2385" max-vertical-offset="2655">
-          <folding />
-        </state>
+        <state line="159" column="5" selection-start="4790" selection-end="4790" vertical-scroll-proportion="0.0" vertical-offset="2385" max-vertical-offset="2655" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/registry/RegistryNode.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="257" column="48" selection-start="7201" selection-end="7201" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="9645">
-          <folding />
-        </state>
+        <state line="257" column="48" selection-start="7201" selection-end="7201" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="9645" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/UserTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="17" column="13" selection-start="357" selection-end="357" vertical-scroll-proportion="0.0" vertical-offset="255" max-vertical-offset="795">
-          <folding />
-        </state>
+        <state line="17" column="13" selection-start="357" selection-end="357" vertical-scroll-proportion="0.0" vertical-offset="255" max-vertical-offset="795" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/registry/file/DbFile.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="2" column="31" selection-start="67" selection-end="67" vertical-scroll-proportion="0.0" vertical-offset="30" max-vertical-offset="5160">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
+        <state line="2" column="31" selection-start="67" selection-end="67" vertical-scroll-proportion="0.0" vertical-offset="30" max-vertical-offset="5160" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pom.xml">
@@ -1072,67 +944,47 @@
     </entry>
     <entry file="file://$USER_HOME$/Dropbox/tests/go/timeserver/main.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="0" selection-start="56" selection-end="56" vertical-scroll-proportion="0.0" vertical-offset="105" max-vertical-offset="390">
-          <folding />
-        </state>
+        <state line="7" column="0" selection-start="56" selection-end="56" vertical-scroll-proportion="0.0" vertical-offset="105" max-vertical-offset="390" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/TimeSerieTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="243" column="59" selection-start="8868" selection-end="8868" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="6615">
-          <folding />
-        </state>
+        <state line="243" column="59" selection-start="8868" selection-end="8868" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="6615" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedData.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="50" column="5" selection-start="1395" selection-end="1395" vertical-scroll-proportion="0.0" vertical-offset="750" max-vertical-offset="2175">
-          <folding />
-        </state>
+        <state line="50" column="5" selection-start="1395" selection-end="1395" vertical-scroll-proportion="0.0" vertical-offset="750" max-vertical-offset="2175" />
       </provider>
     </entry>
     <entry file="jar://$MAVEN_REPOSITORY$/org/apache/cassandra/cassandra-all/1.2.6/cassandra-all-1.2.6-sources.jar!/org/apache/cassandra/utils/UUIDGen.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="39" column="23" selection-start="1414" selection-end="1414" vertical-scroll-proportion="0.0" vertical-offset="585" max-vertical-offset="4755">
-          <folding />
-        </state>
+        <state line="39" column="23" selection-start="1414" selection-end="1414" vertical-scroll-proportion="0.0" vertical-offset="585" max-vertical-offset="4755" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimeSerie.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="288" column="38" selection-start="9990" selection-end="9990" vertical-scroll-proportion="0.0" vertical-offset="4320" max-vertical-offset="4815">
-          <folding />
-        </state>
+        <state line="288" column="38" selection-start="9990" selection-end="9990" vertical-scroll-proportion="0.0" vertical-offset="4320" max-vertical-offset="4815" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/Domain.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="159" column="5" selection-start="4790" selection-end="4790" vertical-scroll-proportion="0.0" vertical-offset="2385" max-vertical-offset="2655">
-          <folding />
-        </state>
+        <state line="159" column="5" selection-start="4790" selection-end="4790" vertical-scroll-proportion="0.0" vertical-offset="2385" max-vertical-offset="2655" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedDataWrapper.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="12" column="3" selection-start="365" selection-end="365" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="3330">
-          <folding />
-        </state>
+        <state line="12" column="3" selection-start="365" selection-end="365" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="3330" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/registry/RegistryNode.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="257" column="48" selection-start="7201" selection-end="7201" vertical-scroll-proportion="0.0" vertical-offset="3855" max-vertical-offset="9645">
-          <folding />
-        </state>
+        <state line="257" column="48" selection-start="7201" selection-end="7201" vertical-scroll-proportion="0.0" vertical-offset="3855" max-vertical-offset="9645" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/registry/file/DbFile.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="2" column="31" selection-start="67" selection-end="67" vertical-scroll-proportion="0.0" vertical-offset="30" max-vertical-offset="5160">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
+        <state line="2" column="31" selection-start="67" selection-end="67" vertical-scroll-proportion="0.0" vertical-offset="30" max-vertical-offset="5160" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pom.xml">
@@ -1144,44 +996,32 @@
     </entry>
     <entry file="file://$USER_HOME$/Dropbox/tests/go/timeserver/main.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="0" selection-start="56" selection-end="56" vertical-scroll-proportion="0.0" vertical-offset="105" max-vertical-offset="390">
-          <folding />
-        </state>
+        <state line="7" column="0" selection-start="56" selection-end="56" vertical-scroll-proportion="0.0" vertical-offset="105" max-vertical-offset="390" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/TimeSerieTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="48" column="24" selection-start="1311" selection-end="1311" vertical-scroll-proportion="0.0" vertical-offset="720" max-vertical-offset="6615">
-          <folding />
-        </state>
+        <state line="48" column="24" selection-start="1311" selection-end="1311" vertical-scroll-proportion="0.0" vertical-offset="720" max-vertical-offset="6615" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedData.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="50" column="5" selection-start="1395" selection-end="1395" vertical-scroll-proportion="0.0" vertical-offset="750" max-vertical-offset="2175">
-          <folding />
-        </state>
+        <state line="50" column="5" selection-start="1395" selection-end="1395" vertical-scroll-proportion="0.0" vertical-offset="750" max-vertical-offset="2175" />
       </provider>
     </entry>
     <entry file="jar://$MAVEN_REPOSITORY$/org/apache/cassandra/cassandra-all/1.2.6/cassandra-all-1.2.6-sources.jar!/org/apache/cassandra/utils/UUIDGen.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="39" column="23" selection-start="1414" selection-end="1414" vertical-scroll-proportion="0.0" vertical-offset="585" max-vertical-offset="4755">
-          <folding />
-        </state>
+        <state line="39" column="23" selection-start="1414" selection-end="1414" vertical-scroll-proportion="0.0" vertical-offset="585" max-vertical-offset="4755" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimeSerie.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="98" column="49" selection-start="3064" selection-end="3064" vertical-scroll-proportion="0.0" vertical-offset="1470" max-vertical-offset="4995">
-          <folding />
-        </state>
+        <state line="98" column="49" selection-start="3064" selection-end="3064" vertical-scroll-proportion="0.0" vertical-offset="1470" max-vertical-offset="4995" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/Domain.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="159" column="5" selection-start="4790" selection-end="4790" vertical-scroll-proportion="0.0" vertical-offset="2385" max-vertical-offset="2655">
-          <folding />
-        </state>
+        <state line="159" column="5" selection-start="4790" selection-end="4790" vertical-scroll-proportion="0.0" vertical-offset="2385" max-vertical-offset="2655" />
       </provider>
     </entry>
     <entry file="jar://$MAVEN_REPOSITORY$/com/datastax/cassandra/cassandra-driver-core/1.0.2/cassandra-driver-core-1.0.2.jar!/com/datastax/driver/core/utils/UUIDs.class">
@@ -1206,9 +1046,7 @@
     </entry>
     <entry file="jar://$MAVEN_REPOSITORY$/org/apache/cassandra/cassandra-all/1.2.6/cassandra-all-1.2.6-sources.jar!/org/apache/cassandra/utils/UUIDGen.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="39" column="23" selection-start="1414" selection-end="1414" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0">
-          <folding />
-        </state>
+        <state line="39" column="23" selection-start="1414" selection-end="1414" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
       </provider>
     </entry>
     <entry file="jar://$MAVEN_REPOSITORY$/com/datastax/cassandra/cassandra-driver-core/1.0.2/cassandra-driver-core-1.0.2-sources.jar!/com/datastax/driver/core/utils/UUIDs.java">
@@ -1218,146 +1056,102 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedData.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="50" column="5" selection-start="1395" selection-end="1395" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0">
-          <folding />
-        </state>
+        <state line="50" column="5" selection-start="1395" selection-end="1395" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
       </provider>
     </entry>
     <entry file="file://$USER_HOME$/Dropbox/tests/go/timeserver/main.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="7" column="0" selection-start="56" selection-end="56" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="390" />
+      </provider>
       <provider editor-type-id="com.intellij.persistence.database.editor.CsvTableFileEditorProvider">
         <state />
-      </provider>
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="0" selection-start="56" selection-end="56" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="390">
-          <folding />
-        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimedDataWrapper.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="12" column="3" selection-start="365" selection-end="365" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0">
-          <folding />
-        </state>
+        <state line="12" column="3" selection-start="365" selection-end="365" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/TimeSerieTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="243" column="59" selection-start="8868" selection-end="8868" vertical-scroll-proportion="0.0" vertical-offset="2950" max-vertical-offset="6405">
-          <folding />
-        </state>
+        <state line="243" column="59" selection-start="8868" selection-end="8868" vertical-scroll-proportion="0.0" vertical-offset="2950" max-vertical-offset="6405" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/ts/TimeSerie.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="288" column="38" selection-start="9990" selection-end="9990" vertical-scroll-proportion="0.0" vertical-offset="3761" max-vertical-offset="4815">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pom.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="8" column="9" selection-start="379" selection-end="379" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="840">
-          <folding />
-        </state>
+        <state line="288" column="38" selection-start="9990" selection-end="9990" vertical-scroll-proportion="0.0" vertical-offset="3761" max-vertical-offset="4815" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/DomainTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="28" column="9" selection-start="661" selection-end="661" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1005">
-          <folding />
-        </state>
+        <state line="28" column="9" selection-start="661" selection-end="661" vertical-scroll-proportion="0.31547618" vertical-offset="102" max-vertical-offset="1110" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/Domain.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="147" column="0" selection-start="4547" selection-end="4547" vertical-scroll-proportion="0.0" vertical-offset="1475" max-vertical-offset="2445">
-          <folding />
-        </state>
+        <state line="147" column="0" selection-start="4564" selection-end="4564" vertical-scroll-proportion="0.10714286" vertical-offset="2097" max-vertical-offset="3105" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/entity/User.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="130" column="5" selection-start="3765" selection-end="3765" vertical-scroll-proportion="0.0" vertical-offset="958" max-vertical-offset="2205">
-          <folding>
-            <element signature="imports" expanded="false" />
-          </folding>
-        </state>
+        <state line="130" column="5" selection-start="4085" selection-end="4085" vertical-scroll-proportion="0.27083334" vertical-offset="1677" max-vertical-offset="2685" />
       </provider>
     </entry>
     <entry file="jar:///usr/lib/jvm/java-7-oracle/src.zip!/java/util/Map.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="339" column="31" selection-start="15823" selection-end="15830" vertical-scroll-proportion="0.5589124" vertical-offset="4370" max-vertical-offset="6915">
-          <folding />
-        </state>
+        <state line="339" column="31" selection-start="15823" selection-end="15830" vertical-scroll-proportion="0.5589124" vertical-offset="4370" max-vertical-offset="6915" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/PerformanceTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="20" column="0" selection-start="423" selection-end="781" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="810">
-          <folding />
-        </state>
+        <state line="20" column="0" selection-start="423" selection-end="781" vertical-scroll-proportion="0.29761904" vertical-offset="0" max-vertical-offset="1008" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/UserTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="38" column="9" selection-start="773" selection-end="773" vertical-scroll-proportion="0.0" vertical-offset="13" max-vertical-offset="675">
-          <folding />
-        </state>
+        <state line="38" column="9" selection-start="773" selection-end="773" vertical-scroll-proportion="0.5654762" vertical-offset="0" max-vertical-offset="1008" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/registry/file/DbFile.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="219" column="41" selection-start="6151" selection-end="6151" vertical-scroll-proportion="0.0" vertical-offset="3084" max-vertical-offset="5130">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
+        <state line="219" column="41" selection-start="6151" selection-end="6151" vertical-scroll-proportion="0.0" vertical-offset="3084" max-vertical-offset="5130" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/DB.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="128" column="28" selection-start="3440" selection-end="3440" vertical-scroll-proportion="0.3323263" vertical-offset="1535" max-vertical-offset="2415">
-          <folding />
-        </state>
+        <state line="128" column="28" selection-start="3440" selection-end="3440" vertical-scroll-proportion="0.3323263" vertical-offset="1535" max-vertical-offset="2415" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/RegistryTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="99" column="13" selection-start="2958" selection-end="2958" vertical-scroll-proportion="0.0" vertical-offset="959" max-vertical-offset="4020">
-          <folding />
-        </state>
+        <state line="99" column="13" selection-start="2958" selection-end="2958" vertical-scroll-proportion="0.0" vertical-offset="959" max-vertical-offset="4020" />
       </provider>
     </entry>
     <entry file="jar://$MAVEN_REPOSITORY$/com/datastax/cassandra/cassandra-driver-core/1.0.2/cassandra-driver-core-1.0.2-sources.jar!/com/datastax/driver/core/ResultSetFuture.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="250" column="24" selection-start="12910" selection-end="12910" vertical-scroll-proportion="0.591528" vertical-offset="2954" max-vertical-offset="3615">
-          <folding />
-        </state>
+        <state line="250" column="24" selection-start="12910" selection-end="12910" vertical-scroll-proportion="0.591528" vertical-offset="2954" max-vertical-offset="3615" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/registry/file/DbFileOutputStream.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="82" column="21" selection-start="2057" selection-end="2057" vertical-scroll-proportion="0.0" vertical-offset="913" max-vertical-offset="1575">
-          <folding />
-        </state>
+        <state line="82" column="21" selection-start="2057" selection-end="2057" vertical-scroll-proportion="0.64285713" vertical-offset="582" max-vertical-offset="1590" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test/java/org/m2mp/db/test/DbFileTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="253" column="28" selection-start="8946" selection-end="8946" vertical-scroll-proportion="0.0" vertical-offset="3337" max-vertical-offset="4725">
+        <state line="253" column="28" selection-start="8946" selection-end="8946" vertical-scroll-proportion="0.0" vertical-offset="3337" max-vertical-offset="4725" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pom.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="8" column="9" selection-start="379" selection-end="379" vertical-scroll-proportion="0.1161665" vertical-offset="0" max-vertical-offset="1033">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/org/m2mp/db/registry/RegistryNode.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="144" column="5" selection-start="3606" selection-end="3606" vertical-scroll-proportion="1.341791" vertical-offset="1231" max-vertical-offset="9705">
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#6943#7524#0" expanded="true" />
-            <element signature="e#7513#7514#0" expanded="true" />
-          </folding>
-        </state>
+        <state line="241" column="5" selection-start="6734" selection-end="6734" vertical-scroll-proportion="0.36281407" vertical-offset="3194" max-vertical-offset="9855" />
       </provider>
     </entry>
   </component>

@@ -73,7 +73,7 @@ public class DbFileTest {
         for (int i = 0; i < nbBlocks; i++) {
             byte[] data = new byte[blockSize];
             for (int j = 0; j < data.length; j++) {
-                data[j] = (byte) (j % mod);
+                data[j] = (byte) ((i + j) % mod);
             }
             os.write(data);
         }
@@ -127,7 +127,7 @@ public class DbFileTest {
             String hash1 = Hashing.sha1(is1);
             String hash2 = Hashing.sha1(is2);
             Assert.assertEquals(hash1, hash2);
-            Assert.assertEquals(hash1, "f04977267a391b2c8f7ad8e070f149bc19b0fc25");
+            Assert.assertEquals(hash1, "db8caa7f1d67d4c96a7f1f3131976ed31c6200b8");
         }
 
         try (InputStream is1 = new FileInputStream(file1); InputStream is2 = new DbFileInputStream(file2)) {
@@ -136,7 +136,100 @@ public class DbFileTest {
             String hash1 = Hashing.sha1(is1);
             String hash2 = Hashing.sha1(is2);
             Assert.assertEquals(hash1, hash2);
-            Assert.assertEquals(hash1, "93f05113e12bd875fe7075fd7e662c8e2f76dbb0");
+            Assert.assertEquals(hash1, "8825548a545d511e5bea41cb9a723f9ce4ca449a");
+        }
+    }
+
+    @Test
+    public void skipBytes2() throws Exception {
+        int nbBlocks = 2, blockSize = 512 * 1024;
+
+        File file1;
+        DbFile file2;
+
+        { // File on disk
+            file1 = new File("/tmp/test-" + (nbBlocks * blockSize));
+            file1.deleteOnExit();
+            try (OutputStream os = new FileOutputStream(file1)) {
+                writeFile(os, nbBlocks, blockSize, 256);
+            }
+        }
+        { // File on DB
+            file2 = new DbFile(new RegistryNode("/this/is/my/file-" + (nbBlocks * blockSize)).check());
+            try (OutputStream os = new DbFileOutputStream(file2)) {
+                writeFile(os, nbBlocks, blockSize, 256);
+            }
+        }
+
+        try (InputStream is1 = new FileInputStream(file1); InputStream is2 = new DbFileInputStream(file2)) {
+            is1.skip(blockSize - 2);
+            is2.skip(blockSize - 2);
+            String hash1 = Hashing.sha1(is1);
+            String hash2 = Hashing.sha1(is2);
+            Assert.assertEquals(hash1, hash2);
+        }
+    }
+
+    @Test
+    public void skipZero() throws Exception {
+        int nbBlocks = 2, blockSize = 16 * 1024;
+
+        File file1;
+        DbFile file2;
+
+        { // File on disk
+            file1 = new File("/tmp/test-" + (nbBlocks * blockSize));
+            file1.deleteOnExit();
+            try (OutputStream os = new FileOutputStream(file1)) {
+                writeFile(os, nbBlocks, blockSize, 256);
+            }
+        }
+        { // File on DB
+            file2 = new DbFile(new RegistryNode("/this/is/my/file-" + (nbBlocks * blockSize)).check());
+            try (OutputStream os = new DbFileOutputStream(file2)) {
+                writeFile(os, nbBlocks, blockSize, 256);
+            }
+        }
+
+        try (InputStream is1 = new FileInputStream(file1); InputStream is2 = new DbFileInputStream(file2)) {
+            is1.skip(0);
+            is2.skip(0);
+            String hash1 = Hashing.sha1(is1);
+            String hash2 = Hashing.sha1(is2);
+            Assert.assertEquals(hash1, hash2);
+        }
+    }
+
+    @Test
+    public void readReset() throws Exception {
+        int nbBlocks = 2, blockSize = 16 * 1024;
+
+        File file1;
+        DbFile file2;
+
+        { // File on disk
+            file1 = new File("/tmp/test-" + (nbBlocks * blockSize));
+            file1.deleteOnExit();
+            try (OutputStream os = new FileOutputStream(file1)) {
+                writeFile(os, nbBlocks, blockSize, 256);
+            }
+        }
+        { // File on DB
+            file2 = new DbFile(new RegistryNode("/this/is/my/file-" + (nbBlocks * blockSize)).check());
+            try (OutputStream os = new DbFileOutputStream(file2)) {
+                writeFile(os, nbBlocks, blockSize, 256);
+            }
+        }
+
+        try (InputStream is2 = new DbFileInputStream(file2)) {
+            for (int i = 0; i < 2; i++) {
+                is2.reset();
+                try (InputStream is1 = new FileInputStream(file1)) {
+                    String hash1 = Hashing.sha1(is1);
+                    String hash2 = Hashing.sha1(is2);
+                    Assert.assertEquals(hash1, hash2);
+                }
+            }
         }
     }
 

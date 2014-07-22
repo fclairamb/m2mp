@@ -62,22 +62,22 @@ public class DbFileInputStream extends InputStream {
     }
 
     private void getNextChunk() {
-        if (blockNb == -1) {
-            blockNb = 0;
-        }
-        getChunk(blockNb++);
+        getChunk(++blockNb);
         blockOffset = 0;
     }
 
     @Override
     public synchronized void reset() throws IOException {
         readOffset = 0;
-        blockNb = 0;
+        blockNb = -1;
         blockOffset = 0;
     }
 
     @Override
     public long skip(long n) throws IOException {
+
+        if (n == 0) return 0; // skip 0 has to be a no-op
+
         if (readOffset + n > size) {
             n = size - readOffset;
         }

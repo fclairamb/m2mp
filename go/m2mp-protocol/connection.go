@@ -402,7 +402,7 @@ func (pt *ProtoHandler) actualRecv() interface{} {
 
 				case 0x21, 0x41, 0x61: // Single byte array messages
 					{
-						return &MessageDataSimple{Channel: channelName, Data: buffer[1 : size-1]}
+						return &MessageDataSimple{Channel: channelName, Data: buffer[1:size]}
 					}
 				case 0x22, 0x42, 0x62: // Array of byte arrays messages
 					{

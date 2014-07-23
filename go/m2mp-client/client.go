@@ -31,7 +31,7 @@ func NewClient(target, ident string) *Client {
 	clt.status["cap"] = "sen"
 
 	if err := clt.loadSettings(); err != nil {
-		log.Debug("Settings: ", err)
+		log.Critical("Settings: %v", err)
 	}
 
 	return clt
@@ -143,6 +143,8 @@ func (c *Client) loadSettings() error {
 	// We open the file
 	fi, err := os.Open(SETTINGS_FILE)
 	if err != nil {
+		log.Warning("Recreating settings...")
+		c.settings = make(map[string]string)
 		return err
 	}
 	defer fi.Close()
@@ -154,12 +156,14 @@ func (c *Client) loadSettings() error {
 	dec := json.NewDecoder(r)
 
 	// Load the settings
-	return dec.Decode(&c.settings)
+	err = dec.Decode(&c.settings)
+
+	return err
 }
 
 func (c *Client) saveSettings() error {
 	// We open the file
-	fi, err := os.Open(SETTINGS_FILE)
+	fi, err := os.Create(SETTINGS_FILE)
 	if err != nil {
 		return err
 	}

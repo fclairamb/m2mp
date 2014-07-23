@@ -66,11 +66,15 @@ func console_handling() {
 		case "st":
 			handleSendText(channel, tokens[1])
 		case "sb":
-			handleSendBinary(channel, tokens[1])
+			if err := handleSendBinary(channel, tokens[1]); err != nil {
+				log.Warning("handleSendBinary: %v", err)
+			}
 		case "sat":
 			handleSendArrayText(channel, tokens[1])
 		case "sab":
-			handleSendArrayBin(channel, tokens[1])
+			if err := handleSendArrayBin(channel, tokens[1]); err != nil {
+				log.Warning("handleSendArrayBin: %v", err)
+			}
 		case "help":
 			log.Debug(`
 Help :

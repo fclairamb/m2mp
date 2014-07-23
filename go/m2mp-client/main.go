@@ -2,13 +2,49 @@ package main
 
 import (
 	"bufio"
+	"encoding/hex"
 	"fmt"
+	pr "github.com/fclairamb/m2mp/go/m2mp-protocol"
 	"os"
 	"strings"
 )
 
+func handleSendText(channel, data string) {
+	clt.Send <- &pr.MessageDataSimple{Channel: channel, Data: []byte(data)}
+}
+
+func handleSendBinary(channel, data string) error {
+	bin, err := hex.DecodeString(data)
+	if err == nil {
+		clt.Send <- &pr.MessageDataSimple{Channel: channel, Data: bin}
+	}
+	return err
+}
+
+func handleSendArrayText(channel, data string) {
+	msg := pr.NewMessageDataArray(channel)
+	for _, v := range strings.Split(data, " ") {
+		msg.AddString(v)
+	}
+	clt.Send <- msg
+}
+
+func handleSendArrayBin(channel, data string) error {
+	msg := pr.NewMessageDataArray(channel)
+	for _, v := range strings.Split(data, " ") {
+		if b, err := hex.DecodeString(v); err != nil {
+			msg.Add(b)
+		} else {
+			return err
+		}
+	}
+	clt.Send <- msg
+	return nil
+}
+
 func console_handling() {
 	in := bufio.NewReader(os.Stdin)
+	channel := "_default_"
 	for {
 		fmt.Printf("> ")
 		line, err := in.ReadString('\n')
@@ -19,23 +55,48 @@ func console_handling() {
 		line = strings.TrimRight(line, "\n")
 
 		tokens := strings.SplitN(line, " ", 2)
-		if tokens[0] == "" {
+
+		switch tokens[0] {
+		case "":
 			continue
-		} else if tokens[0] == "quit" {
+		case "quit":
 			waitForRc <- 0
-		} else {
-			log.Debug("\"%s\" not understood !", tokens[0])
+		case "channel":
+			channel = tokens[1]
+		case "st":
+			handleSendText(channel, tokens[1])
+		case "sb":
+			handleSendBinary(channel, tokens[1])
+		case "sat":
+			handleSendArrayText(channel, tokens[1])
+		case "sab":
+			handleSendArrayBin(channel, tokens[1])
+		case "help":
+			log.Debug(`
+Help :
+======
+* quit               - To quit
+* channel <channel>  - Change channel name
+* st      <data>     - Send text data on channel
+* sat     <array>    - Send an array of text data
+* sb      <data>     - Send binary data on channel
+* sab     <array>    - Send an array of binary data on channel
+`)
+		default:
+			log.Debug("%+v (%d) not understood !", tokens, len(tokens))
 		}
 	}
 }
 
 var waitForRc chan int
 
+var clt *Client
+
 func main() {
 	par := NewParameters()
 
 	waitForRc = make(chan int)
-	clt := NewClient(par.Server, par.Ident)
+	clt = NewClient(par.Server, par.Ident)
 	clt.Start()
 
 	if par.Console {

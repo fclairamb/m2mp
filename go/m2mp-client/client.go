@@ -15,6 +15,7 @@ import (
 type Client struct {
 	Conn      *pr.ProtoHandler
 	Recv      chan interface{}
+	Send      chan interface{}
 	Connected bool
 	ticker    *time.Ticker
 	Ident     string
@@ -25,7 +26,7 @@ type Client struct {
 func NewClient(target, ident string) *Client {
 	conn, _ := net.Dial("tcp", target)
 	handler := pr.NewProtoHandlerClient(conn)
-	clt := &Client{Conn: handler, Ident: ident, Recv: make(chan interface{}), ticker: time.NewTicker(time.Second * 30), status: make(map[string]string)}
+	clt := &Client{Conn: handler, Ident: ident, Recv: make(chan interface{}), Send: make(chan interface{}), ticker: time.NewTicker(time.Second * 30), status: make(map[string]string)}
 
 	clt.status["cap"] = "sen"
 
@@ -180,6 +181,8 @@ func (c *Client) setSetting(name, value string) error {
 	return c.saveSettings()
 }
 
+// Core go routine
+// This is the only method that is allowed to send data (use c.Conn.Send) in a safe way.
 func (c *Client) runCore() {
 	for {
 		if err := c.considerAction(); err != nil {
@@ -209,11 +212,25 @@ func (c *Client) runCore() {
 					{
 						c.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
 					}
+				case *pr.MessageDataSimple:
+					{
+						switch m.Channel {
+						case "echo":
+							{
+								log.Info("Echo from server: %s", string(m.Data))
+							}
+						}
+					}
 				}
 			}
 		case <-c.ticker.C:
 			{
-
+				log.Debug("Ticking...")
+			}
+		case msg := <-c.Send:
+			{
+				log.Debug("Sending %v", msg)
+				c.Conn.Send(msg)
 			}
 		}
 	}

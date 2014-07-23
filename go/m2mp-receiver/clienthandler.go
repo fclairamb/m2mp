@@ -113,7 +113,7 @@ func (ch *ClientHandler) considerCurrentStatus() {
 	if ch.LogLevel >= 5 {
 		log.Debug("%s - Considering current status (%s)", ch, now)
 	}
-	if now.Sub(ch.lastReceivedData) > time.Duration(time.Minute*1) &&
+	if now.Sub(ch.lastReceivedData) > time.Duration(time.Minute*15) &&
 		now.Sub(ch.lastSentData) > time.Duration(time.Second*30) {
 		ch.Send(&pr.MessagePingRequest{Data: ch.pingCounter})
 		ch.pingCounter += 1
@@ -243,7 +243,7 @@ func (ch *ClientHandler) handleData(msg *pr.MessageDataSimple) error {
 				if target := dct.GetTarget(msg.Channel); target != nil {
 					msg := mq.NewJsonWrapper()
 					msg.SetTo(*target)
-					msg.SetFrom(fmt.Sprintf(":conn:%d",ch.Id))
+					msg.SetFrom(fmt.Sprintf(":conn:%d", ch.Id))
 					msg.SetCall("data_simple")
 					ch.daddy.SendMessage(msg)
 					log.Debug("Sending %s", msg)

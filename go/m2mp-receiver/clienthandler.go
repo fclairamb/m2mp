@@ -199,7 +199,7 @@ func (ch *ClientHandler) getDeviceChannelTranslator() *ent.DeviceChannelTrans {
 }
 
 func (ch *ClientHandler) justIdentified() error {
-	err := ch.sendSettings()
+	err := ch.sendSettingsToSend()
 
 	if err == nil {
 		err = ch.sendCommands()
@@ -282,6 +282,10 @@ func (ch *ClientHandler) handleDataArraySettings(msg *pr.MessageDataArray) error
 
 	requestType := string(msg.Data[0])
 
+	if requestType == "ga" {
+		return ch.sendSettingsAll()
+	}
+
 	if strings.Contains(requestType, "g") {
 		for i := 1; i < len(msg.Data); i++ {
 			v := string(msg.Data[i])
@@ -341,11 +345,11 @@ func (ch *ClientHandler) handleDataArrayCommand(msg *pr.MessageDataArray) error 
 	return nil
 }
 
-func (ch *ClientHandler) sendSettings() error {
+func (ch *ClientHandler) sendSettings(settings map[string]string) error {
 	msg := pr.NewMessageDataArray("_set")
 	msg.AddString("sg")
 	c := 0
-	for k, v := range ch.device.SettingsToSend() {
+	for k, v := range settings {
 		msg.AddString(fmt.Sprintf("%s=%s", k, v))
 		c += 1
 	}
@@ -354,6 +358,15 @@ func (ch *ClientHandler) sendSettings() error {
 	} else {
 		return nil
 	}
+}
+
+func (ch *ClientHandler) sendSettingsToSend() error {
+	return ch.sendSettings(ch.device.SettingsToSend())
+}
+
+func (ch *ClientHandler) sendSettingsAll() error {
+	log.Info("%s - Sending all settings", ch)
+	return ch.sendSettings(ch.device.Settings())
 }
 
 func (ch *ClientHandler) checkSettings() error {

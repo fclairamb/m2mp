@@ -26,7 +26,7 @@ type Client struct {
 func NewClient(target, ident string) *Client {
 	conn, _ := net.Dial("tcp", target)
 	handler := pr.NewProtoHandlerClient(conn)
-	clt := &Client{Conn: handler, Ident: ident, Recv: make(chan interface{}), Send: make(chan interface{}), ticker: time.NewTicker(time.Second * 30), status: make(map[string]string)}
+	clt := &Client{Conn: handler, Ident: ident, Recv: make(chan interface{}), Send: make(chan interface{}), ticker: time.NewTicker(time.Minute), status: make(map[string]string)}
 
 	clt.status["cap"] = "sen"
 

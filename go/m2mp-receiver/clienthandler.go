@@ -75,7 +75,7 @@ func (ch *ClientHandler) end() {
 		m := mq.NewMessageEvent("device_disconnected")
 		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
-		m.Data.Set("connection_time", fmt.Sprint(int64(time.Now().UTC().Sub(ch.connectionTime).Seconds())))
+		m.Data.Set("connection_duration", fmt.Sprint(int64(time.Now().UTC().Sub(ch.connectionTime).Seconds())))
 		if ch.device != nil {
 			m.Data.Set("device_id", ch.device.Id())
 		}
@@ -115,6 +115,7 @@ func (ch *ClientHandler) considerCurrentStatus() {
 	}
 	if now.Sub(ch.lastReceivedData) > time.Duration(time.Minute*15) &&
 		now.Sub(ch.lastSentData) > time.Duration(time.Second*30) {
+		log.Debug("%s - Sending ping request", ch)
 		ch.Send(&pr.MessagePingRequest{Data: ch.pingCounter})
 		ch.pingCounter += 1
 	}

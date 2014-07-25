@@ -79,6 +79,17 @@ func handleSimpleCommand(line string) string {
 	case "nb":
 		return fmt.Sprint("Number of clients: ", server.NbClients())
 
+	case "help":
+		log.Info(`
+HELP:
+=====
+* quit            - To quit
+* gc              - Trigger garbage collector
+* pp mem          - Profile memory
+* pp rate <rate>  - Profile at a defined rate
+* mem             - Get memory stats
+* nb              - Get number of clients
+`)
 	default:
 		return fmt.Sprintf("\"%s\" not understood !\n", tokens[0])
 	}

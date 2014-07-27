@@ -234,27 +234,27 @@ class TimeSeries:
         return datetime.datetime.fromtimestamp(secs_epoch)
 
     @staticmethod
-    def date_to_period(date):
+    def time_to_date(date):
         if type(date) is uuid.UUID:
             date = TimeSeries.uuid1_to_date(date)
-        return date.year * 12 + date.month
+        return date.strftime("%Y-%m-%d")
 
     @staticmethod
-    def save(id, type, date, data):
-        period = TimeSeries.date_to_period(date)
+    def save(id, type, time, data):
+        date = TimeSeries.time_to_date(time)
         session.execute(
-            "insert into timeseries (id, period, type, date, data) values (%s, %s, %s, %s, %s);",
-            [id, period, type, date, data]
+            "insert into timeseries (id, type, date, time, data) values (%s, %s, %s, %s, %s);",
+            [id, type, date, time, data]
         )
 
         if type:
             session.execute(
-                "insert into timeseries (id, period, type, date, data) values (%s, %s, %s, %s, %s);",
-                [id + "!" + type, period, None, date, data]
+                "insert into timeseries (id, date, time, data) values (%s, %s, %s, %s);",
+                [id + "!" + type, date, time, data]
             )
 
         session.execute_async(
-            "insert into timeseries_index (id, type, period) values (%s, %s, %s);",
-            [id, type, period]
+            "insert into timeseries_index (id, type, date) values (%s, %s, %s);",
+            [id, type, date]
         )
 

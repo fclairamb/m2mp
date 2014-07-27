@@ -1,15 +1,21 @@
 package m2mpdb
 
 import (
+	"fmt"
 	"log"
+	"os"
 	"testing"
 	"time"
 )
 
+func init() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
+}
+
 func TestTimeSerieSaving(t *testing.T) {
 	NewSessionSimple("ks_test")
 	defer Close()
-	SaveTSTime("device", "location", time.Now().UTC(), "Hello boy")
+	SaveTSTime("device", "test", time.Now().UTC(), "Hello boy")
 }
 
 type Person struct {
@@ -42,4 +48,39 @@ func TestTimeSerieSavingObj(t *testing.T) {
 			log.Fatal(err)
 		}
 	}
+}
+
+func TestTimeSerieReading(t *testing.T) {
+	NewSessionSimple("ks_test")
+	defer Close()
+
+	initialTime := time.Now().UTC()
+
+	id := "device-" + getUUID()
+
+	var i time.Duration
+	for i = 0; i < 10; i++ {
+		time := initialTime.Add(i * time.Hour)
+		log.Println("Inserting", time, "...")
+		SaveTSTime(id, "test", time, "Hello you !")
+	}
+
+	iter := NewTSDataIterator(id, "", nil, nil, false)
+	defer iter.Close()
+
+	var td TimedData
+	for iter.Scan(&td) {
+		log.Println("td: ", td, "(", td.Time(), ")")
+	}
+}
+
+func getUUID() string {
+	f, err := os.Open("/dev/urandom")
+	if err != nil {
+		return ""
+	}
+	defer f.Close()
+	b := make([]byte, 16)
+	f.Read(b)
+	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 }

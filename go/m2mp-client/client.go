@@ -15,6 +15,7 @@ import (
 type Client struct {
 	Conn      *pr.ProtoHandler
 	Recv      chan interface{}
+	Send      chan interface{}
 	Connected bool
 	ticker    *time.Ticker
 	Ident     string
@@ -25,12 +26,12 @@ type Client struct {
 func NewClient(target, ident string) *Client {
 	conn, _ := net.Dial("tcp", target)
 	handler := pr.NewProtoHandlerClient(conn)
-	clt := &Client{Conn: handler, Ident: ident, Recv: make(chan interface{}), ticker: time.NewTicker(time.Second * 30), status: make(map[string]string)}
+	clt := &Client{Conn: handler, Ident: ident, Recv: make(chan interface{}), Send: make(chan interface{}), ticker: time.NewTicker(time.Minute), status: make(map[string]string)}
 
 	clt.status["cap"] = "sen"
 
 	if err := clt.loadSettings(); err != nil {
-		log.Debug("Settings: ", err)
+		log.Critical("Settings: %v", err)
 	}
 
 	return clt
@@ -53,7 +54,7 @@ func (c *Client) runRecv() {
 		case *pr.EventDisconnected:
 			return
 		case *pr.MessageDataArray:
-			if m.Channel == "__sta" { // If we are on the status channel, we handle things directly
+			if m.Channel == "_sta" { // If we are on the status channel, we handle things directly
 				requestType := string(m.Data[0])
 				if requestType == "g" {
 					name := string(m.Data[1])
@@ -142,6 +143,8 @@ func (c *Client) loadSettings() error {
 	// We open the file
 	fi, err := os.Open(SETTINGS_FILE)
 	if err != nil {
+		log.Warning("Recreating settings...")
+		c.settings = make(map[string]string)
 		return err
 	}
 	defer fi.Close()
@@ -153,12 +156,14 @@ func (c *Client) loadSettings() error {
 	dec := json.NewDecoder(r)
 
 	// Load the settings
-	return dec.Decode(&c.settings)
+	err = dec.Decode(&c.settings)
+
+	return err
 }
 
 func (c *Client) saveSettings() error {
 	// We open the file
-	fi, err := os.Open(SETTINGS_FILE)
+	fi, err := os.Create(SETTINGS_FILE)
 	if err != nil {
 		return err
 	}
@@ -180,6 +185,8 @@ func (c *Client) setSetting(name, value string) error {
 	return c.saveSettings()
 }
 
+// Core go routine
+// This is the only method that is allowed to send data (use c.Conn.Send) in a safe way.
 func (c *Client) runCore() {
 	for {
 		if err := c.considerAction(); err != nil {
@@ -188,27 +195,47 @@ func (c *Client) runCore() {
 		}
 		select {
 		case msg := <-c.Recv:
-		{
-			switch m := msg.(type) {
-			case *pr.EventDisconnected:
 			{
-				log.Error("We got disconnected !")
-				break
-			}
-			case *pr.MessageIdentResponse:
-			{
-				c.Connected = m.Ok
-			}
-			case *pr.MessagePingRequest:
-			{
-				c.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
-			}
-			}
-		}
-		case <-c.ticker.C:
-		{
+				switch m := msg.(type) {
+				case *pr.EventDisconnected:
+					{
+						log.Error("We got disconnected !")
+						break
+					}
+				case *pr.MessageIdentResponse:
+					{
+						c.Connected = m.Ok
 
-		}
+						if c.Connected {
+							log.Notice("We are identified to %s !", c.Conn)
+						} else {
+							log.Warning("We got refused !")
+						}
+					}
+				case *pr.MessagePingRequest:
+					{
+						c.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
+					}
+				case *pr.MessageDataSimple:
+					{
+						switch m.Channel {
+						case "echo":
+							{
+								log.Info("Echo from server: %s", string(m.Data))
+							}
+						}
+					}
+				}
+			}
+		case <-c.ticker.C:
+			{
+				log.Debug("Ticking...")
+			}
+		case msg := <-c.Send:
+			{
+				log.Debug("Sending %v", msg)
+				c.Conn.Send(msg)
+			}
 		}
 	}
 }

@@ -45,7 +45,7 @@ func (s *Server) acceptIncomingConnections() {
 			continue
 		}
 		s.handleIncomingConnection(conn)
-		log.Debug("Number of clients:", s.NbClients())
+		log.Debug("Number of clients: %d", s.NbClients())
 	}
 }
 

@@ -52,10 +52,19 @@ func (jw *JsonWrapper) SetCall(call string) {
 	jw.Data.Set("call", call)
 }
 
-func (jw *JsonWrapper) Check() error {
-	mandatoryFields := []string{"from", "to", "call"}
+func (jw *JsonWrapper) SetVS(key string, value string) {
+	jw.Data.Set(key, value)
+}
 
-	for _, field := range mandatoryFields {
+var MANDATORY_FIELDS []string
+
+func init() {
+	MANDATORY_FIELDS = []string{"from", "to", "call"}
+}
+
+func (jw *JsonWrapper) Check() error {
+
+	for _, field := range MANDATORY_FIELDS {
 		if _, err := jw.Data.Get(field).String(); err != nil {
 			return errors.New(fmt.Sprint("Invalid field ", field))
 		}

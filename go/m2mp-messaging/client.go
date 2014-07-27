@@ -1,10 +1,10 @@
 package m2mpmsg
 
 import (
-	nsq "github.com/bitly/go-nsq"
-	"github.com/likexian/simplejson"
 	"errors"
 	"fmt"
+	nsq "github.com/bitly/go-nsq"
+	"github.com/likexian/simplejson"
 	"os"
 	"strings"
 )
@@ -41,7 +41,7 @@ func NewClient(topic, channel string) (clt *Client, err error) {
 	}
 	clt.reader.AddHandler(clt)
 
-	clt.from = clt.reader.TopicName+"/"+clt.reader.ChannelName
+	clt.from = clt.reader.TopicName + "/" + clt.reader.ChannelName
 
 	return
 }

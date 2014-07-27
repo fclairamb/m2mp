@@ -35,7 +35,7 @@ public class TimeSerie {
             @Override
             public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
                 List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
-                list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE timeseries (\n" +
+                list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_TIMESERIES + " (\n" +
                         "  id text,\n" +
                         "  date text,\n" +
                         "  time timeuuid,\n" +
@@ -44,7 +44,7 @@ public class TimeSerie {
                         "  PRIMARY KEY ((id, date), time)\n" +
                         ") WITH CLUSTERING ORDER BY (time DESC);"));
 
-                list.add(new TableIncrementalDefinition.TableChange(2, "CREATE TABLE timeseries_index (\n" +
+                list.add(new TableIncrementalDefinition.TableChange(2, "CREATE TABLE " + TABLE_TIMESERIES_INDEX + " (\n" +
                         "  id text,\n" +
                         "  date text,\n" +
                         "  type text,\n" +

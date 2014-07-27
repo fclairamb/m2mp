@@ -14,7 +14,7 @@ func TestSessionSimple(t *testing.T) {
 
 func TestSessionWithGoCQLSession(t *testing.T) {
 	cluster := gocql.NewCluster("localhost")
-	cluster.Keyspace = "m2mp_v2"
+	cluster.Keyspace = "ks_test"
 	cluster.Consistency = gocql.One
 	session, _ := cluster.CreateSession()
 	NewSession(session)

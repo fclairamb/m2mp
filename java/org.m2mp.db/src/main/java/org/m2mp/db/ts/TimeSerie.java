@@ -311,11 +311,11 @@ public class TimeSerie {
      * Get a precise data.
      *
      * @param id   Identifier
-     * @param date Date
+     * @param time Date
      * @return data or null if not found
      */
-    public static TimedData getData(String id, UUID date) {
-        ResultSet result = DB.execute(DB.prepare("SELECT id, type, date, data FROM " + TABLE_TIMESERIES + " WHERE id = ? AND period = ? AND date = ?;").bind(id, dateToDate10(date), date));
+    public static TimedData getData(String id, UUID time) {
+        ResultSet result = DB.execute(DB.prepare("SELECT id, type, date, data FROM " + TABLE_TIMESERIES + " WHERE id = ? AND date = ? AND time = ?;").bind(id, dateToDate10(time), time));
         for (Row row : result) {
             return new TimedData(row.getString(0), row.getString(1), row.getUUID(2), row.getString(3));
         }

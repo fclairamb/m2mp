@@ -22,7 +22,7 @@ import static org.m2mp.db.ts.TimeSerie.TABLE_TIMESERIES;
 public class TSDataIterator implements Iterator<TimedData> {
 
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     /**
      * Key of the serie
@@ -121,7 +121,6 @@ public class TSDataIterator implements Iterator<TimedData> {
     public TimedData next() {
         Row row = iter.next();
         TimedData td = new TimedData(row.getString(0), row.getString(2), row.getUUID(1), row.getString(3));
-        System.out.println("TD: " + td);
         return td;
     }
 

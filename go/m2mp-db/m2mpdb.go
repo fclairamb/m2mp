@@ -25,7 +25,7 @@ func NewSessionSimple(keyspace string) error {
 	cluster := gocql.NewCluster("localhost")
 	cluster.Keyspace = keyspace
 	cluster.Consistency = gocql.One
-	cluster.StartupTimeout = 20 * time.Second
+	cluster.Timeout = time.Second * 20
 	session, err := cluster.CreateSession()
 
 	if err == nil {

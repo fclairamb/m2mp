@@ -40,7 +40,7 @@ public class TimeSerieTest {
         TimeSerie.save(new TimedData(id, null, "{\"lat\":48.8,\"lon\":2.5,\"_type\":\"loc\"}"));
     }
 
-    //@Test
+    @Test
     public void insert1000Strings() throws InterruptedException {
         String id = "insert-with-type";
         Date d = new Date();

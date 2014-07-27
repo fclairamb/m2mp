@@ -40,7 +40,7 @@ public class TimeSerieTest {
         TimeSerie.save(new TimedData(id, null, "{\"lat\":48.8,\"lon\":2.5,\"_type\":\"loc\"}"));
     }
 
-    @Test
+    //@Test
     public void insert1000Strings() throws InterruptedException {
         String id = "insert-with-type";
         Date d = new Date();
@@ -67,7 +67,7 @@ public class TimeSerieTest {
         TimeSerie.save(new TimedData(id, "loc", d2, map2));
     }
 
-    private long PERIOD = 47 * 3600 * 1000;
+    private long PERIOD = 3 * 3600 * 1000;
 
     private void insertData(String id) {
         int COUNT = 100;
@@ -175,6 +175,7 @@ public class TimeSerieTest {
     @Test
     public void searchWithinRange() throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         String id = "dev-" + UUID.randomUUID();
         TimedData first, last;
@@ -208,6 +209,7 @@ public class TimeSerieTest {
     @Test
     public void deleteAll() throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         String id = "dev-" + UUID.randomUUID();
         insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
         insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
@@ -304,20 +306,19 @@ public class TimeSerieTest {
     public void deletePreciselyByPeriod() throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String id = "dev-" + UUID.randomUUID();
-        insertData(id, "a-", sdf.parse("2013-07-31 00:00:00"));
-        insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
-        insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
-        insertData(id, "c", sdf.parse("2013-08-04 00:00:00"));
-        insertData(id, "d", sdf.parse("2013-08-29 00:00:00"));
-        insertData(id, "e", sdf.parse("2013-08-30 00:00:00"));
-        insertData(id, "f", sdf.parse("2013-08-31 00:00:00"));
-        insertData(id, "a+", sdf.parse("2013-09-01 00:00:00"));
+        insertData(id, "a-", sdf.parse("2013-08-01 00:00:00"));
+        insertData(id, "a", sdf.parse("2013-08-02 00:01:00"));
+        insertData(id, "b", sdf.parse("2013-08-02 00:02:00"));
+        insertData(id, "c", sdf.parse("2013-08-02 00:03:00"));
+        insertData(id, "d", sdf.parse("2013-08-02 00:04:00"));
+        insertData(id, "e", sdf.parse("2013-08-02 00:05:00"));
+        insertData(id, "f", sdf.parse("2013-08-02 00:06:00"));
+        insertData(id, "f+", sdf.parse("2013-08-03 00:00:00"));
 
         Assert.assertEquals(8, Lists.newArrayList(TimeSerie.getData(id)).size());
 
         {// We delete the data for a period
-            int period = 2013 * 12 + 8;
-            for (TimedData td : TimeSerie.getData(id, null, period, true)) {
+            for (TimedData td : TimeSerie.getData(id, null, "2013-08-02", true)) {
                 Assert.assertEquals(1, ((String) td.getJsonMap().get("mark")).length());
                 td.delete();
             }
@@ -326,24 +327,25 @@ public class TimeSerieTest {
         Assert.assertEquals(2, Lists.newArrayList(TimeSerie.getData(id)).size());
     }
 
+
     @Test
     public void getPrecisely() throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         String id = "dev-" + UUID.randomUUID();
         insertData(id, "a-", sdf.parse("2013-07-31 00:00:00"));
-        insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
-        insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
-        insertData(id, "c", sdf.parse("2013-08-04 00:00:00"));
-        insertData(id, "d", sdf.parse("2013-08-29 00:00:00"));
-        insertData(id, "e", sdf.parse("2013-08-30 00:00:00"));
-        insertData(id, "f", sdf.parse("2013-08-31 00:00:00"));
-        insertData(id, "a+", sdf.parse("2013-09-01 00:00:00"));
+        insertData(id, "a", sdf.parse("2013-08-02 00:01:00"));
+        insertData(id, "b", sdf.parse("2013-08-02 00:02:00"));
+        insertData(id, "c", sdf.parse("2013-08-02 00:03:00"));
+        insertData(id, "d", sdf.parse("2013-08-02 00:04:00"));
+        insertData(id, "e", sdf.parse("2013-08-02 00:05:00"));
+        insertData(id, "f", sdf.parse("2013-08-02 00:06:00"));
+        insertData(id, "f+", sdf.parse("2013-09-01 00:00:00"));
 
         Assert.assertEquals(8, Lists.newArrayList(TimeSerie.getData(id)).size());
 
         {// We delete the data for a period
-            int period = 2013 * 12 + 8;
-            for (TimedData td : TimeSerie.getData(id, null, period, true)) {
+            for (TimedData td : TimeSerie.getData(id, null, "2013-08-02", true)) {
                 TimedData td2 = TimeSerie.getData(td.getId(), td.getDateUUID());
                 Assert.assertTrue(td != td2); // Not the same instance
                 Assert.assertEquals(td.getData(), td2.getData()); // Same data
@@ -355,14 +357,9 @@ public class TimeSerieTest {
     }
 
     @Test
-    public void periodTest() throws Exception {
-        int period = 2013 * 12 + 9;
-        Assert.assertEquals("2013-09", TimeSerie.periodToMonth(period));
-    }
-
-    @Test
     public void replaceEventTest() throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         String id = "dev-" + UUID.randomUUID();
         insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
         insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));

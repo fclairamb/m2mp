@@ -4,11 +4,13 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.utils.UUIDs;
+import org.apache.commons.lang.time.FastDateFormat;
 import org.m2mp.db.DB;
 import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -33,8 +35,21 @@ public class TimeSerie {
             @Override
             public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
                 List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
-                list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_TIMESERIES + " ( id text, period int, type text, date timeuuid, data text, PRIMARY KEY ((id, period), date) ) WITH CLUSTERING ORDER BY (date DESC);"));
-                list.add(new TableIncrementalDefinition.TableChange(2, "CREATE TABLE " + TABLE_TIMESERIES_INDEX + " ( id text, period int, type text, PRIMARY KEY (id, period) ) WITH CLUSTERING ORDER BY (period DESC)"));
+                list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_TIMESERIES + " (\n" +
+                        "  id text,\n" +
+                        "  date text,\n" +
+                        "  time timeuuid,\n" +
+                        "  data text,\n" +
+                        "  type text,\n" +
+                        "  PRIMARY KEY ((id, date), time)\n" +
+                        ") WITH CLUSTERING ORDER BY (time DESC);"));
+
+                list.add(new TableIncrementalDefinition.TableChange(2, "CREATE TABLE " + TABLE_TIMESERIES_INDEX + " (\n" +
+                        "  id text,\n" +
+                        "  date text,\n" +
+                        "  type text,\n" +
+                        "  PRIMARY KEY ((id), date)\n" +
+                        ") WITH CLUSTERING ORDER BY (date DESC);"));
                 return list;
             }
 
@@ -51,35 +66,32 @@ public class TimeSerie {
      * @param date Date
      * @return period
      */
-    static int dateToPeriod(UUID date) {
-        return dateToPeriod(new Date(UUIDs.unixTimestamp(date)));
+    static String dateToDate10(UUID date) {
+        return DATE_FORMAT.format(UUIDs.unixTimestamp(date));
     }
 
-    /**
-     * Convert a date to a period
-     *
-     * @param date Date
-     * @return period
-     */
-    public static int dateToPeriod(Date date) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(date);
-        int period = cal.get(Calendar.YEAR) * 12 + (cal.get(Calendar.MONTH) + 1);
-        return period;
+    static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd", TimeZone.getTimeZone("UTC"));
+
+    private static Calendar date10ToCalendar(String date) {
+        try {
+            Date d = new SimpleDateFormat("yyyy-MM-dd").parse(date);
+
+            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+
+            cal.setTime(d);
+
+            return cal;
+        } catch (ParseException ex) {
+            System.err.println(ex); // No logging in this class
+        }
+        return null;
     }
 
-    private static Calendar periodToCalendar(int period) {
-        int year = period / 12;
-        int month = period - (year * 12);
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, year);
-        cal.set(Calendar.MONTH, month - 1);
-        return cal;
-    }
-
+    /*
     public static String periodToMonth(int period) {
-        return new SimpleDateFormat("yyyy-MM").format(periodToCalendar(period).getTime());
+        return new SimpleDateFormat("yyyy-MM").format(date10ToCalendar(period).getTime());
     }
+    */
 
     /**
      * Save a timed data
@@ -100,32 +112,32 @@ public class TimeSerie {
     }
 
     public static void save(String id, String type, UUID date, String data) {
-        int period = dateToPeriod(date);
-        PreparedStatement reqInsert = DB.prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, period, type, date, data ) VALUES ( ?, ?, ?, ?, ? );");
+        String date10 = dateToDate10(date);
+        PreparedStatement reqInsert = DB.prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, date, time, type, data ) VALUES ( ?, ?, ?, ?, ? );");
 
         // We insert it once
-        DB.execute(reqInsert.bind(id, period, type, date, data));
+        DB.execute(reqInsert.bind(id, date10, date, type, data));
 
         // And also an other time if a type was specified
         if (type != null) {
-            DB.execute(reqInsert.bind(id + "!" + type, period, type, date, data));
+            DB.execute(reqInsert.bind(id + "!" + type, date10, date, type, data));
         }
 
         // We don't really care if it could be executed or not, what matters is that we have at least one period per id + type saved
-        DB.executeLater(DB.prepare("INSERT INTO " + TABLE_TIMESERIES_INDEX + " ( id, type, period ) VALUES( ?, ?, ? );").bind(id, type, period));
+        DB.execute(DB.prepare("INSERT INTO " + TABLE_TIMESERIES_INDEX + " ( id, type, date ) VALUES( ?, ?, ? );").bind(id, type, date10));
     }
 
     /**
      * Delete all data around a period.
      *
-     * @param period Period to delete
+     * @param date Period to delete
      * @param id     Identifier of the data
      * @param type   Type of the data
      */
-    public static void delete(int period, String id, String type) {
-        DB.execute(DB.prepare("DELETE FROM " + TABLE_TIMESERIES + " WHERE id=? AND period=?;").bind(id, period));
+    public static void delete(String date, String id, String type) {
+        DB.execute(DB.prepare("DELETE FROM " + TABLE_TIMESERIES + " WHERE id=? AND date=?;").bind(id, date));
         if (type != null) {
-            DB.execute(DB.prepare("DELETE FROM " + TABLE_TIMESERIES + " WHERE id=? AND period=?;").bind(id + "!" + type, period));
+            DB.execute(DB.prepare("DELETE FROM " + TABLE_TIMESERIES + " WHERE id=? AND date=?;").bind(id + "!" + type, date));
         }
     }
 
@@ -137,10 +149,10 @@ public class TimeSerie {
      * @param type Type of the data
      */
     public static void delete(String id, String type, UUID date) {
-        int period = dateToPeriod(date);
-        DB.execute(DB.prepare("DELETE FROM " + TABLE_TIMESERIES + " WHERE id=? AND period=? AND date=?;").bind(id, period, date));
+        String date10 = dateToDate10(date);
+        DB.execute(DB.prepare("DELETE FROM " + TABLE_TIMESERIES + " WHERE id=? AND date=? AND time=?;").bind(id, date10, date));
         if (type != null) {
-            DB.execute(DB.prepare("DELETE FROM " + TABLE_TIMESERIES + " WHERE id=? AND period=? AND date=?;").bind(id + "!" + type, period, date));
+            DB.execute(DB.prepare("DELETE FROM " + TABLE_TIMESERIES + " WHERE id=? AND date=? AND time=?;").bind(id + "!" + type, date10, date));
         }
     }
 
@@ -178,15 +190,7 @@ public class TimeSerie {
      * @param toDate   Ending date
      */
     public static void deleteRoughly(String id, String type, Date fromDate, Date toDate) {
-        if (fromDate == null) { // No start == 10 years back
-            fromDate = new Date(System.currentTimeMillis() - 10L * 365 * 24 * 3600 * 1000);
-        }
-        if (toDate == null) { // No stop == 1 year after now
-            toDate = new Date(System.currentTimeMillis() + 365L * 24 * 3600 * 1000);
-        }
-        int fromPeriod = dateToPeriod(fromDate), toPeriod = dateToPeriod(toDate);
-
-        for (int period = fromPeriod; period <= toPeriod; period++) {
+        for (String period : new TSPeriodIterable(id, type, fromDate, toDate, true)) {
             delete(period, id, type);
         }
     }
@@ -245,20 +249,19 @@ public class TimeSerie {
     }
 
     /**
-     * Get some data around an identifier and a specific period (a month in the
-     * current implementation)
+     * Get some data around an identifier and a specific date
      *
      * @param id      Identifier
      * @param type    Type of data
-     * @param period  Period considered
+     * @param date10  Period considered
      * @param reverse Order of listing
      * @return
      */
-    public static Iterable<TimedData> getData(String id, String type, int period, boolean reverse) {
-        Calendar cal = periodToCalendar(period);
+    public static Iterable<TimedData> getData(String id, String type, String date10, boolean reverse) {
+        Calendar cal = date10ToCalendar(date10);
         Date begin, end;
         {
-            cal.set(Calendar.DAY_OF_MONTH, cal.getActualMinimum(Calendar.DAY_OF_MONTH));
+            //cal.set(Calendar.DAY_OF_MONTH, cal.getActualMinimum(Calendar.DAY_OF_MONTH));
             cal.set(Calendar.HOUR, cal.getActualMinimum(Calendar.HOUR));
             cal.set(Calendar.MINUTE, cal.getActualMinimum(Calendar.MINUTE));
             cal.set(Calendar.SECOND, cal.getActualMinimum(Calendar.SECOND));
@@ -266,7 +269,7 @@ public class TimeSerie {
             begin = cal.getTime();
         }
         {
-            cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+            //cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
             cal.set(Calendar.HOUR, cal.getActualMaximum(Calendar.HOUR));
             cal.set(Calendar.MINUTE, cal.getActualMaximum(Calendar.MINUTE));
             cal.set(Calendar.SECOND, cal.getActualMaximum(Calendar.SECOND));
@@ -312,7 +315,7 @@ public class TimeSerie {
      * @return data or null if not found
      */
     public static TimedData getData(String id, UUID date) {
-        ResultSet result = DB.execute(DB.prepare("SELECT id, type, date, data FROM " + TABLE_TIMESERIES + " WHERE id = ? AND period = ? AND date = ?;").bind(id, dateToPeriod(date), date));
+        ResultSet result = DB.execute(DB.prepare("SELECT id, type, date, data FROM " + TABLE_TIMESERIES + " WHERE id = ? AND period = ? AND date = ?;").bind(id, dateToDate10(date), date));
         for (Row row : result) {
             return new TimedData(row.getString(0), row.getString(1), row.getUUID(2), row.getString(3));
         }
@@ -320,8 +323,8 @@ public class TimeSerie {
     }
 
 
-    public static final String TABLE_TIMESERIES = "TimeSeries";
-    public static final String TABLE_TIMESERIES_INDEX = "TimeSeries_Index";
+    public static final String TABLE_TIMESERIES = "timeseries";
+    public static final String TABLE_TIMESERIES_INDEX = "timeseries_index";
 
 
 }

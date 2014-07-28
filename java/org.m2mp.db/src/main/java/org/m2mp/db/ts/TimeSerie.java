@@ -315,7 +315,7 @@ public class TimeSerie {
      * @return data or null if not found
      */
     public static TimedData getData(String id, UUID time) {
-        ResultSet result = DB.execute(DB.prepare("SELECT id, type, date, data FROM " + TABLE_TIMESERIES + " WHERE id = ? AND date = ? AND time = ?;").bind(id, dateToDate10(time), time));
+        ResultSet result = DB.execute(DB.prepare("SELECT id, type, time, data FROM " + TABLE_TIMESERIES + " WHERE id = ? AND date = ? AND time = ?;").bind(id, dateToDate10(time), time));
         for (Row row : result) {
             return new TimedData(row.getString(0), row.getString(1), row.getUUID(2), row.getString(3));
         }

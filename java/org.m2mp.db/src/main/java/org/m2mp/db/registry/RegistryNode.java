@@ -82,6 +82,11 @@ public class RegistryNode {
         delete(false);
     }
 
+    /**
+     * Check if it's a file.
+     *
+     * @return If it's a file
+     */
     public boolean isFile() {
         return getProperty(RegistryNode.PROPERTY_IS_FILE, false);
     }

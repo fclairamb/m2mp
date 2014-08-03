@@ -27,6 +27,8 @@ public class TSDataIterator implements Iterator<TimedData> {
     /**
      * Key of the serie
      */
+    private final String id;
+    private final String type;
     private final String key;
     private final UUID /**
      * Beginning date
@@ -66,6 +68,8 @@ public class TSDataIterator implements Iterator<TimedData> {
      * @param inverted  Inversion: true to go from end to beginning
      */
     TSDataIterator(String id, String type, UUID dateBegin, UUID dateEnd, boolean inverted) {
+        this.id = id;
+        this.type = type;
         this.key = id + (type != null ? "!" + type : "");
         this.dateBegin = dateBegin != null ? dateBegin : UUIDs.startOf(System.currentTimeMillis() - (1000L * 3600 * 24 * 365 * 2)); // By default, 2 years back, at most 25 empty periods
         this.dateEnd = dateEnd != null ? dateEnd : UUIDs.endOf(System.currentTimeMillis() + (1000L * 3600 * 24 * 7)); // By default, 7 days ahead, at most 1 empty period
@@ -120,7 +124,10 @@ public class TSDataIterator implements Iterator<TimedData> {
     @Override
     public TimedData next() {
         Row row = iter.next();
-        TimedData td = new TimedData(row.getString(0), row.getString(2), row.getUUID(1), row.getString(3));
+        String type = row.getString(0);
+        if (type == null)
+            type = this.type;
+        TimedData td = new TimedData(id, type, row.getUUID(1), row.getString(2));
         return td;
     }
 
@@ -128,7 +135,7 @@ public class TSDataIterator implements Iterator<TimedData> {
     public void remove() {
     }
 
-    private static final String SELECT_COMMON = "SELECT id, time, type, data FROM " + TABLE_TIMESERIES + " WHERE id = ? AND date = ? AND time > ? AND time < ? ORDER BY time";
+    private static final String SELECT_COMMON = "SELECT type, time, data FROM " + TABLE_TIMESERIES + " WHERE id = ? AND date = ? AND time > ? AND time < ? ORDER BY time";
 
     public PreparedStatement reqSelectOrderAsc() {
         if (reqSelectOrderAsc == null) {

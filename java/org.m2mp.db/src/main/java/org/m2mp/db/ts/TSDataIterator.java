@@ -72,7 +72,7 @@ public class TSDataIterator implements Iterator<TimedData> {
         //this.periodBegin = ;
         //this.periodEnd = ;
         this.inverted = inverted;
-        this.periodIterator = new TSPeriodIterator(key, type, uuidToDate(this.dateBegin), uuidToDate(this.dateEnd), this.inverted);
+        this.periodIterator = new TSPeriodIterator(id, type, uuidToDate(this.dateBegin), uuidToDate(this.dateEnd), this.inverted);
 
         // We're either starting from the end or the beginning
         // inverted : from periodEnd to periodBegin

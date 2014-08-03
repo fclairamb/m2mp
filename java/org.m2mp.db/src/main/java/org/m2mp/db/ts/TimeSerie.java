@@ -48,7 +48,6 @@ public class TimeSerie {
                 list.add(new TableIncrementalDefinition.TableChange(2, "CREATE TABLE " + TABLE_TIMESERIES_INDEX + " (\n" +
                         "  id text,\n" +
                         "  date text,\n" +
-                        "  type text,\n" +
                         "  PRIMARY KEY ((id), date)\n" +
                         ") WITH CLUSTERING ORDER BY (date DESC);"));
                 return list;
@@ -114,12 +113,12 @@ public class TimeSerie {
 
     private static final ConcurrentSkipListSet index = new ConcurrentSkipListSet();
 
-    private static void saveIndex(String id, String type, String date10) {
+    private static void saveIndex(String id, String date10) {
         String key = date10 + id;
 
         // We only save the index once (because it should only happen once per day per id/type)
         if (!index.contains(key)) {
-            DB.execute(DB.prepare("INSERT INTO " + TABLE_TIMESERIES_INDEX + " ( id, type, date ) VALUES( ?, ?, ? );").bind(id, type, date10));
+            DB.execute(DB.prepare("INSERT INTO " + TABLE_TIMESERIES_INDEX + " ( id, date ) VALUES( ?, ? );").bind(id, date10));
             index.add(key);
             if (index.size() > 100) {
                 index.clear();
@@ -135,7 +134,7 @@ public class TimeSerie {
         DB.execute(reqInsert.bind(id, date10, date, type, data));
 
         // We don't really care if it could be executed or not, what matters is that we have at least one period per id + type saved
-        saveIndex(id, type, date10);
+        saveIndex(id, date10);
 
         // And also an other time if a type was specified
         if (type != null) {

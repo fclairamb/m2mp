@@ -46,7 +46,7 @@ public class TimeSerieTest {
         Date d = new Date();
         for (int i = 0; i < 1000; i++) {
             d.setTime(d.getTime() + 8000);
-            TimeSerie.save(new TimedData(id, "loc", d, "{\"lat\":48.8,\"lon\":2.5,\"date_plus\":\""+d+"\", \"ok\":true}"));
+            TimeSerie.save(new TimedData(id, "loc", d, "{\"lat\":48.8,\"lon\":2.5,\"date_plus\":\"" + d + "\", \"ok\":true}"));
         }
     }
 
@@ -163,11 +163,11 @@ public class TimeSerieTest {
         Assert.assertEquals(100, nb);
     }
 
-    private TimedData insertData(String id, String mark, Date date) {
+    private TimedData insertData(String id, String type, String mark, Date date) {
         Map<String, Object> map = new TreeMap<>();
         map.put("mark", mark);
         map.put("date", "" + date);
-        TimedData td = new TimedData(id, null, date, map);
+        TimedData td = new TimedData(id, type, date, map);
         TimeSerie.save(td);
         return td;
     }
@@ -179,12 +179,12 @@ public class TimeSerieTest {
 
         String id = "dev-" + UUID.randomUUID();
         TimedData first, last;
-        first = insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
-        insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
-        insertData(id, "c", sdf.parse("2013-08-04 00:00:00"));
-        insertData(id, "d", sdf.parse("2013-08-05 00:00:00"));
-        insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
-        last = insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
+        first = insertData(id, null, "a", sdf.parse("2013-08-02 00:00:00"));
+        insertData(id, null, "b", sdf.parse("2013-08-03 00:00:00"));
+        insertData(id, null, "c", sdf.parse("2013-08-04 00:00:00"));
+        insertData(id, null, "d", sdf.parse("2013-08-05 00:00:00"));
+        insertData(id, null, "e", sdf.parse("2013-08-06 00:00:00"));
+        last = insertData(id, null, "f", sdf.parse("2013-08-07 00:00:00"));
         { // We want to test the complete range
             ArrayList<TimedData> results = Lists.newArrayList(TimeSerie.getData(id, null, sdf.parse("2013-08-01 23:59:59"), sdf.parse("2013-08-07 00:00:01"), false));
             Assert.assertEquals(6, results.size());
@@ -211,12 +211,12 @@ public class TimeSerieTest {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         String id = "dev-" + UUID.randomUUID();
-        insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
-        insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
-        insertData(id, "c", sdf.parse("2013-08-04 00:00:00"));
-        insertData(id, "d", sdf.parse("2013-08-05 00:00:00"));
-        insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
-        insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
+        insertData(id, null, "a", sdf.parse("2013-08-02 00:00:00"));
+        insertData(id, null, "b", sdf.parse("2013-08-03 00:00:00"));
+        insertData(id, null, "c", sdf.parse("2013-08-04 00:00:00"));
+        insertData(id, null, "d", sdf.parse("2013-08-05 00:00:00"));
+        insertData(id, null, "e", sdf.parse("2013-08-06 00:00:00"));
+        insertData(id, null, "f", sdf.parse("2013-08-07 00:00:00"));
         Assert.assertEquals(6, Lists.newArrayList(TimeSerie.getData(id)).size());
 
         // We delete everything (10 years back)
@@ -229,12 +229,12 @@ public class TimeSerieTest {
     public void deletePreciselyHalf() throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String id = "dev-" + UUID.randomUUID();
-        insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
-        insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
-        insertData(id, "c", sdf.parse("2013-08-04 00:00:00"));
-        insertData(id, "d", sdf.parse("2013-08-05 00:00:00"));
-        insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
-        insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
+        insertData(id, null, "a", sdf.parse("2013-08-02 00:00:00"));
+        insertData(id, null, "b", sdf.parse("2013-08-03 00:00:00"));
+        insertData(id, null, "c", sdf.parse("2013-08-04 00:00:00"));
+        insertData(id, null, "d", sdf.parse("2013-08-05 00:00:00"));
+        insertData(id, null, "e", sdf.parse("2013-08-06 00:00:00"));
+        insertData(id, null, "f", sdf.parse("2013-08-07 00:00:00"));
 
         // We getData everything and delete half of it
         for (TimedData td : TimeSerie.getData(id)) {
@@ -251,12 +251,12 @@ public class TimeSerieTest {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String id = "dev-" + UUID.randomUUID();
         TimedData first, last;
-        insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
-        insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
-        first = insertData(id, "c", sdf.parse("2013-08-04 00:00:00"));
-        insertData(id, "d", sdf.parse("2013-08-05 00:00:00"));
-        last = insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
-        insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
+        insertData(id, null, "a", sdf.parse("2013-08-02 00:00:00"));
+        insertData(id, null, "b", sdf.parse("2013-08-03 00:00:00"));
+        first = insertData(id, null, "c", sdf.parse("2013-08-04 00:00:00"));
+        insertData(id, null, "d", sdf.parse("2013-08-05 00:00:00"));
+        last = insertData(id, null, "e", sdf.parse("2013-08-06 00:00:00"));
+        insertData(id, null, "f", sdf.parse("2013-08-07 00:00:00"));
 
         // We getData half of the data using the ranges, and delete it
         for (TimedData td : TimeSerie.getData(id, null, first.getDate(), last.getDate(), true)) {
@@ -273,12 +273,12 @@ public class TimeSerieTest {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String id = "dev-" + UUID.randomUUID();
         TimedData first, last;
-        insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
-        insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
-        first = insertData(id, "c", sdf.parse("2013-08-04 00:00:00"));
-        insertData(id, "d", sdf.parse("2013-08-05 00:00:00"));
-        last = insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
-        insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
+        insertData(id, null, "a", sdf.parse("2013-08-02 00:00:00"));
+        insertData(id, null, "b", sdf.parse("2013-08-03 00:00:00"));
+        first = insertData(id, null, "c", sdf.parse("2013-08-04 00:00:00"));
+        insertData(id, null, "d", sdf.parse("2013-08-05 00:00:00"));
+        last = insertData(id, null, "e", sdf.parse("2013-08-06 00:00:00"));
+        insertData(id, null, "f", sdf.parse("2013-08-07 00:00:00"));
 
         // We delete half of the data (using getDate and not getDateUUID is very important here)
         TimeSerie.delete(id, null, first.getDate(), last.getDate());
@@ -290,12 +290,12 @@ public class TimeSerieTest {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String id = "dev-" + UUID.randomUUID();
         TimedData first, last;
-        insertData(id, "a", sdf.parse("2013-01-01 00:00:00"));
-        insertData(id, "b", sdf.parse("2013-02-02 00:00:00"));
-        first = insertData(id, "c", sdf.parse("2013-03-01 00:00:00"));
-        insertData(id, "d", sdf.parse("2013-04-01 00:00:00"));
-        last = insertData(id, "e", sdf.parse("2013-05-01 00:00:00"));
-        insertData(id, "f", sdf.parse("2013-06-01 00:00:00"));
+        insertData(id, null, "a", sdf.parse("2013-01-01 00:00:00"));
+        insertData(id, null, "b", sdf.parse("2013-02-02 00:00:00"));
+        first = insertData(id, null, "c", sdf.parse("2013-03-01 00:00:00"));
+        insertData(id, null, "d", sdf.parse("2013-04-01 00:00:00"));
+        last = insertData(id, null, "e", sdf.parse("2013-05-01 00:00:00"));
+        insertData(id, null, "f", sdf.parse("2013-06-01 00:00:00"));
 
         // We delete half of the data but with a monthly precision (no read ==> much faster)
         TimeSerie.deleteRoughly(id, null, first.getDate(), last.getDate());
@@ -306,14 +306,14 @@ public class TimeSerieTest {
     public void deletePreciselyByPeriod() throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String id = "dev-" + UUID.randomUUID();
-        insertData(id, "a-", sdf.parse("2013-08-01 00:00:00"));
-        insertData(id, "a", sdf.parse("2013-08-02 00:01:00"));
-        insertData(id, "b", sdf.parse("2013-08-02 00:02:00"));
-        insertData(id, "c", sdf.parse("2013-08-02 00:03:00"));
-        insertData(id, "d", sdf.parse("2013-08-02 00:04:00"));
-        insertData(id, "e", sdf.parse("2013-08-02 00:05:00"));
-        insertData(id, "f", sdf.parse("2013-08-02 00:06:00"));
-        insertData(id, "f+", sdf.parse("2013-08-03 00:00:00"));
+        insertData(id, null, "a-", sdf.parse("2013-08-01 00:00:00"));
+        insertData(id, null, "a", sdf.parse("2013-08-02 00:01:00"));
+        insertData(id, null, "b", sdf.parse("2013-08-02 00:02:00"));
+        insertData(id, null, "c", sdf.parse("2013-08-02 00:03:00"));
+        insertData(id, null, "d", sdf.parse("2013-08-02 00:04:00"));
+        insertData(id, null, "e", sdf.parse("2013-08-02 00:05:00"));
+        insertData(id, null, "f", sdf.parse("2013-08-02 00:06:00"));
+        insertData(id, null, "f+", sdf.parse("2013-08-03 00:00:00"));
 
         Assert.assertEquals(8, Lists.newArrayList(TimeSerie.getData(id)).size());
 
@@ -333,14 +333,14 @@ public class TimeSerieTest {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         String id = "dev-" + UUID.randomUUID();
-        insertData(id, "a-", sdf.parse("2013-07-31 00:00:00"));
-        insertData(id, "a", sdf.parse("2013-08-02 00:01:00"));
-        insertData(id, "b", sdf.parse("2013-08-02 00:02:00"));
-        insertData(id, "c", sdf.parse("2013-08-02 00:03:00"));
-        insertData(id, "d", sdf.parse("2013-08-02 00:04:00"));
-        insertData(id, "e", sdf.parse("2013-08-02 00:05:00"));
-        insertData(id, "f", sdf.parse("2013-08-02 00:06:00"));
-        insertData(id, "f+", sdf.parse("2013-09-01 00:00:00"));
+        insertData(id, null, "a-", sdf.parse("2013-07-31 00:00:00"));
+        insertData(id, null, "a", sdf.parse("2013-08-02 00:01:00"));
+        insertData(id, null, "b", sdf.parse("2013-08-02 00:02:00"));
+        insertData(id, null, "c", sdf.parse("2013-08-02 00:03:00"));
+        insertData(id, null, "d", sdf.parse("2013-08-02 00:04:00"));
+        insertData(id, null, "e", sdf.parse("2013-08-02 00:05:00"));
+        insertData(id, null, "f", sdf.parse("2013-08-02 00:06:00"));
+        insertData(id, null, "f+", sdf.parse("2013-09-01 00:00:00"));
 
         Assert.assertEquals(8, Lists.newArrayList(TimeSerie.getData(id)).size());
 
@@ -357,19 +357,28 @@ public class TimeSerieTest {
     }
 
     @Test
-    public void replaceEventTest() throws Exception {
+    public void replaceEventTestWithType() throws Exception {
+        replaceEvent("mytype");
+    }
+
+    @Test
+    public void replaceEventTestWithoutType() throws Exception {
+        replaceEvent(null);
+    }
+
+    public void replaceEvent(String type) throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         String id = "dev-" + UUID.randomUUID();
-        insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
-        insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
-        insertData(id, "c", sdf.parse("2013-08-04 00:00:00"));
-        insertData(id, "d", sdf.parse("2013-08-05 00:00:00"));
-        insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
-        insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
+        insertData(id, type, "a", sdf.parse("2013-08-02 00:00:00"));
+        insertData(id, type, "b", sdf.parse("2013-08-03 00:00:00"));
+        insertData(id, type, "c", sdf.parse("2013-08-04 00:00:00"));
+        insertData(id, type, "d", sdf.parse("2013-08-05 00:00:00"));
+        insertData(id, type, "e", sdf.parse("2013-08-06 00:00:00"));
+        insertData(id, type, "f", sdf.parse("2013-08-07 00:00:00"));
 
         // We will transform half of the marks by adding a 2
-        for (TimedData td : TimeSerie.getData(id)) {
+        for (TimedData td : TimeSerie.getData(id, type)) {
             String mark = (String) td.getJsonMap().get("mark");
             // We also make sure we're fetching good results
             if (mark.charAt(0) % 2 == 0) {
@@ -379,11 +388,11 @@ public class TimeSerieTest {
             }
         }
         // We must still have 6 data (some of them must have changed though)
-        Assert.assertEquals(6, Lists.newArrayList(TimeSerie.getData(id)).size());
+        Assert.assertEquals(6, Lists.newArrayList(TimeSerie.getData(id, type)).size());
 
         { // But for half of them, we must have a "2" next to it
             int nb = 0;
-            for (TimedData td : TimeSerie.getData(id)) {
+            for (TimedData td : TimeSerie.getData(id, type)) {
                 String mark = (String) td.getJsonMap().get("mark");
                 // We also make sure we're fetching good results
                 if (mark.length() == 2) {
@@ -398,12 +407,12 @@ public class TimeSerieTest {
     public void replaceEventTest2() throws Exception {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String id = "dev-" + UUID.randomUUID();
-        insertData(id, "a", sdf.parse("2013-08-02 00:00:00"));
-        insertData(id, "b", sdf.parse("2013-08-03 00:00:00"));
-        insertData(id, "c", sdf.parse("2013-08-04 00:00:00"));
-        insertData(id, "d", sdf.parse("2013-08-05 00:00:00"));
-        insertData(id, "e", sdf.parse("2013-08-06 00:00:00"));
-        insertData(id, "f", sdf.parse("2013-08-07 00:00:00"));
+        insertData(id, null, "a", sdf.parse("2013-08-02 00:00:00"));
+        insertData(id, null, "b", sdf.parse("2013-08-03 00:00:00"));
+        insertData(id, null, "c", sdf.parse("2013-08-04 00:00:00"));
+        insertData(id, null, "d", sdf.parse("2013-08-05 00:00:00"));
+        insertData(id, null, "e", sdf.parse("2013-08-06 00:00:00"));
+        insertData(id, null, "f", sdf.parse("2013-08-07 00:00:00"));
 
         // We will transform half of the marks by adding a 2
         for (TimedDataWrapper tdw : TimedDataWrapper.iter(TimeSerie.getData(id))) {

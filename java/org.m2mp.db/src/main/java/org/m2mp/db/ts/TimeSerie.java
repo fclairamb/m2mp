@@ -13,6 +13,7 @@ import org.m2mp.db.common.TableIncrementalDefinition;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * Time series management.
@@ -111,6 +112,21 @@ public class TimeSerie {
         save(tdw.getId(), tdw.getType(), tdw.getDateUUID(), tdw.getJson());
     }
 
+    private static final ConcurrentSkipListSet index = new ConcurrentSkipListSet();
+
+    private static void saveIndex(String id, String type, String date10) {
+        String key = date10 + id;
+
+        // We only save the index once (because it should only happen once per day per id/type)
+        if (!index.contains(key)) {
+            DB.execute(DB.prepare("INSERT INTO " + TABLE_TIMESERIES_INDEX + " ( id, type, date ) VALUES( ?, ?, ? );").bind(id, type, date10));
+            index.add(key);
+            if (index.size() > 100) {
+                index.clear();
+            }
+        }
+    }
+
     public static void save(String id, String type, UUID date, String data) {
         String date10 = dateToDate10(date);
         PreparedStatement reqInsert = DB.prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, date, time, type, data ) VALUES ( ?, ?, ?, ?, ? );");
@@ -118,13 +134,14 @@ public class TimeSerie {
         // We insert it once
         DB.execute(reqInsert.bind(id, date10, date, type, data));
 
+        // We don't really care if it could be executed or not, what matters is that we have at least one period per id + type saved
+        saveIndex(id, type, date10);
+
         // And also an other time if a type was specified
         if (type != null) {
-            DB.execute(reqInsert.bind(id + "!" + type, date10, date, type, data));
+            save(id + "!" + type, null, date, data);
+            //DB.execute(reqInsert.bind(id + "!" + type, date10, date, type, data));
         }
-
-        // We don't really care if it could be executed or not, what matters is that we have at least one period per id + type saved
-        DB.execute(DB.prepare("INSERT INTO " + TABLE_TIMESERIES_INDEX + " ( id, type, date ) VALUES( ?, ?, ? );").bind(id, type, date10));
     }
 
     /**

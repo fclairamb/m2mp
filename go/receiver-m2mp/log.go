@@ -10,3 +10,7 @@ var log *logging.Logger
 func init() {
 	log = m2log.GetLogger()
 }
+
+func LoadLog() {
+	log = m2log.GetLoggerAgain()
+}

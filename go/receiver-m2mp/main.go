@@ -119,6 +119,9 @@ func main() {
 	par = NewParameters()
 	defer par.Close()
 
+	// We need to reload logging because it was initialized in init (to have one whatever happens)
+	LoadLog()
+
 	if m2log.Level >= 3 {
 		log.Debug("Starting !")
 	}

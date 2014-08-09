@@ -24,13 +24,17 @@ install: binaries
 	mkdir -p $(DESTDIR)/var/log/m2mp $(DESTDIR)/etc/logrotate.d
 	cp package/logrotate.d/* $(DESTDIR)/etc/logrotate.d
 
+	# Startup scripts
+	mkdir -p $(DESTDIR)/etc/supervisor/conf.d
+	cp package/supervisor.d/*.conf $(DESTDIR)/etc/supervisor/conf.d
+
 	# CQL install commands
 	mkdir -p $(DESTDIR)/usr/share/m2mp/cql
 	cp ../cql/* $(DESTDIR)/usr/share/m2mp/cql
 
 package: binaries
-	mkdir -p dist/package
 	dpkg-buildpackage -b -us -uc
+	mkdir -p dist/package
 	mv ../*.deb dist/package/
 	rm ../*.changes
 
@@ -41,5 +45,5 @@ test_package:
 	sudo dpkg -i dist/package/*.deb
 
 clean:
-	[ ! -d $(DESTDIR)/dist ] || rm -R $(DESTDIR)/dist
+	[ ! -d dist ] || rm -R dist
 

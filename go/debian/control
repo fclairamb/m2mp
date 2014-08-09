@@ -10,5 +10,5 @@ Vcs-Browser: https://github.com/fclairamb/m2mp
 
 Package: m2mp
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, supervisor
 Description: M2MP server

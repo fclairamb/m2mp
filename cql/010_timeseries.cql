@@ -13,5 +13,5 @@ CREATE TABLE timeseries_index (
   id text,
   date text,
   type text,
-  PRIMARY KEY ((id), date)
+  PRIMARY KEY ((id,type), date)
 ) WITH CLUSTERING ORDER BY (date DESC);

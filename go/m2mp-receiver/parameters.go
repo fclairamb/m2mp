@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	msg "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	"os"
 )
 
@@ -14,6 +15,7 @@ type Parameters struct {
 	logFile        *os.File
 	PprofPrefix    string
 	MQServer       string
+	MQTopic        string
 }
 
 func NewParameters() *Parameters {
@@ -30,7 +32,8 @@ func (par *Parameters) parseFromFlag() {
 	flag.IntVar(&par.ListenPort, "listen", 3000, "Listening port")
 	flag.IntVar(&par.HttpListenPort, "httpListen", 6060, "Http listening port (for profiling)")
 	flag.StringVar(&par.PprofPrefix, "pprof", "pp", "pprof prefix")
-	flag.StringVar(&par.MQServer, "mqserver", "nsq:localhost:4150", "NSQ Server")
+	flag.StringVar(&par.MQServer, "mqserver", "nsq:localhost:4150", "NSQ server")
+	flag.StringVar(&par.MQTopic, "mqtopic", msg.TOPIC_RECEIVERS, "NSQ topic")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "usage: "+os.Args[0])
 		flag.PrintDefaults()
@@ -43,6 +46,7 @@ func (par *Parameters) parseFromFlag() {
 func (par *Parameters) SwitchToTestMode() {
 	par.ListenPort += 10
 	par.HttpListenPort += 10
+	par.MQTopic += "-test"
 }
 
 func (par *Parameters) Close() {

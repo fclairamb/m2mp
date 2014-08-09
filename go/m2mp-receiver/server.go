@@ -13,7 +13,7 @@ type Server struct {
 	sync.RWMutex
 	listener      net.Listener
 	clients       map[int]*ClientHandler
-	clientCounter int
+	clientCounter int // To allocate an new ID to each client's connection
 	msg           *msg.Client
 }
 

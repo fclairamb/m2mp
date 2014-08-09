@@ -21,16 +21,18 @@ func SaveTSTime(id string, dataType string, time time.Time, data string) error {
 
 	utime := gocql.UUIDFromTime(time)
 
+	// We save the main data
 	query := shared.session.Query("insert into timeseries (id, date, time, type, data) values (?, ?, ?, ?, ?);", id, date, utime, dataType, data)
 	if err := query.Exec(); err != nil {
 		return err
 	}
+	indexTSDate(id, date, "")
 
+	// We save with a type
 	query = shared.session.Query("insert into timeseries (id, date, time, data) values (?, ?, ?, ?);", id+"!"+dataType, date, utime, data)
 	if err := query.Exec(); err != nil {
 		return err
 	}
-
 	indexTSDate(id, date, dataType)
 
 	return nil

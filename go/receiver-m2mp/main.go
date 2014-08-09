@@ -3,8 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/fclairamb/m2mp/go/m2log"
 	db "github.com/fclairamb/m2mp/go/m2mp-db"
+	m2log "github.com/fclairamb/m2mp/go/m2mp-log"
 	"net/http"
 	_ "net/http/pprof"
 	"os"

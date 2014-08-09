@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/fclairamb/m2mp/go/m2log"
+	m2log "github.com/fclairamb/m2mp/go/m2mp-log"
 	msg "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	"net"
 	"sync"

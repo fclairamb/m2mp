@@ -10,8 +10,9 @@ import (
 )
 
 type Client struct {
-	reader *nsq.Reader
-	writer *nsq.Writer
+	reader *nsq.Consumer
+	writer *nsq.Producer
+	config *nsq.Config
 	Recv   chan *JsonWrapper
 	from   string
 }
@@ -35,13 +36,16 @@ func (c *Client) HandleMessage(m *nsq.Message) error {
 
 func NewClient(topic, channel string) (clt *Client, err error) {
 	clt = &Client{Recv: make(chan *JsonWrapper, 10)}
-	clt.reader, err = nsq.NewReader(topic, channel)
+
+	clt.config = nsq.NewConfig()
+
+	clt.reader, err = nsq.NewConsumer(topic, channel, clt.config)
 	if err != nil {
 		return
 	}
 	clt.reader.AddHandler(clt)
 
-	clt.from = clt.reader.TopicName + "/" + clt.reader.ChannelName
+	clt.from = topic + "/" + channel
 
 	return
 }
@@ -69,11 +73,11 @@ func NewClientGlobal(topic string) (clt *Client, err error) {
 }
 
 func (c *Client) StartNSQ(addr string) error {
-	return c.reader.ConnectToNSQ(addr)
+	return c.reader.ConnectToNSQD(addr)
 }
 
 func (c *Client) StartLookup(addr string) error {
-	return c.reader.ConnectToLookupd(addr)
+	return c.reader.ConnectToNSQLookupd(addr)
 }
 
 func (c *Client) Start(addr string) (err error) {
@@ -91,7 +95,12 @@ func (c *Client) Start(addr string) (err error) {
 		err = errors.New(fmt.Sprint("Could not handle address type \"", tokens[0], "\""))
 	}
 
-	c.writer = nsq.NewWriter(target)
+	c.writer, err = nsq.NewProducer(target, c.config)
+
+	if err != nil {
+		fmt.Println("NewProducer:", err)
+	}
+
 	return
 }
 
@@ -102,7 +111,7 @@ func (c *Client) Publish(msg *JsonWrapper) error {
 
 	tokens := strings.SplitN(msg.To(), ":", 2)
 	log.Debug("Publishing to %s with %s", tokens[0], msg.String())
-	_, _, err := c.writer.Publish(tokens[0], []byte(msg.String()))
+	err := c.writer.Publish(tokens[0], []byte(msg.String()))
 	return err
 }
 

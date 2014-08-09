@@ -16,33 +16,33 @@ public class TSPeriodIterator implements Iterator<String> {
     private final Iterator<Row> iter;
 
     public TSPeriodIterator(String id, String type, Date begin, Date end, boolean inverted) {
-        this(type != null ? id + "!" + type : id, begin, end, inverted);
-    }
+        if (type == null) {
+            type = "";
+        }
 
-    public TSPeriodIterator(String id, Date begin, Date end, boolean inverted) {
         String after = inverted ? " ORDER BY date DESC;" : " ORDER BY date ASC;";
         ResultSet rs;
         if (begin != null && end != null) {
             rs = DB.execute(
-                    DB.prepare(SELECT_BE + after).bind(id, TimeSerie.DATE_FORMAT.format(begin), TimeSerie.DATE_FORMAT.format(end))
+                    DB.prepare(SELECT_BE + after).bind(id, type, TimeSerie.DATE_FORMAT.format(begin), TimeSerie.DATE_FORMAT.format(end))
             );
         } else if (begin != null) {
             rs = DB.execute(
-                    DB.prepare(SELECT_B + after).bind(id, TimeSerie.DATE_FORMAT.format(begin))
+                    DB.prepare(SELECT_B + after).bind(id, type, TimeSerie.DATE_FORMAT.format(begin))
             );
         } else if (end != null) {
             rs = DB.execute(
-                    DB.prepare(SELECT_E + after).bind(id, TimeSerie.DATE_FORMAT.format(end))
+                    DB.prepare(SELECT_E + after).bind(id, type, TimeSerie.DATE_FORMAT.format(end))
             );
         } else {
             rs = DB.execute(
-                    DB.prepare(SELECT_COMMON + after).bind(id)
+                    DB.prepare(SELECT_COMMON + after).bind(id, type)
             );
         }
         iter = rs.iterator();
     }
 
-    private static final String SELECT_COMMON = "SELECT date FROM " + TimeSerie.TABLE_TIMESERIES_INDEX + " WHERE id=?";
+    private static final String SELECT_COMMON = "SELECT date FROM " + TimeSerie.TABLE_TIMESERIES_INDEX + " WHERE id=? and type=?";
     private static final String SELECT_BE = SELECT_COMMON + " and date>=? and date<=?";
     private static final String SELECT_B = SELECT_COMMON + " and date>=?";
     private static final String SELECT_E = SELECT_COMMON + " and date<=?";

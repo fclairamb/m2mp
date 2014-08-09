@@ -41,14 +41,15 @@ public class TimeSerie {
                         "  date text,\n" +
                         "  time timeuuid,\n" +
                         "  data text,\n" +
-                        "  type text,\n" +
+                        "  type text,\n" + // The type is given in case we asked for an ID and no specific type
                         "  PRIMARY KEY ((id, date), time)\n" +
                         ") WITH CLUSTERING ORDER BY (time DESC);"));
 
                 list.add(new TableIncrementalDefinition.TableChange(2, "CREATE TABLE " + TABLE_TIMESERIES_INDEX + " (\n" +
                         "  id text,\n" +
+                        "  type text,\n" + // The type is part of the key (empty string if none)
                         "  date text,\n" +
-                        "  PRIMARY KEY ((id), date)\n" +
+                        "  PRIMARY KEY ((id, type), date)\n" +
                         ") WITH CLUSTERING ORDER BY (date DESC);"));
                 return list;
             }
@@ -113,12 +114,15 @@ public class TimeSerie {
 
     private static final ConcurrentSkipListSet index = new ConcurrentSkipListSet();
 
-    private static void saveIndex(String id, String date10) {
-        String key = date10 + id;
+    private static void saveIndex(String id, String type, String date10) {
+        if (type == null) {
+            type = "";
+        }
+        String key = date10 + type + id;
 
         // We only save the index once (because it should only happen once per day per id/type)
         if (!index.contains(key)) {
-            DB.execute(DB.prepare("INSERT INTO " + TABLE_TIMESERIES_INDEX + " ( id, date ) VALUES( ?, ? );").bind(id, date10));
+            DB.execute(DB.prepare("INSERT INTO " + TABLE_TIMESERIES_INDEX + " ( id, type, date ) VALUES( ?, ?, ? );").bind(id, type, date10));
             index.add(key);
             if (index.size() > 100) {
                 index.clear();
@@ -130,16 +134,15 @@ public class TimeSerie {
         String date10 = dateToDate10(date);
         PreparedStatement reqInsert = DB.prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, date, time, type, data ) VALUES ( ?, ?, ?, ?, ? );");
 
-        // We insert it once
+        // We insert the data + its index
         DB.execute(reqInsert.bind(id, date10, date, type, data));
+        saveIndex(id, null, date10);
 
-        // We don't really care if it could be executed or not, what matters is that we have at least one period per id + type saved
-        saveIndex(id, date10);
-
-        // And also an other time if a type was specified
+        // And we do it again if we have a type
         if (type != null) {
-            save(id + "!" + type, null, date, data);
-            //DB.execute(reqInsert.bind(id + "!" + type, date10, date, type, data));
+            DB.execute(reqInsert.bind(id + "!" + type, date10, date, null, data));
+            saveIndex(id, type, date10);
+            ;
         }
     }
 

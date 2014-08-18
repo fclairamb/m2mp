@@ -44,7 +44,7 @@ package: binaries
 test_package:
 	make clean
 	make package
-	sudo dpkg -r m2mp || echo "No M2MP package"
+	#sudo dpkg -r m2mp || echo "No M2MP package"
 	sudo dpkg -i dist/package/*.deb
 
 clean:

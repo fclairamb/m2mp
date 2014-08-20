@@ -1,11 +1,17 @@
+m2mp (0.1-3) unstable; urgency=low
+
+  * Changed supervisord conf files
+
+ -- Florent Clairambault <florent@clairambault.fr>  Wed, 20 Aug 2014 15:00:00 +0200
+
 m2mp (0.1-2) unstable; urgency=low
 
   * Added startup script
 
- -- Florent Clairambault <florent@unknown>  Sat, 10 Aug 2014 00:00:00 +0200
+ -- Florent Clairambault <florent@clairambault.fr>  Sun, 10 Aug 2014 00:00:00 +0200
 
 m2mp (0.1-1) unstable; urgency=low
 
   * Initial release
 
- -- Florent Clairambault <florent@unknown>  Sat, 09 Aug 2014 22:27:37 +0200
+ -- Florent Clairambault <florent@clairambault.fr>  Sat, 09 Aug 2014 22:27:37 +0200

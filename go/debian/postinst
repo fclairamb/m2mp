@@ -1,0 +1,35 @@
+#!/bin/sh
+
+# M2MP user setup
+exists=false
+getent passwd m2mp >/dev/null 2>&1 && exists=true
+
+if ! $exists; then
+    printf "Creating user m2mp..."
+    useradd -b /var/lib/m2mp -d /var/lib/m2mp -U m2mp && printf " OK\n" || printf "FAILED\n"
+fi
+
+# NSQ user setup
+exists=false
+getent passwd nsq >/dev/null 2>&1 && exists=true
+
+if ! $exists; then
+    printf "Creating user nsq..."
+    useradd -b /var/lib/nsq -d /var/lib/nsq -U nsq && printf " OK\n" || printf "FAILED\n"
+fi
+
+printf "Fixing user rights..."
+chown -R m2mp:m2mp /var/lib/m2mp /var/log/m2mp && printf " 1/2" || printf "FAILED (1/2)\n"
+printf "\rFixing user rights..."
+chown -R nsq:nsq /var/lib/nsq /var/log/nsq && printf " 2/2" || printf "FAILED (2/2)\n"
+printf "\n"
+
+printf "Starting NSQ services...\n"
+supervisorctl start "nsq:*"
+
+printf "Restarting M2MP services...\n"
+# We actually restart some services
+supervisorctl restart "m2mp:m2mp_receiver-m2mp"
+
+# But only check that the other ones are running
+supervisorctl start "m2mp:*"

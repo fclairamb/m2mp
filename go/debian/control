@@ -1,14 +1,14 @@
 Source: m2mp
-Section: unknown
+Section: net
 Priority: optional
-Maintainer: Florent Clairambault <florent@unknown>
+Maintainer: Florent Clairambault <florent@clairambault.fr>
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
-Homepage: <insert the upstream URL, if relevant>
+Homepage: https://github.com/fclairamb/m2mp
 Vcs-Git: git@github.com:fclairamb/m2mp.git
 Vcs-Browser: https://github.com/fclairamb/m2mp
 
 Package: m2mp
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, supervisor
-Description: M2MP server
+Description: M2MP server architecture

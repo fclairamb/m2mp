@@ -1,5 +1,10 @@
 *
 !*.*
 !Makefile
+!debian
+!debian/copyright
+!debian/control
+!debian/changelog
+!debian/postinst
 *.log
 .idea

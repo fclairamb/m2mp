@@ -33,7 +33,7 @@ install: binaries
 	cp ../cql/* $(DESTDIR)/usr/share/m2mp/cql
 
 	# NSQ setup (this is temporary, it should be in an other package)
-	mkdir -p $(DESTDIR)/var/lib/nsq $(DESTDIR)/var/log/nsq
+	mkdir -p $(DESTDIR)/var/lib/nsq $(DESTDIR)/var/log/nsq/topics
 
 package: binaries
 	dpkg-buildpackage -b -us -uc

@@ -1,3 +1,9 @@
+m2mp (0.1-4) unstable; urgency=low
+
+  * All topics are saved in /var/log/nsq/topics/ now.
+
+ -- Florent Clairambault <florent@clairambault.fr>  Sun, 24 Aug 2014 08:52:21 +0200
+
 m2mp (0.1-3) unstable; urgency=low
 
   * Changed supervisord conf files

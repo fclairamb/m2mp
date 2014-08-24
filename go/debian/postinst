@@ -25,6 +25,7 @@ chown -R nsq:nsq /var/lib/nsq /var/log/nsq && printf " 2/2" || printf "FAILED (
 printf "\n"
 
 printf "Starting NSQ services...\n"
+supervisorctl reread
 supervisorctl start "nsq:*"
 
 printf "Restarting M2MP services...\n"

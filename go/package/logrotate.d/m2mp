@@ -10,6 +10,3 @@
 	endscript
 }
 
-/var/log/m2mp/nsq_topics/*.log {
-	
-}

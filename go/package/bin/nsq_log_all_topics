@@ -1,0 +1,7 @@
+#!/bin/sh
+nsq_to_file \
+  --lookupd-http-address localhost:4161 \
+  -output-dir="/var/log/nsq/topics" \
+  -filename-format="<TOPIC>.log" \
+  -channel=nsq_log_all_topics_`hostname`
+return $?

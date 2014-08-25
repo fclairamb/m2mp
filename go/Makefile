@@ -16,6 +16,8 @@ install: binaries
 	# Binaries
 	mkdir -p $(DESTDIR)/usr/bin
 	cp dist/bin/* $(DESTDIR)/usr/bin
+	cp package/bin/* $(DESTDIR)/usr/bin
+	chmod a+rx $(DESTDIR)/usr/bin/*
 
 	# Data dir
 	mkdir -p $(DESTDIR)/var/lib/m2mp

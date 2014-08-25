@@ -24,13 +24,8 @@ printf "\rFixing user rights..."
 chown -R nsq:nsq /var/lib/nsq /var/log/nsq && printf " 2/2" || printf "FAILED (2/2)\n"
 printf "\n"
 
-printf "Starting NSQ services...\n"
+printf "Starting supervisor services...\n"
 supervisorctl reread
+supervisorctl update
 supervisorctl start "nsq:*"
-
-printf "Restarting M2MP services...\n"
-# We actually restart some services
-supervisorctl restart "m2mp:m2mp_receiver-m2mp"
-
-# But only check that the other ones are running
 supervisorctl start "m2mp:*"

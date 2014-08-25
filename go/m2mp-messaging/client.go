@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	nsq "github.com/bitly/go-nsq"
-	"github.com/likexian/simplejson"
+	"github.com/bitly/go-simplejson"
 	"os"
 	"strings"
 )
@@ -18,20 +18,18 @@ type Client struct {
 }
 
 func (c *Client) HandleMessage(m *nsq.Message) error {
-	json, err := simplejson.Loads(string(m.Body))
-	if err != nil {
-		log.Warning("Error: ", err)
-	}
+	json := simplejson.New()
 
 	msg := NewJsonWrapperFromJson(json)
 
-	if err = msg.Check(); err != nil {
+	if err := msg.Check(); err != nil {
 		log.Warning("Invalid message: ", err)
+		return err
 	} else {
 		c.Recv <- msg
 	}
 
-	return err
+	return nil
 }
 
 func NewClient(topic, channel string) (clt *Client, err error) {

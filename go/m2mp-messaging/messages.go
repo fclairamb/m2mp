@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	simple "github.com/bitly/go-simplejson"
+	"github.com/gocql/gocql"
 	"time"
 )
 
@@ -97,4 +98,8 @@ func NewMessage(to, call string) *JsonWrapper {
 	msg.SetCall(call)
 	msg.SetTime()
 	return msg
+}
+
+func UUIDFromTime(time time.Time) string {
+	return gocql.UUIDFromTime(time.UTC()).String()
 }

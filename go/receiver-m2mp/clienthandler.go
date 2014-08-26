@@ -72,14 +72,33 @@ func (ch *ClientHandler) end() {
 	}
 	ch.ticker.Stop()
 
-	{
+	connectionDuration := int64(time.Now().UTC().Sub(ch.connectionTime).Seconds())
+
+	{ // We save the event
 		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_disconnected")
 		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
-		m.Data.Set("connection_duration", fmt.Sprint(int64(time.Now().UTC().Sub(ch.connectionTime).Seconds())))
+		m.Data.Set("connection_duration", connectionDuration)
 		if ch.device != nil {
 			m.Data.Set("device_id", ch.device.Id())
 		}
+		ch.daddy.SendMessage(m)
+	}
+
+	{ // We save it in storage
+		m := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
+		{
+			data := sjson.New()
+			m.Data.Set("data", data)
+
+			data.Set("type", "device_disconnected")
+			data.Set("source", ch.Conn.Conn.RemoteAddr().String())
+			data.Set("connection_id", fmt.Sprint(ch.Id))
+			data.Set("connection_duration", connectionDuration)
+		}
+		m.Data.Set("key", "dev-"+ch.device.Id())
+		m.Data.Set("date_uuid", mq.UUIDFromTime(time.Now()))
+		m.Data.Set("type", "_server")
 		ch.daddy.SendMessage(m)
 	}
 }
@@ -130,25 +149,21 @@ func (ch *ClientHandler) runCoreHandling() {
 			{
 				switch m := msg.(type) {
 				case *pr.MessageDataSimple:
-					ch.receivedData()
 					ch.handleData(m)
 				case *pr.MessageDataArray:
-					ch.receivedData()
 					ch.handleDataArray(m)
 				case *pr.MessageIdentRequest:
-					ch.receivedData()
 					ch.handleIdentRequest(m)
 				case *pr.MessagePingRequest:
-					{
-						ch.receivedData()
-						ch.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
-					}
+					ch.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
 					// If this is a disconnection event, we should quit the current go routine
 				case *pr.EventDisconnected:
 					{
 						return
 					}
 				}
+
+				ch.receivedData()
 
 			}
 		case <-ch.ticker.C:
@@ -231,10 +246,27 @@ func (ch *ClientHandler) justIdentified() error {
 
 			data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 			data.Set("connection_id", fmt.Sprint(ch.Id))
+			data.Set("type", "device_identified")
 		}
 		m.Data.Set("key", "dev-"+ch.device.Id())
-		m.Data.Set("date_nano", time.Now().UnixNano())
-		m.Data.Set("type", "_server:device_identified")
+		m.Data.Set("date_uuid", mq.UUIDFromTime(time.Now()))
+		m.Data.Set("type", "_server")
+		ch.daddy.SendMessage(m)
+	}
+
+	{ // And we also save the connection time
+		m := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
+		{
+			data := sjson.New()
+			m.Data.Set("data", data)
+
+			data.Set("source", ch.Conn.Conn.RemoteAddr().String())
+			data.Set("connection_id", fmt.Sprint(ch.Id))
+			data.Set("type", "device_connected")
+		}
+		m.Data.Set("key", "dev-"+ch.device.Id())
+		m.Data.Set("date_uuid", mq.UUIDFromTime(ch.connectionTime))
+		m.Data.Set("type", "_server")
 		ch.daddy.SendMessage(m)
 	}
 

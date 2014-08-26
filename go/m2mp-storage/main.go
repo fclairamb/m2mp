@@ -3,7 +3,9 @@ package main
 import (
 	db "github.com/fclairamb/m2mp/go/m2mp-db"
 	mq "github.com/fclairamb/m2mp/go/m2mp-messaging"
+	"github.com/gocql/gocql"
 	"os"
+	"time"
 )
 
 type StorageService struct {
@@ -18,19 +20,54 @@ func NewStorageService() *StorageService {
 }
 
 func (this *StorageService) handleMessaging(m *mq.JsonWrapper) {
-	log.Debug("Handling ", m)
+	log.Debug("Handling %v", m)
 	call := m.Call()
 
 	switch call {
 	case "store_ts":
 		{
-			data := m.Data.Get("data")
-			log.Debug("Data: %#v", data)
+			var key, dataType, data string
+			var date_uuid gocql.UUID
+			var err error
+			if key, err = m.Data.Get("key").String(); err != nil {
+				log.Warning("Could not get key: %v", err)
+				return
+			}
+			if dataType, err = m.Data.Get("type").String(); err != nil {
+				log.Warning("Could not get dataType: %v", err)
+				return
+			}
+			if binData, err := m.Data.Get("data").MarshalJSON(); err != nil {
+				log.Warning("Could not get data: %v", err)
+				return
+			} else {
+				data = string(binData)
+			}
+
+			if s_date_uuid, err := m.Data.Get("date_uuid").String(); err != nil {
+				log.Warning("Could not get date_uuid: %v", err)
+				if date_nano, err := m.Data.Get("date_nano").Int64(); err != nil {
+					log.Warning("Could not get date_nano either: %v", err)
+					return
+				} else {
+					date_uuid = gocql.UUIDFromTime(time.Unix(0, date_nano))
+				}
+			} else {
+				if date_uuid, err = gocql.ParseUUID(s_date_uuid); err != nil {
+					log.Warning("Could not parse data_uuid: %v", err)
+					return
+				}
+			}
+
+			log.Debug("Saving key=%s, type=%s, time=%s, data=%s", key, dataType, date_uuid.Time(), data)
+			if err = db.SaveTSUUID(key, dataType, &date_uuid, data); err != nil {
+				log.Warning("Problem storing data: %v", err)
+			}
 		}
 
 	case "quit":
 		{
-			this.quitRc <- 3
+			this.quitRc <- 3 // It's not an error, and it's not 0 or 2 so that supervisor restarts it
 		}
 
 	default:

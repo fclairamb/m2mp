@@ -16,26 +16,29 @@ func indexTSDate(i, d, t string) {
 	shared.session.Query("insert into timeseries_index (id, date, type) values (?, ?, ?);", i, d, t).Exec()
 }
 
-func SaveTSTime(id string, dataType string, time time.Time, data string) error {
-	date := time.Format(DATE_FORMAT)
-
-	utime := gocql.UUIDFromTime(time)
+func SaveTSUUID(id string, dataType string, utime *gocql.UUID, data string) error {
+	date := utime.Time().Format(DATE_FORMAT)
 
 	// We save the main data
-	query := shared.session.Query("insert into timeseries (id, date, time, type, data) values (?, ?, ?, ?, ?);", id, date, utime, dataType, data)
+	query := shared.session.Query("insert into timeseries (id, date, time, type, data) values (?, ?, ?, ?, ?);", id, date, *utime, dataType, data)
 	if err := query.Exec(); err != nil {
 		return err
 	}
 	indexTSDate(id, date, "")
 
 	// We save with a type
-	query = shared.session.Query("insert into timeseries (id, date, time, data) values (?, ?, ?, ?);", id+"!"+dataType, date, utime, data)
+	query = shared.session.Query("insert into timeseries (id, date, time, data) values (?, ?, ?, ?);", id+"!"+dataType, date, *utime, data)
 	if err := query.Exec(); err != nil {
 		return err
 	}
 	indexTSDate(id, date, dataType)
 
 	return nil
+}
+
+func SaveTSTime(id string, dataType string, time time.Time, data string) error {
+	utime := gocql.UUIDFromTime(time)
+	return SaveTSUUID(id, dataType, &utime, data)
 }
 
 func SaveTSTimeObj(id string, dataType string, time time.Time, obj interface{}) error {

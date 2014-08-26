@@ -18,18 +18,21 @@ type Client struct {
 }
 
 func (c *Client) HandleMessage(m *nsq.Message) error {
-	json := simplejson.New()
+	json, err := simplejson.NewJson(m.Body)
 
-	msg := NewJsonWrapperFromJson(json)
+	if err == nil {
+		msg := NewJsonWrapperFromJson(json)
 
-	if err := msg.Check(); err != nil {
-		log.Warning("Invalid message: ", err)
-		return err
-	} else {
-		c.Recv <- msg
+		if err = msg.Check(); err == nil {
+			c.Recv <- msg
+		}
 	}
 
-	return nil
+	if err != nil {
+		log.Warning("Invalid message: %s, %v", string(m.Body), err)
+	}
+
+	return err
 }
 
 func NewClient(topic, channel string) (clt *Client, err error) {

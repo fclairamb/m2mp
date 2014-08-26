@@ -149,7 +149,6 @@ func main() {
 	if err := server.Start(); err != nil {
 		log.Fatal("Server error: ", err)
 	}
-	defer server.Close()
 
 	if m2log.Level >= 2 {
 		log.Notice("Ready !")

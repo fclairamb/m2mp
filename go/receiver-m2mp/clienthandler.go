@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	sjson "github.com/bitly/go-simplejson"
 	ent "github.com/fclairamb/m2mp/go/m2mp-db/entities"
 	mq "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	pr "github.com/fclairamb/m2mp/go/m2mp-protocol"
@@ -52,8 +53,8 @@ func (ch *ClientHandler) Start() {
 	go ch.runRecv()
 	go ch.runCoreHandling()
 
-	{
-		m := mq.NewMessageEvent("device_connected")
+	{ // We report it in events
+		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_connected")
 		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
 		ch.daddy.SendMessage(m)
@@ -72,7 +73,7 @@ func (ch *ClientHandler) end() {
 	ch.ticker.Stop()
 
 	{
-		m := mq.NewMessageEvent("device_disconnected")
+		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_disconnected")
 		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
 		m.Data.Set("connection_duration", fmt.Sprint(int64(time.Now().UTC().Sub(ch.connectionTime).Seconds())))
@@ -214,11 +215,26 @@ func (ch *ClientHandler) justIdentified() error {
 		err = ch.checkSettings()
 	}
 
-	{
-		m := mq.NewMessageEvent("device_identified")
+	{ // We report it in events
+		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_identified")
 		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
 		m.Data.Set("device_id", ch.device.Id())
+		ch.daddy.SendMessage(m)
+	}
+
+	{ // We save it in storage
+		m := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
+		{
+			data := sjson.New()
+			m.Data.Set("data", data)
+
+			data.Set("source", ch.Conn.Conn.RemoteAddr().String())
+			data.Set("connection_id", fmt.Sprint(ch.Id))
+		}
+		m.Data.Set("key", "dev-"+ch.device.Id())
+		m.Data.Set("date_nano", time.Now().UnixNano())
+		m.Data.Set("type", "_server:device_identified")
 		ch.daddy.SendMessage(m)
 	}
 

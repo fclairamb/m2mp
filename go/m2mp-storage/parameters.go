@@ -34,6 +34,7 @@ func (par *Parameters) parseFromFlag() {
 	flag.StringVar(&par.MQServer, "mqserver", "nsq:localhost:4150", "NSQ server")
 	flag.StringVar(&par.MQTopic, "mqtopic", msg.TOPIC_STORAGE, "NSQ topic")
 	flag.StringVar(&par.MQChannel, "mqchannel", "shared", "NSQ channel")
+
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "usage: "+os.Args[0])
 		flag.PrintDefaults()

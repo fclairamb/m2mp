@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	sjson "github.com/bitly/go-simplejson"
 	ent "github.com/fclairamb/m2mp/go/m2mp-db/entities"
@@ -288,17 +289,22 @@ func (ch *ClientHandler) handleData(msg *pr.MessageDataSimple) error {
 
 	default:
 		{
+			target := "converter-m2mp"
+
 			if dct := ch.getDeviceChannelTranslator(); dct != nil {
-				if target := dct.GetTarget(msg.Channel); target != nil {
-					msg := mq.NewJsonWrapper()
-					msg.SetTo(*target)
-					msg.SetFrom(fmt.Sprintf(":conn:%d", ch.Id))
-					msg.SetCall("data_simple")
-					ch.daddy.SendMessage(msg)
-					log.Debug("Sending %s", msg)
-				} else if tokens[0] == "sen" {
-					ch.device.SaveTSTime(msg.Channel, time.Now().UTC(), string(msg.Data))
+				if t := dct.GetTarget(msg.Channel); t != nil {
+					target = *t
 				}
+			}
+
+			{ // We send the data to the converter, and it has to deal with it...
+				m := mq.NewMessage(target, "data_simple")
+				m.SetFrom(fmt.Sprintf(":connection_id:%d", ch.Id))
+				m.Data.Set("connection_id", fmt.Sprint(ch.Id))
+				m.Data.Set("device_id", ch.device.Id())
+				m.Data.Set("data", hex.EncodeToString(msg.Data))
+				m.Data.Set("channel", msg.Channel)
+				ch.daddy.SendMessage(m)
 			}
 		}
 	}

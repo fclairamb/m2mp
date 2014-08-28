@@ -108,6 +108,8 @@ func (c *Client) Start(addr string) (err error) {
 func (c *Client) Publish(msg *JsonWrapper) error {
 	if msg.From() == "" {
 		msg.SetFrom(c.from)
+	} else if msg.From()[0] == ':' {
+		msg.SetFrom(c.from + msg.From())
 	}
 
 	tokens := strings.SplitN(msg.To(), ":", 2)

@@ -65,6 +65,11 @@ func (jw *JsonWrapper) SetVS(key string, value string) {
 	jw.Data.Set(key, value)
 }
 
+func (jw *JsonWrapper) Time() time.Time {
+	t, _ := jw.Data.Get(FIELD_TIME).Int64()
+	return time.Unix(t, 0)
+}
+
 func (jw *JsonWrapper) SetTime() {
 	time := time.Now().UTC().Unix()
 	jw.Data.Set(FIELD_TIME, time)

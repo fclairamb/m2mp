@@ -93,7 +93,10 @@ func (jw *JsonWrapper) Check() error {
 }
 
 func (jw *JsonWrapper) String() string {
-	json, _ := jw.Data.MarshalJSON()
+	json, err := jw.Data.MarshalJSON()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
 	return string(json)
 }
 

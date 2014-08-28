@@ -1,6 +1,6 @@
 all: binaries
 
-binaries: dist/bin/client-m2mp dist/bin/receiver-m2mp dist/bin/m2mp-storage
+binaries: dist/bin/client-m2mp dist/bin/receiver-m2mp dist/bin/m2mp-storage dist/bin/converter-m2mp
 
 dist/bin/client-m2mp: client-m2mp/*.go
 	cd client-m2mp ; go get -v ; go build -v
@@ -11,6 +11,11 @@ dist/bin/receiver-m2mp: receiver-m2mp/*.go
 	cd receiver-m2mp; go get -v ; go build -v
 	mkdir -p dist/bin
 	mv receiver-m2mp/receiver-m2mp dist/bin/receiver-m2mp
+
+dist/bin/converter-m2mp: converter-m2mp/*.go
+	cd converter-m2mp; go get -v ; go build -v
+	mkdir -p dist/bin
+	mv converter-m2mp/converter-m2mp dist/bin/converter-m2mp
 
 dist/bin/m2mp-storage: m2mp-storage/*.go
 	cd m2mp-storage; go get -v ; go build -v

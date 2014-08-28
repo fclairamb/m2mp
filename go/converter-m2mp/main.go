@@ -24,6 +24,8 @@ func NewConverterService() *ConverterService {
 }
 
 func (this *ConverterService) convertMessageLoc(src, store *mq.JsonWrapper, raw []byte) error {
+	log.Warning("Reached ?")
+
 	rawlen := len(raw)
 	buf := bytes.NewReader(raw)
 
@@ -33,32 +35,32 @@ func (this *ConverterService) convertMessageLoc(src, store *mq.JsonWrapper, raw 
 	if rawlen >= 4 { // time
 		rawlen -= 4
 		var timestamp uint32
-		binary.Read(buf, binary.LittleEndian, &timestamp)
+		binary.Read(buf, binary.BigEndian, &timestamp)
 		store.Data.Set("date_uuid", mq.UUIDFromTime(time.Unix(int64(timestamp), 0)))
 	}
 	if rawlen == 1 { // If we have only one byte left it means we only have the number of satellites in view
 		var sat uint8
-		binary.Read(buf, binary.LittleEndian, &sat)
+		binary.Read(buf, binary.BigEndian, &sat)
 		data.Set("sat", sat)
 	}
 	if rawlen >= 8 {
 		rawlen -= 8
 		var lat, lon float32
-		binary.Read(buf, binary.LittleEndian, &lat)
-		binary.Read(buf, binary.LittleEndian, &lon)
+		binary.Read(buf, binary.BigEndian, &lat)
+		binary.Read(buf, binary.BigEndian, &lon)
 		data.Set("lat", lat)
 		data.Set("lon", lon)
 	}
 	if rawlen >= 2 {
 		rawlen -= 2
 		var spd uint16
-		binary.Read(buf, binary.LittleEndian, &spd)
+		binary.Read(buf, binary.BigEndian, &spd)
 		data.Set("spd", spd)
 	}
 	if rawlen >= 2 {
 		rawlen -= 2
 		var alt uint16
-		binary.Read(buf, binary.LittleEndian, &alt)
+		binary.Read(buf, binary.BigEndian, &alt)
 		data.Set("alt", alt)
 	}
 
@@ -75,18 +77,19 @@ func (this *ConverterService) convertMessage(src *mq.JsonWrapper) {
 	raw, err := hex.DecodeString(src.Data.Get("data").MustString(""))
 	if err != nil {
 		log.Warning("Wrong data: %v", err)
-		return
-	}
-
-	switch channel {
-	case "sen:loc":
-		err = this.convertMessageLoc(src, store, raw)
-	default:
-		store.Data.Set("data", string(raw))
-		err = nil
 	}
 
 	if err == nil {
+		switch channel {
+		case "sen:loc":
+			err = this.convertMessageLoc(src, store, raw)
+		default:
+			store.Data.Set("data", string(raw))
+		}
+	}
+
+	if err == nil {
+		log.Warning("store: %#v", store)
 		this.mqClient.Publish(store)
 	} else {
 		log.Warning("Error: %v", err)

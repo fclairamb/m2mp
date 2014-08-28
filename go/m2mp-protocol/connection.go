@@ -129,9 +129,9 @@ func writeLength(target []byte, nb, size int) {
 	if size == 1 {
 		target[0] = uint8(nb)
 	} else if size == 2 {
-		binary.LittleEndian.PutUint16(target, uint16(nb))
+		binary.BigEndian.PutUint16(target, uint16(nb))
 	} else if size == 4 {
-		binary.LittleEndian.PutUint32(target, uint32(nb))
+		binary.BigEndian.PutUint32(target, uint32(nb))
 	}
 }
 

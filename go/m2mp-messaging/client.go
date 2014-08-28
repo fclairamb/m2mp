@@ -36,9 +36,10 @@ func (c *Client) HandleMessage(m *nsq.Message) error {
 }
 
 func NewClient(topic, channel string) (clt *Client, err error) {
-	clt = &Client{Recv: make(chan *JsonWrapper, 10)}
+	clt = &Client{Recv: make(chan *JsonWrapper, 1)}
 
 	clt.config = nsq.NewConfig()
+	clt.config.MaxInFlight = 10
 
 	clt.reader, err = nsq.NewConsumer(topic, channel, clt.config)
 	if err != nil {

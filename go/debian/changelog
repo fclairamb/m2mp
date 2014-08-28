@@ -1,3 +1,9 @@
+m2mp (0.1-7) unstable; urgency=low
+
+  * Added first version of m2mp-converter
+
+ -- Florent Clairambault <florent@clairambault.fr>  Thu, 28 Aug 2014 08:22:02 +0200
+
 m2mp (0.1-6) unstable; urgency=low
 
   * m2mp-storage seems functional

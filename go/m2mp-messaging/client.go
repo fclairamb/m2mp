@@ -18,13 +18,23 @@ type Client struct {
 }
 
 func (c *Client) HandleMessage(m *nsq.Message) error {
+	//fmt.Printf("Received message: %s\n", string(m.Body))
+
 	json, err := simplejson.NewJson(m.Body)
 
 	if err == nil {
 		msg := NewJsonWrapperFromJson(json)
 
 		if err = msg.Check(); err == nil {
-			c.Recv <- msg
+			target := strings.SplitN(msg.To(), ";", 2)[0]
+			spl := strings.SplitN(target, "/", 2)
+
+			// We skip messages that aren't for us (this channel)
+			if len(spl) > 1 && target != c.from {
+				log.Debug("Message skipped: %v (%s instead of %s)", msg.String(), target, c.from)
+			} else {
+				c.Recv <- msg
+			}
 		}
 	}
 
@@ -36,7 +46,7 @@ func (c *Client) HandleMessage(m *nsq.Message) error {
 }
 
 func NewClient(topic, channel string) (clt *Client, err error) {
-	clt = &Client{Recv: make(chan *JsonWrapper, 1)}
+	clt = &Client{Recv: make(chan *JsonWrapper)}
 
 	clt.config = nsq.NewConfig()
 	clt.config.MaxInFlight = 10
@@ -107,15 +117,26 @@ func (c *Client) Start(addr string) (err error) {
 }
 
 func (c *Client) Publish(msg *JsonWrapper) error {
+	if c.writer == nil {
+		return errors.New("Writer !")
+	}
 	if msg.From() == "" {
 		msg.SetFrom(c.from)
-	} else if msg.From()[0] == ':' {
+	} else if msg.From()[0] == ';' {
 		msg.SetFrom(c.from + msg.From())
 	}
 
-	tokens := strings.SplitN(msg.To(), ":", 2)
-	log.Debug("Publishing to %s with %s", tokens[0], msg.String())
-	err := c.writer.Publish(tokens[0], []byte(msg.String()))
+	target := msg.To()
+	{
+		spl := strings.SplitN(target, ";", 2)
+		target = spl[0]
+	}
+	{
+		spl := strings.SplitN(target, "/", 2)
+		target = spl[0]
+	}
+	//log.Debug("Publishing to \"%s\" with %s", target, msg.String())
+	err := c.writer.Publish(target, []byte(msg.String()))
 	return err
 }
 

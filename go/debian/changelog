@@ -1,6 +1,6 @@
 m2mp (0.1-7) unstable; urgency=low
 
-  * Added first version of m2mp-converter
+  * Added first version of converter-m2mp
 
  -- Florent Clairambault <florent@clairambault.fr>  Thu, 28 Aug 2014 08:22:02 +0200
 

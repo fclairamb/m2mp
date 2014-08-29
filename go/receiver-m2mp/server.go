@@ -5,6 +5,8 @@ import (
 	m2log "github.com/fclairamb/m2mp/go/m2mp-log"
 	msg "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	"net"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -79,17 +81,74 @@ func (s *Server) listen() error {
 	return err
 }
 
-func (s *Server) handleMessaging(m *msg.JsonWrapper) {
-	log.Debug("Handling ", m)
+func (s *Server) handleMessageForConnectionId(m *msg.JsonWrapper, connectionId int) {
+	s.Lock()
+	defer s.Unlock()
+
+	if clientHandler := s.clients[connectionId]; clientHandler != nil {
+		clientHandler.HandleMQMessage(m)
+	} else {
+		log.Warning("Could not find connectionId=%d", connectionId)
+	}
+}
+
+func (s *Server) handleMessageForDeviceId(m *msg.JsonWrapper, deviceId string) {
+	s.Lock()
+	defer s.Unlock()
+
+	log.Warning("device_id not handled at this point !")
+}
+
+func (s *Server) handleMessage(m *msg.JsonWrapper) {
+	log.Debug("Handling %s", m.String())
+
+	call := m.Call()
+
+	array := strings.Split(m.To(), ";")
+
+	connectionId := 0
+	deviceId := ""
+
+	// We parse alll the destination parameters
+	for _, v := range array[1:] {
+		spl := strings.SplitN(v, "=", 2)
+		key := spl[0]
+		value := ""
+		if len(spl) > 1 {
+			value = spl[1]
+		}
+
+		// We're actually only intesterested by this one at this point
+		if key == "connection_id" {
+			id, _ := strconv.ParseInt(value, 10, 0)
+			connectionId = int(id)
+		} else if key == "device_id" {
+			deviceId = value
+		}
+	}
+
+	if connectionId != 0 {
+		s.handleMessageForConnectionId(m, connectionId)
+	} else if deviceId != "" {
+		s.handleMessageForDeviceId(m, deviceId)
+	} else {
+		switch call {
+		case "quit":
+			{
+				log.Warning("Quit received! Not handling it right now!")
+			}
+		}
+	}
 }
 
 func (s *Server) runMessaging() error {
 	for {
 		m := <-s.msg.Recv
-		if m != nil {
+		if m == nil {
+			log.Warning("Stopping messaging...")
 			return nil
 		}
-		s.handleMessaging(m)
+		s.handleMessage(m)
 	}
 }
 
@@ -111,6 +170,10 @@ func (s *Server) Start() error {
 		m := msg.NewMessage(msg.TOPIC_GENERAL_EVENTS, "new_receiver")
 		m.Data.Set("tcp_port", par.ListenPort)
 		s.SendMessage(m)
+	}
+
+	if err != nil {
+		log.Warning("Error: %v", err)
 	}
 
 	return err

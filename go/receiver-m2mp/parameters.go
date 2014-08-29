@@ -16,6 +16,8 @@ type Parameters struct {
 	PprofPrefix    string
 	MQServer       string
 	MQTopic        string
+	console        bool
+	keyspace       string
 }
 
 func NewParameters() *Parameters {
@@ -34,6 +36,8 @@ func (par *Parameters) parseFromFlag() {
 	flag.StringVar(&par.PprofPrefix, "pprof", "pp", "pprof prefix")
 	flag.StringVar(&par.MQServer, "mqserver", "nsq:localhost:4150", "NSQ server")
 	flag.StringVar(&par.MQTopic, "mqtopic", msg.TOPIC_RECEIVERS, "NSQ topic")
+	flag.StringVar(&par.keyspace, "cassandra-keyspace", "ks_test", "Cassandra keyspace")
+	flag.BoolVar(&par.console, "console", false, "Provide console to issue commands")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "usage: "+os.Args[0])
 		flag.PrintDefaults()

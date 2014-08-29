@@ -21,6 +21,7 @@ type ClientHandler struct {
 	deviceChannelTranslator *ent.DeviceChannelTrans
 	Conn                    *pr.ProtoHandler
 	connRecv                chan interface{}
+	msgRecv                 chan *mq.JsonWrapper
 	LogLevel                int
 	lastReceivedData        time.Time
 	lastSentData            time.Time
@@ -38,7 +39,8 @@ func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
 		connectionTime:   now,
 		LogLevel:         9,
 		connRecv:         make(chan interface{}, 3),
-		ticker:           time.NewTicker(time.Second * 30),
+		msgRecv:          make(chan *mq.JsonWrapper, 10),
+		ticker:           time.NewTicker(time.Minute),
 		lastReceivedData: now,
 		lastSentData:     now,
 		//connSend:       make(chan interface{}, 3),
@@ -58,12 +60,21 @@ func (ch *ClientHandler) Start() {
 		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_connected")
 		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
-		ch.daddy.SendMessage(m)
+		ch.SendMessage(m)
 	}
+}
+
+func (ch *ClientHandler) SendMessage(m *mq.JsonWrapper) {
+	m.SetFrom(fmt.Sprintf(";connection_id=%d", ch.Id))
+	ch.daddy.SendMessage(m)
 }
 
 func (ch *ClientHandler) Close() error {
 	return ch.Conn.Conn.Close()
+}
+
+func (ch *ClientHandler) HandleMQMessage(m *mq.JsonWrapper) {
+	ch.msgRecv <- m
 }
 
 func (ch *ClientHandler) end() {
@@ -83,10 +94,10 @@ func (ch *ClientHandler) end() {
 		if ch.device != nil {
 			m.Data.Set("device_id", ch.device.Id())
 		}
-		ch.daddy.SendMessage(m)
+		ch.SendMessage(m)
 	}
 
-	{ // We save it in storage
+	if ch.device != nil { // We save it in storage
 		m := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
 		{
 			data := sjson.New()
@@ -100,7 +111,7 @@ func (ch *ClientHandler) end() {
 		m.Data.Set("key", "dev-"+ch.device.Id())
 		m.Data.Set("date_uuid", mq.UUIDFromTime(time.Now()))
 		m.Data.Set("type", "_server")
-		ch.daddy.SendMessage(m)
+		ch.SendMessage(m)
 	}
 }
 
@@ -134,11 +145,24 @@ func (ch *ClientHandler) considerCurrentStatus() {
 	if ch.LogLevel >= 5 {
 		log.Debug("%s - Considering current status (%s)", ch, now)
 	}
+
+	// We don't actually disconnect connections, we let the TCP connection
+	// be killed by some routers.
 	if now.Sub(ch.lastReceivedData) > time.Duration(time.Minute*15) &&
 		now.Sub(ch.lastSentData) > time.Duration(time.Second*30) {
 		log.Debug("%s - Sending ping request", ch)
 		ch.Send(&pr.MessagePingRequest{Data: ch.pingCounter})
 		ch.pingCounter += 1
+	}
+}
+
+func (this *ClientHandler) handleMQMessage(msg *mq.JsonWrapper) {
+	switch msg.Call() {
+	case "disconnect":
+		{
+			log.Warning("Server requesting to close the connection !")
+			this.Close()
+		}
 	}
 }
 
@@ -166,6 +190,11 @@ func (ch *ClientHandler) runCoreHandling() {
 
 				ch.receivedData()
 
+			}
+		case msg := <-ch.msgRecv:
+			{
+				log.Debug("MQ message: %s", msg.String())
+				ch.handleMQMessage(msg)
 			}
 		case <-ch.ticker.C:
 			{
@@ -236,7 +265,7 @@ func (ch *ClientHandler) justIdentified() error {
 		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
 		m.Data.Set("device_id", ch.device.Id())
-		ch.daddy.SendMessage(m)
+		ch.SendMessage(m)
 	}
 
 	{ // We save it in storage
@@ -252,7 +281,7 @@ func (ch *ClientHandler) justIdentified() error {
 		m.Data.Set("key", "dev-"+ch.device.Id())
 		m.Data.Set("date_uuid", mq.UUIDFromTime(time.Now()))
 		m.Data.Set("type", "_server")
-		ch.daddy.SendMessage(m)
+		ch.SendMessage(m)
 	}
 
 	{ // And we also save the connection time
@@ -268,7 +297,7 @@ func (ch *ClientHandler) justIdentified() error {
 		m.Data.Set("key", "dev-"+ch.device.Id())
 		m.Data.Set("date_uuid", mq.UUIDFromTime(ch.connectionTime))
 		m.Data.Set("type", "_server")
-		ch.daddy.SendMessage(m)
+		ch.SendMessage(m)
 	}
 
 	return err
@@ -304,7 +333,7 @@ func (ch *ClientHandler) handleData(msg *pr.MessageDataSimple) error {
 				m.Data.Set("device_id", ch.device.Id())
 				m.Data.Set("data", hex.EncodeToString(msg.Data))
 				m.Data.Set("channel", msg.Channel)
-				ch.daddy.SendMessage(m)
+				ch.SendMessage(m)
 			}
 		}
 	}

@@ -154,8 +154,9 @@ func main() {
 		log.Notice("Ready !")
 	}
 
-	go console_handling()
+	if par.console {
+		go console_handling()
+	}
 
 	os.Exit(<-waitForRc)
-
 }

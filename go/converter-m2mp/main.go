@@ -8,6 +8,7 @@ import (
 	mq "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	//	"github.com/gocql/gocql"
 	"bytes"
+	//"fmt"
 	"os"
 	"time"
 )
@@ -21,6 +22,25 @@ type ConverterService struct {
 func NewConverterService() *ConverterService {
 	svc := &ConverterService{quitRc: make(chan int), par: NewParameters()}
 	return svc
+}
+
+func (this *ConverterService) convertMessageSpecial(src, store *mq.JsonWrapper, raw []byte) error {
+	cmd := string(raw)
+	store.Data.Set("data", cmd)
+
+	switch cmd {
+	case "disconnect_me":
+		{
+			send := mq.NewMessage(src.From(), "disconnect")
+			if err := this.mqClient.Publish(send); err != nil {
+				log.Warning("Error sending disconnect message: %v", err)
+			}
+		}
+	default:
+		log.Warning("Special command \"%s\" not understood !", cmd)
+	}
+
+	return nil
 }
 
 func (this *ConverterService) convertMessageLoc(src, store *mq.JsonWrapper, raw []byte) error {
@@ -83,13 +103,14 @@ func (this *ConverterService) convertMessage(src *mq.JsonWrapper) {
 		switch channel {
 		case "sen:loc":
 			err = this.convertMessageLoc(src, store, raw)
+		case "_special":
+			err = this.convertMessageSpecial(src, store, raw)
 		default:
 			store.Data.Set("data", string(raw))
 		}
 	}
 
 	if err == nil {
-		log.Warning("store: %#v", store)
 		this.mqClient.Publish(store)
 	} else {
 		log.Warning("Error: %v", err)
@@ -117,6 +138,7 @@ func (s *ConverterService) runMessaging() error {
 	for {
 		m := <-s.mqClient.Recv
 		if m == nil {
+			log.Critical("End of MQ reception")
 			return nil
 		}
 		s.handleMessaging(m)

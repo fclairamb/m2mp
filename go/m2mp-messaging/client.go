@@ -18,24 +18,28 @@ type Client struct {
 }
 
 func (c *Client) HandleMessage(m *nsq.Message) error {
-	json := simplejson.New()
+	json, err := simplejson.NewJson(m.Body)
 
-	msg := NewJsonWrapperFromJson(json)
+	if err == nil {
+		msg := NewJsonWrapperFromJson(json)
 
-	if err := msg.Check(); err != nil {
-		log.Warning("Invalid message: ", err)
-		return err
-	} else {
-		c.Recv <- msg
+		if err = msg.Check(); err == nil {
+			c.Recv <- msg
+		}
 	}
 
-	return nil
+	if err != nil {
+		log.Warning("Invalid message: %s, %v", string(m.Body), err)
+	}
+
+	return err
 }
 
 func NewClient(topic, channel string) (clt *Client, err error) {
-	clt = &Client{Recv: make(chan *JsonWrapper, 10)}
+	clt = &Client{Recv: make(chan *JsonWrapper, 1)}
 
 	clt.config = nsq.NewConfig()
+	clt.config.MaxInFlight = 10
 
 	clt.reader, err = nsq.NewConsumer(topic, channel, clt.config)
 	if err != nil {
@@ -105,6 +109,8 @@ func (c *Client) Start(addr string) (err error) {
 func (c *Client) Publish(msg *JsonWrapper) error {
 	if msg.From() == "" {
 		msg.SetFrom(c.from)
+	} else if msg.From()[0] == ':' {
+		msg.SetFrom(c.from + msg.From())
 	}
 
 	tokens := strings.SplitN(msg.To(), ":", 2)

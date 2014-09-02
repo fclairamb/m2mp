@@ -21,7 +21,7 @@ fi
 printf "Fixing user rights..."
 chown -R m2mp:m2mp /var/lib/m2mp /var/log/m2mp && printf " 1/2" || printf "FAILED (1/2)\n"
 printf "\rFixing user rights..."
-chown -R nsq:nsq /var/lib/nsq /var/log/nsq && printf " 2/2" || printf "FAILED (2/2)\n"
+chown -R nsq:nsq /var/lib/nsq /var/log/nsq && printf " 2/2" || printf "FAILED (2/2)\n"
 printf "\n"
 
 printf "Starting supervisor services...\n"

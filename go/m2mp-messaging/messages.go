@@ -4,7 +4,15 @@ import (
 	"errors"
 	"fmt"
 	simple "github.com/bitly/go-simplejson"
+	"github.com/gocql/gocql"
 	"time"
+)
+
+const (
+	FIELD_FROM = "_from"
+	FIELD_TO   = "_to"
+	FIELD_CALL = "_call"
+	FIELD_TIME = "_time"
 )
 
 type JsonWrapper struct {
@@ -21,16 +29,16 @@ func NewJsonWrapperFromJson(json *simple.Json) *JsonWrapper {
 }
 
 func (jw *JsonWrapper) From() (out string) {
-	out, _ = jw.Data.Get("from").String()
+	out, _ = jw.Data.Get(FIELD_FROM).String()
 	return
 }
 
 func (jw *JsonWrapper) SetFrom(from string) {
-	jw.Data.Set("from", from)
+	jw.Data.Set(FIELD_FROM, from)
 }
 
 func (jw *JsonWrapper) To() (out string) {
-	out, _ = jw.Data.Get("to").String()
+	out, _ = jw.Data.Get(FIELD_TO).String()
 	return
 }
 
@@ -41,38 +49,43 @@ func (jw *JsonWrapper) To() (out string) {
 //
 // The only actual rule through is that the first part is the NSQ topic or topic/channel (later).
 func (jw *JsonWrapper) SetTo(to string) {
-	jw.Data.Set("to", to)
+	jw.Data.Set(FIELD_TO, to)
 }
 
 func (jw *JsonWrapper) Call() (out string) {
-	out, _ = jw.Data.Get("call").String()
+	out, _ = jw.Data.Get(FIELD_CALL).String()
 	return
 }
 
 func (jw *JsonWrapper) SetCall(call string) {
-	jw.Data.Set("call", call)
+	jw.Data.Set(FIELD_CALL, call)
 }
 
 func (jw *JsonWrapper) SetVS(key string, value string) {
 	jw.Data.Set(key, value)
 }
 
+func (jw *JsonWrapper) Time() time.Time {
+	t, _ := jw.Data.Get(FIELD_TIME).Int64()
+	return time.Unix(t, 0)
+}
+
 func (jw *JsonWrapper) SetTime() {
 	time := time.Now().UTC().Unix()
-	jw.Data.Set("time", time)
+	jw.Data.Set(FIELD_TIME, time)
 }
 
 var MANDATORY_FIELDS []string
 
 func init() {
-	MANDATORY_FIELDS = []string{"from", "to", "call", "time"}
+	MANDATORY_FIELDS = []string{FIELD_FROM, FIELD_TO, FIELD_CALL}
 }
 
 func (jw *JsonWrapper) Check() error {
 
 	for _, field := range MANDATORY_FIELDS {
 		if _, err := jw.Data.Get(field).String(); err != nil {
-			return errors.New(fmt.Sprint("Invalid field ", field))
+			return errors.New(fmt.Sprintf("Missing field \"%s\"", field))
 		}
 	}
 
@@ -80,14 +93,21 @@ func (jw *JsonWrapper) Check() error {
 }
 
 func (jw *JsonWrapper) String() string {
-	json, _ := jw.Data.MarshalJSON()
+	json, err := jw.Data.MarshalJSON()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
 	return string(json)
 }
 
-func NewMessageEvent(eventType string) *JsonWrapper {
+func NewMessage(to, call string) *JsonWrapper {
 	msg := NewJsonWrapper()
-	msg.SetTo(TOPIC_GENERAL_EVENTS)
-	msg.SetCall(eventType)
+	msg.SetTo(to)
+	msg.SetCall(call)
 	msg.SetTime()
 	return msg
+}
+
+func UUIDFromTime(time time.Time) string {
+	return gocql.UUIDFromTime(time.UTC()).String()
 }

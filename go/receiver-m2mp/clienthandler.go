@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
+	sjson "github.com/bitly/go-simplejson"
 	ent "github.com/fclairamb/m2mp/go/m2mp-db/entities"
 	mq "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	pr "github.com/fclairamb/m2mp/go/m2mp-protocol"
@@ -52,8 +54,8 @@ func (ch *ClientHandler) Start() {
 	go ch.runRecv()
 	go ch.runCoreHandling()
 
-	{
-		m := mq.NewMessageEvent("device_connected")
+	{ // We report it in events
+		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_connected")
 		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
 		ch.daddy.SendMessage(m)
@@ -71,14 +73,33 @@ func (ch *ClientHandler) end() {
 	}
 	ch.ticker.Stop()
 
-	{
-		m := mq.NewMessageEvent("device_disconnected")
+	connectionDuration := int64(time.Now().UTC().Sub(ch.connectionTime).Seconds())
+
+	{ // We save the event
+		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_disconnected")
 		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
-		m.Data.Set("connection_duration", fmt.Sprint(int64(time.Now().UTC().Sub(ch.connectionTime).Seconds())))
+		m.Data.Set("connection_duration", connectionDuration)
 		if ch.device != nil {
 			m.Data.Set("device_id", ch.device.Id())
 		}
+		ch.daddy.SendMessage(m)
+	}
+
+	{ // We save it in storage
+		m := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
+		{
+			data := sjson.New()
+			m.Data.Set("data", data)
+
+			data.Set("type", "device_disconnected")
+			data.Set("source", ch.Conn.Conn.RemoteAddr().String())
+			data.Set("connection_id", fmt.Sprint(ch.Id))
+			data.Set("connection_duration", connectionDuration)
+		}
+		m.Data.Set("key", "dev-"+ch.device.Id())
+		m.Data.Set("date_uuid", mq.UUIDFromTime(time.Now()))
+		m.Data.Set("type", "_server")
 		ch.daddy.SendMessage(m)
 	}
 }
@@ -129,25 +150,21 @@ func (ch *ClientHandler) runCoreHandling() {
 			{
 				switch m := msg.(type) {
 				case *pr.MessageDataSimple:
-					ch.receivedData()
 					ch.handleData(m)
 				case *pr.MessageDataArray:
-					ch.receivedData()
 					ch.handleDataArray(m)
 				case *pr.MessageIdentRequest:
-					ch.receivedData()
 					ch.handleIdentRequest(m)
 				case *pr.MessagePingRequest:
-					{
-						ch.receivedData()
-						ch.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
-					}
+					ch.Conn.Send(&pr.MessagePingResponse{Data: m.Data})
 					// If this is a disconnection event, we should quit the current go routine
 				case *pr.EventDisconnected:
 					{
 						return
 					}
 				}
+
+				ch.receivedData()
 
 			}
 		case <-ch.ticker.C:
@@ -214,11 +231,43 @@ func (ch *ClientHandler) justIdentified() error {
 		err = ch.checkSettings()
 	}
 
-	{
-		m := mq.NewMessageEvent("device_identified")
+	{ // We report it in events
+		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_identified")
 		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
 		m.Data.Set("device_id", ch.device.Id())
+		ch.daddy.SendMessage(m)
+	}
+
+	{ // We save it in storage
+		m := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
+		{
+			data := sjson.New()
+			m.Data.Set("data", data)
+
+			data.Set("source", ch.Conn.Conn.RemoteAddr().String())
+			data.Set("connection_id", fmt.Sprint(ch.Id))
+			data.Set("type", "device_identified")
+		}
+		m.Data.Set("key", "dev-"+ch.device.Id())
+		m.Data.Set("date_uuid", mq.UUIDFromTime(time.Now()))
+		m.Data.Set("type", "_server")
+		ch.daddy.SendMessage(m)
+	}
+
+	{ // And we also save the connection time
+		m := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
+		{
+			data := sjson.New()
+			m.Data.Set("data", data)
+
+			data.Set("source", ch.Conn.Conn.RemoteAddr().String())
+			data.Set("connection_id", fmt.Sprint(ch.Id))
+			data.Set("type", "device_connected")
+		}
+		m.Data.Set("key", "dev-"+ch.device.Id())
+		m.Data.Set("date_uuid", mq.UUIDFromTime(ch.connectionTime))
+		m.Data.Set("type", "_server")
 		ch.daddy.SendMessage(m)
 	}
 
@@ -240,17 +289,22 @@ func (ch *ClientHandler) handleData(msg *pr.MessageDataSimple) error {
 
 	default:
 		{
+			target := "converter-m2mp"
+
 			if dct := ch.getDeviceChannelTranslator(); dct != nil {
-				if target := dct.GetTarget(msg.Channel); target != nil {
-					msg := mq.NewJsonWrapper()
-					msg.SetTo(*target)
-					msg.SetFrom(fmt.Sprintf(":conn:%d", ch.Id))
-					msg.SetCall("data_simple")
-					ch.daddy.SendMessage(msg)
-					log.Debug("Sending %s", msg)
-				} else if tokens[0] == "sen" {
-					ch.device.SaveTSTime(msg.Channel, time.Now().UTC(), string(msg.Data))
+				if t := dct.GetTarget(msg.Channel); t != nil {
+					target = *t
 				}
+			}
+
+			{ // We send the data to the converter, and it has to deal with it...
+				m := mq.NewMessage(target, "data_simple")
+				m.SetFrom(fmt.Sprintf(":connection_id:%d", ch.Id))
+				m.Data.Set("connection_id", fmt.Sprint(ch.Id))
+				m.Data.Set("device_id", ch.device.Id())
+				m.Data.Set("data", hex.EncodeToString(msg.Data))
+				m.Data.Set("channel", msg.Channel)
+				ch.daddy.SendMessage(m)
 			}
 		}
 	}

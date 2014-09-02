@@ -8,6 +8,7 @@ import org.m2mp.db.DB;
 import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.common.TableCreation;
 import org.m2mp.db.common.TableIncrementalDefinition;
+import org.m2mp.db.registry.file.DbFile;
 
 import java.util.*;
 
@@ -234,6 +235,22 @@ public class RegistryNode {
                 return 3;
             }
         });
+        DbFile.prepareTable();
+    }
+
+    public static void dropTable() {
+        final String[] queries = new String[]{
+                "DROP TABLE registrynode;",
+                "DROP TABLE registrynodechildren",
+                "DROP TABLE registrynodedata"
+        };
+        for (String query : queries) {
+            try {
+                DB.execute(query);
+            } catch (Exception ex) {
+
+            }
+        }
     }
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Children management">

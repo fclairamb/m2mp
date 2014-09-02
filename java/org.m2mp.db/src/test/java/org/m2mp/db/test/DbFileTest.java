@@ -5,7 +5,6 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.m2mp.db.DB;
-import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.registry.RegistryNode;
 import org.m2mp.db.registry.file.DbFile;
 import org.m2mp.db.registry.file.DbFileInputStream;
@@ -59,14 +58,8 @@ public class DbFileTest {
     @BeforeClass
     public static void setUpClass() {
         DB.keyspace("ks_test", true);
-        try {
-            DB.execute("drop table RegistryNode;");
-            DB.execute("drop table RegistryNodeChildren;");
-            DB.execute("drop table RegistryNodeData;");
-        } catch (Exception ex) {
-        }
-        GeneralSetting.prepareTable();
-        DbFile.prepareTable();
+        RegistryNode.dropTable();
+        RegistryNode.prepareTable();
     }
 
     private void writeFile(OutputStream os, int nbBlocks, int blockSize, int mod) throws IOException {

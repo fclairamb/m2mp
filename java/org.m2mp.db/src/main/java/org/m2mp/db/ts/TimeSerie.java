@@ -61,6 +61,11 @@ public class TimeSerie {
         });
     }
 
+    public static void dropTable() {
+        DB.prepare("drop table " + TABLE_TIMESERIES + ";");
+        DB.prepare("drop table " + TABLE_TIMESERIES_INDEX + ";");
+    }
+
     /**
      * Convert a date to a period
      *
@@ -150,8 +155,8 @@ public class TimeSerie {
      * Delete all data around a period.
      *
      * @param date Period to delete
-     * @param id     Identifier of the data
-     * @param type   Type of the data
+     * @param id   Identifier of the data
+     * @param type Type of the data
      */
     public static void delete(String date, String id, String type) {
         DB.execute(DB.prepare("DELETE FROM " + TABLE_TIMESERIES + " WHERE id=? AND date=?;").bind(id, date));

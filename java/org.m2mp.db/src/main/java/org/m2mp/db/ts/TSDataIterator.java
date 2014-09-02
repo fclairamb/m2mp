@@ -21,14 +21,21 @@ import static org.m2mp.db.ts.TimeSerie.TABLE_TIMESERIES;
  */
 public class TSDataIterator implements Iterator<TimedData> {
 
-
     private static final boolean DEBUG = false;
 
     /**
-     * Key of the serie
+     * Id of the element of the serie.
      */
     private final String id;
+
+    /**
+     * Type of the serie.
+     */
     private final String type;
+    /**
+     * Key of the serie. Will be in the form of <code>id</code> or
+     * <code>id+"!"+type</code>
+     */
     private final String key;
     private final UUID /**
      * Beginning date
@@ -39,20 +46,7 @@ public class TSDataIterator implements Iterator<TimedData> {
      */
     dateEnd;
     /**
-     * Current period: year * 12 + month
-     */
-    //private long period;
-    //private final long
-    /**
-     * Beginning period
-     */
-    //        periodBegin,
-    /**
-     * Ending period
-     */
-    //periodEnd;
-    /**
-     * Inverted
+     * If the data is listed in the inverted order. true is DESC
      */
     private final boolean inverted;
 
@@ -73,36 +67,43 @@ public class TSDataIterator implements Iterator<TimedData> {
         this.key = id + (type != null ? "!" + type : "");
         this.dateBegin = dateBegin != null ? dateBegin : UUIDs.startOf(System.currentTimeMillis() - (1000L * 3600 * 24 * 365 * 2)); // By default, 2 years back, at most 25 empty periods
         this.dateEnd = dateEnd != null ? dateEnd : UUIDs.endOf(System.currentTimeMillis() + (1000L * 3600 * 24 * 7)); // By default, 7 days ahead, at most 1 empty period
-        //this.periodBegin = ;
-        //this.periodEnd = ;
         this.inverted = inverted;
         this.periodIterator = new TSPeriodIterator(id, type, uuidToDate(this.dateBegin), uuidToDate(this.dateEnd), this.inverted);
-
-        // We're either starting from the end or the beginning
-        // inverted : from periodEnd to periodBegin
-        // not inverted : from periodBegin to periodEnd
-        // setPeriod(inverted ? periodEnd : periodBegin);
     }
 
-    private static final Date uuidToDate(UUID u) {
+    private static Date uuidToDate(UUID u) {
         return u != null ? new Date(UUIDs.unixTimestamp(u)) : null;
     }
 
+    /**
+     * Data iterator.
+     * <p/>
+     * The data iterator is used to list all the rows of the current period.
+     * When the period is over, we will switch.
+     */
     private Iterator<Row> iter;
 
     final static FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd", TimeZone.getTimeZone("UTC"));
 
+    /**
+     * Set the period.
+     *
+     * @param period Period to use
+     *               <p/>
+     *               In the current implementation, the period is the day in the form of
+     *               yyyy-MM-dd.
+     *               <p/>
+     *               This method defines the iterator that we will use until the current
+     *               period is over.
+     */
     private void setPeriod(String period) {
-        //this.period = period;
         PreparedStatement ps = inverted ? reqSelectOrderDesc() : reqSelectOrderAsc();
-        //String date = DATE_FORMAT.format(period);
-        if (DEBUG)
+        if (DEBUG) {
             System.out.println("Searching in " + period + " from " + dateBegin + " to " + dateEnd);
+        }
         ResultSet rs = DB.execute(ps.bind(key, period, dateBegin, dateEnd));
         iter = rs.iterator();
     }
-
-    private final long DAY_DURATION = 24 * 3600 * 1000;
 
     @Override
     /**
@@ -124,10 +125,11 @@ public class TSDataIterator implements Iterator<TimedData> {
     @Override
     public TimedData next() {
         Row row = iter.next();
-        String type = row.getString(0);
-        if (type == null)
-            type = this.type;
-        TimedData td = new TimedData(id, type, row.getUUID(1), row.getString(2));
+        String rowType = row.getString(0);
+        if (rowType == null) {
+            rowType = this.type;
+        }
+        TimedData td = new TimedData(id, rowType, row.getUUID(1), row.getString(2));
         return td;
     }
 
@@ -137,7 +139,12 @@ public class TSDataIterator implements Iterator<TimedData> {
 
     private static final String SELECT_COMMON = "SELECT type, time, data FROM " + TABLE_TIMESERIES + " WHERE id = ? AND date = ? AND time > ? AND time < ? ORDER BY time";
 
-    public PreparedStatement reqSelectOrderAsc() {
+    /**
+     * Prepare a statement in the ASC order.
+     *
+     * @return Prepared statement
+     */
+    private PreparedStatement reqSelectOrderAsc() {
         if (reqSelectOrderAsc == null) {
             reqSelectOrderAsc = DB.prepare(SELECT_COMMON + " ASC;");
         }
@@ -146,7 +153,12 @@ public class TSDataIterator implements Iterator<TimedData> {
 
     private PreparedStatement reqSelectOrderAsc;
 
-    public PreparedStatement reqSelectOrderDesc() {
+    /**
+     * Prepare a statement in the DESC order.
+     *
+     * @return Prepared statement
+     */
+    private PreparedStatement reqSelectOrderDesc() {
         if (reqSelectOrderDesc == null) {
             reqSelectOrderDesc = DB.prepare(SELECT_COMMON + " DESC;");
         }

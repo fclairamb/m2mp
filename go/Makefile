@@ -1,6 +1,6 @@
 all: binaries
 
-binaries: dist/bin/client-m2mp dist/bin/receiver-m2mp dist/bin/m2mp-storage dist/bin/converter-m2mp
+binaries: dist/bin/client-m2mp dist/bin/receiver-m2mp dist/bin/m2mp-storage dist/bin/converter-m2mp dist/bin/receiver-alip
 
 dist/bin/client-m2mp: client-m2mp/*.go
 	cd client-m2mp ; go get -v ; go build -v
@@ -16,6 +16,11 @@ dist/bin/converter-m2mp: converter-m2mp/*.go
 	cd converter-m2mp; go get -v ; go build -v
 	mkdir -p dist/bin
 	mv converter-m2mp/converter-m2mp dist/bin/converter-m2mp
+
+dist/bin/receiver-alip: receiver-alip/*.go
+	cd receiver-alip; go get -v ; go build -v
+	mkdir -p dist/bin
+	mv receiver-alip/receiver-alip dist/bin/receiver-alip
 
 dist/bin/m2mp-storage: m2mp-storage/*.go
 	cd m2mp-storage; go get -v ; go build -v
@@ -53,12 +58,15 @@ package: binaries
 	mv ../*.deb dist/package/
 	rm ../*.changes
 
-test_package:
+test_package_local:
 	make clean
 	make package
-	#sudo dpkg -r m2mp || echo "No M2MP package"
 	sudo dpkg -i dist/package/*.deb
 
 clean:
 	[ ! -d dist ] || rm -R dist
 
+test_package_remote:
+	make package
+	rsync dist/package/*.deb $(TARGET):package.deb
+	ssh $(TARGET) dpkg -i package.deb

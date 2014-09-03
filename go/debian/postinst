@@ -28,4 +28,4 @@ printf "Starting supervisor services...\n"
 supervisorctl reread
 supervisorctl update
 supervisorctl start "nsq:*"
-supervisorctl start "m2mp:*"
+supervisorctl restart "m2mp:*"

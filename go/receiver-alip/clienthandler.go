@@ -315,8 +315,10 @@ func (ch *ClientHandler) handleSettingRequest(request string) error {
 			value := tokens[2]
 			return ch.device.AckSetting(name, value)
 		}
-	} else if len(tokens) == 1 && tokens[0] == "L" {
+	} else if len(tokens) == 1 && tokens[0] == "G" {
 		return ch.sendSettingsToSend()
+	} else if len(tokens) == 1 && tokens[0] == "GA" {
+		return ch.sendSettingsAll()
 	} else {
 		return errors.New(fmt.Sprintf("Command not understood: %v", tokens))
 	}
@@ -424,7 +426,7 @@ func (ch *ClientHandler) handleDataRequest(content string) error {
 		return errors.New("You must be identified !")
 	}
 
-	tokens := strings.SplitN(content, " ", 3)
+	tokens := strings.SplitN(content, " ", 2)
 	if len(tokens) < 2 {
 		return errors.New("You need to specify a type and the content.")
 	}
@@ -434,7 +436,7 @@ func (ch *ClientHandler) handleDataRequest(content string) error {
 	store := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
 	store.Data.Set("date_uuid", mq.UUIDFromTime(time.Now().UTC()))
 	store.Data.Set("key", "dev-"+ch.device.Id())
-	store.Data.Set("type", "raw:"+dataType)
+	store.Data.Set("type", dataType+"__")
 
 	switch dataType {
 	case "echo":
@@ -444,6 +446,7 @@ func (ch *ClientHandler) handleDataRequest(content string) error {
 		}
 	case "L":
 		{
+			store.Data.Set("type", "sen:loc")
 			tokens := strings.Split(content, ",")
 			data := sjson.New()
 			store.Data.Set("data", data)
@@ -559,7 +562,7 @@ func (ch *ClientHandler) sendSettingsAll() error {
 
 func (ch *ClientHandler) checkSettings() error {
 	if len(ch.device.Settings()) == 0 {
-		return ch.Send("GA")
+		return ch.Send("S GA")
 	}
 	return nil
 }

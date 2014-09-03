@@ -1,6 +1,7 @@
 package main
 
 import (
+	//"code.google.com/p/gcfg"
 	"flag"
 	"fmt"
 	msg "github.com/fclairamb/m2mp/go/m2mp-messaging"
@@ -8,6 +9,7 @@ import (
 )
 
 type Parameters struct {
+	Config         string
 	Test           bool
 	ListenPort     int
 	HttpListenPort int
@@ -24,16 +26,13 @@ type Parameters struct {
 func NewParameters() *Parameters {
 	par := &Parameters{}
 	par.parseFromFlag()
-	if par.Test {
-		par.SwitchToTestMode()
-	}
 	return par
 }
 
 func (par *Parameters) parseFromFlag() {
-	flag.BoolVar(&par.Test, "test", false, "Test")
+	flag.StringVar(&par.Config, "config", "", "Config file")
 	flag.IntVar(&par.ListenPort, "listen", 3050, "Listening port")
-	flag.IntVar(&par.HttpListenPort, "httpListen", 6060, "Http listening port (for profiling)")
+	flag.IntVar(&par.HttpListenPort, "httpListen", 0, "Http listening port (for profiling)")
 	flag.StringVar(&par.PprofPrefix, "pprof", "pp", "pprof prefix")
 	flag.StringVar(&par.MQServer, "mqserver", "nsq:localhost:4150", "NSQ server")
 	flag.StringVar(&par.MQTopic, "mqtopic", msg.TOPIC_RECEIVERS, "NSQ topic")
@@ -47,12 +46,6 @@ func (par *Parameters) parseFromFlag() {
 	}
 
 	flag.Parse()
-}
-
-func (par *Parameters) SwitchToTestMode() {
-	par.ListenPort += 10
-	par.HttpListenPort += 10
-	par.MQTopic += "-test"
 }
 
 func (par *Parameters) Close() {

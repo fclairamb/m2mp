@@ -56,10 +56,12 @@ func TestTimeSerieReading(t *testing.T) {
 
 	initialTime := time.Now().UTC()
 
-	id := "device-" + getUUID()
+	id := "dev-" + getUUID()
+
+	const NB = 10
 
 	var i time.Duration
-	for i = 0; i < 10; i++ {
+	for i = 0; i < NB; i++ {
 		time := initialTime.Add(i * time.Hour)
 		log.Println("Inserting", time, "...")
 		SaveTSTime(id, "test", time, "Hello you !")
@@ -69,8 +71,12 @@ func TestTimeSerieReading(t *testing.T) {
 	defer iter.Close()
 
 	var td TimedData
-	for iter.Scan(&td) {
+	for c := 0; iter.Scan(&td); c++ {
 		log.Println("td: ", td, "(", td.Time(), ")")
+		c += 1
+	}
+	if c != NB {
+		t.Fatalf("We got %d rows instead of %d", c, NB)
 	}
 }
 

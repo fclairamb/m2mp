@@ -68,10 +68,10 @@ func NewTimedDataFromTime(id, dataType string, time time.Time, data string) *Tim
 	return &TimedData{Id: id, Type: dataType, UTime: gocql.UUIDFromTime(time), Data: data}
 }
 
-func newPeriodDataIterator(id string, begin, end *time.Time, inverted bool) *gocql.Iter {
-	cql := "select date from timeseries_index where id=?"
+func newPeriodDataIterator(id, dataType string, begin, end *time.Time, inverted bool) *gocql.Iter {
+	cql := "select date from timeseries_index where id=? and type=?"
 	args := make([]interface{}, 0, 4)
-	args = append(args, id)
+	args = append(args, id, dataType)
 	if begin != nil {
 		cql += " and date<=?"
 		args = append(args, begin)
@@ -140,7 +140,7 @@ type TSDataIterator struct {
 }
 
 func NewTSDataIterator(id string, dataType string, begin, end *time.Time, inverted bool) *TSDataIterator {
-	periodIter := newPeriodDataIterator(id, begin, end, inverted)
+	periodIter := newPeriodDataIterator(id, dataType, begin, end, inverted)
 
 	this := &TSDataIterator{id: id, dataType: dataType, begin: begin, end: end, periodIter: periodIter, inverted: inverted}
 

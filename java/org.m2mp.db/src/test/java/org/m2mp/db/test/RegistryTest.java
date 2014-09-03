@@ -11,7 +11,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.m2mp.db.DB;
 import org.m2mp.db.registry.RegistryNode;
-import org.m2mp.db.registry.file.DbFile;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,7 +24,8 @@ public class RegistryTest {
     @BeforeClass
     public static void setUpClass() {
         DB.keyspace("ks_test", true);
-        DbFile.prepareTable();
+        RegistryNode.dropTable();
+        RegistryNode.prepareTable();
     }
 
     @Before

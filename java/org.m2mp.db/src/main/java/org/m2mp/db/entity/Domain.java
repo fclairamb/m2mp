@@ -1,16 +1,12 @@
 package org.m2mp.db.entity;
 
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import org.m2mp.db.DB;
 import org.m2mp.db.common.Entity;
-import org.m2mp.db.common.TableCreation;
-import org.m2mp.db.common.TableIncrementalDefinition;
 import org.m2mp.db.registry.RegistryNode;
 
-import java.util.ArrayList;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -24,16 +20,21 @@ import java.util.UUID;
 public class Domain extends Entity {
 
     public static Domain getDefault() {
-        return new Domain("__default__").check();
+        return Domain.byName("default", true);
     }
 
     private UUID domainId;
-    private static final String PREFIX = "/domain/";
-    private static final String PROP_MASTER_ID = "master";
+    private static final String NODE_DOMAIN = "/domain/",
+            PROP_MASTER_ID = "master",
+            PROP_NAME = "name",
+            PROP_CREATED_DATE = "created_date",
+            NODE_DEVICES = "devices",
+            NODE_USERS = "users",
+            NODE_BY_NAME = NODE_DOMAIN + "by-name/";
 
     public Domain(UUID id) {
         domainId = id;
-        node = new RegistryNode(PREFIX + id);
+        node = new RegistryNode(NODE_DOMAIN + id);
     }
 
     public Domain(RegistryNode node) {
@@ -41,34 +42,33 @@ public class Domain extends Entity {
         this.node = node;
     }
 
-    public Domain(String name) {
-        domainId = getIdFromName(name);
-        if (domainId != null) {
-            node = new RegistryNode(PREFIX + domainId);
+    public static Domain byName(String name, boolean create) {
+        RegistryNode node = new RegistryNode(NODE_BY_NAME + name);
+        if (node.exists()) {
+            return new Domain(node.getPropertyUUID("id"));
+        } else if (create) {
+            byte[] digest = new byte[20];
+            try {
+                digest = MessageDigest.getInstance("SHA-1").digest(name.getBytes());
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+            byte[] uuidRaw = new byte[16];
+            System.arraycopy(digest, 0, uuidRaw, 0, 16);
+            UUID deviceId = UUID.nameUUIDFromBytes(uuidRaw);
+            Domain domain = new Domain(deviceId);
+
+            if (domain.exists()) {
+                domain = new Domain(UUID.randomUUID());
+            } else {
+                domain.create();
+            }
+            domain.setProperty(PROP_CREATED_DATE, new Date());
+            domain.setName(name);
+            return domain;
         } else {
-            throw new IllegalArgumentException("The domain \"" + name + "\" could not be found !");
+            return null;
         }
-    }
-
-    public static Domain get(String name) {
-        UUID domainId = getIdFromName(name);
-        return domainId != null ? new Domain(domainId) : null;
-    }
-
-    private static final String PROP_NAME = "name";
-    private static final String PROP_CREATED_DATE = "created";
-
-    public static Domain create(String name) {
-        UUID domainId = getIdFromName(name);
-        if (domainId != null) {
-            throw new IllegalArgumentException("The domain \"" + name + "\" already exists for domain \"" + domainId + "\"");
-        }
-        domainId = UUID.randomUUID();
-        Domain d = new Domain(domainId);
-        d.check();
-        d.setName(name);
-        d.setProperty(PROP_CREATED_DATE, System.currentTimeMillis());
-        return d;
     }
 
     public String getName() {
@@ -76,75 +76,28 @@ public class Domain extends Entity {
     }
 
     public void setName(String name) {
-        if (getIdFromName(name) != null)
+        if (byName(name, false) != null)
             throw new IllegalArgumentException("This domain name is already taken !");
         String previousName = getName();
-        setProperty(PROP_NAME, name);
-        DB.execute(DB.prepare("INSERT INTO " + TABLE + " ( name, id ) VALUES ( ?, ? );").bind(name, domainId));
-        if (previousName != null)
-            DB.execute(DB.prepare("DELETE FROM " + TABLE + " WHERE name = ?;").bind(previousName));
+        if (previousName != null) {
+            new RegistryNode(NODE_BY_NAME + previousName).delete(true);
+        }
+        if (name != null) {
+            new RegistryNode(NODE_BY_NAME + name).check().setProperty("id", getId());
+            setProperty(PROP_NAME, name);
+        }
     }
 
     public static final String TABLE = "Domain";
-
-    protected static UUID getIdFromName(String name) {
-        ResultSet rs = DB.execute(DB.prepare("SELECT id FROM " + TABLE + " WHERE name = ?;").bind(name));
-        for (Row row : rs) {
-            return row.getUUID(0);
-        }
-        return null;
-    }
 
     public UUID getId() {
         return domainId;
     }
 
-    public static void prepareTable() {
-        RegistryNode.prepareTable();
-        TableCreation.checkTable(new TableIncrementalDefinition() {
-            @Override
-            public String getTableDefName() {
-                return TABLE;
-            }
-
-            @Override
-            public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
-                List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
-                list.add(new TableIncrementalDefinition.TableChange(1, ""
-                        + "CREATE TABLE " + TABLE + " (\n"
-                        + "  name text PRIMARY KEY,"
-                        + "  id uuid\n"
-                        + ");"));
-                return list;
-            }
-
-            public String getTablesDefCql() {
-                return ""
-                        + "CREATE TABLE " + TABLE + " (\n"
-                        + "  name text PRIMARY KEY,"
-                        + "  id uuid\n"
-                        + ");";
-            }
-
-            @Override
-            public int getTableDefVersion() {
-                return 1;
-            }
-        });
-    }
-
     @Override
     public Domain check() {
         node.check();
-//		if (!exists()) {
-//			create(getName());
-//		}
         return this;
-    }
-
-    @Deprecated
-    public User getDefaultUser() {
-        return User.get("__" + getName() + "__");
     }
 
     public void setMaster(User master) {
@@ -197,5 +150,34 @@ public class Domain extends Entity {
 
             ;
         };
+    }
+
+    private RegistryNode getDevicesNode() {
+        return node.getChild(NODE_DEVICES).check();
+    }
+
+    public void addDevice(UUID deviceId) {
+        getDevicesNode().setProperty(deviceId.toString(), "");
+    }
+
+    public void removeDevice(UUID deviceId) {
+        getDevicesNode().delProperty(deviceId.toString());
+    }
+
+    private RegistryNode getUsersNode() {
+        return node.getChild(NODE_USERS).check();
+    }
+
+    public void addUser(UUID userId) {
+        getUsersNode().setProperty(userId.toString(), "");
+    }
+
+    public void removeUser(UUID userId) {
+        getUsersNode().delProperty(userId.toString());
+    }
+
+    public void delete() {
+        setName(null);
+        node.delete(false);
     }
 }

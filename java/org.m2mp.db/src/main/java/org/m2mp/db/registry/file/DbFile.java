@@ -221,7 +221,6 @@ public class DbFile extends Entity {
     public static final String TABLE_REGISTRYDATA = RegistryNode.TABLE_REGISTRY + "Data";
 
     public static void prepareTable() {
-        RegistryNode.prepareTable();
         TableCreation.checkTable(new TableIncrementalDefinition() {
             @Override
             public String getTableDefName() {

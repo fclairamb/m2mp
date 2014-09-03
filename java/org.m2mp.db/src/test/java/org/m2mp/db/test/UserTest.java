@@ -10,45 +10,41 @@ import org.junit.Test;
 import org.m2mp.db.DB;
 import org.m2mp.db.entity.Domain;
 import org.m2mp.db.entity.User;
+import org.m2mp.db.registry.RegistryNode;
 
 /**
- *
  * @author Florent Clairambault
  */
 public class UserTest {
 
-	@BeforeClass
-	public static void setUpClass() {
-		DB.keyspace("ks_test",true);
-		try {
-			DB.execute("drop table " + Domain.TABLE + ";");
-			DB.execute("drop table " + User.TABLE + ";");
-		} catch (Exception ex) {
-		}
-		User.prepareTable();
-	}
+    @BeforeClass
+    public static void setUpClass() {
+        DB.keyspace("ks_test", true);
+        RegistryNode.dropTable();
+        RegistryNode.prepareTable();
+    }
 
-	@Test
-	public void create() {
-		// Domain
-		Domain domain = Domain.create("domain");
+    @Test
+    public void create() {
+        // Domain
+        Domain domain = Domain.byName("domain", true);
 
-		{
-			User user1 = User.get("user1");
-			Assert.assertNull(user1);
-		}
-		{
-			User user1 = User.create("name", domain);
-			User user2 = User.get("name");
-			Assert.assertNotNull(user1.getId());
-			Assert.assertEquals(user1.getId(), user2.getId());
-		}
-	}
+        {
+            User user1 = User.byName("user1", false);
+            Assert.assertNull(user1);
+        }
+        {
+            User user1 = User.byName("name", true);
+            User user2 = User.byName("name", false);
+            Assert.assertNotNull(user1.getId());
+            Assert.assertEquals(user1.getId(), user2.getId());
+        }
+    }
 
     @Test
     public void delete() {
         // Domain
-        Domain d = Domain.create("domain2");
+        Domain d = Domain.byName("domain2", true);
         Assert.assertTrue(d.exists());
         Assert.assertTrue(d.getNode().exists());
         d.delete();

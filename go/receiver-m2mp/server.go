@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	m2common "github.com/fclairamb/m2mp/go/m2mp-common"
 	m2log "github.com/fclairamb/m2mp/go/m2mp-log"
 	msg "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	"net"
@@ -14,13 +15,13 @@ import (
 type Server struct {
 	sync.RWMutex
 	listener      net.Listener
-	clients       map[int]*ClientHandler
+	clients       *m2common.Registry
 	clientCounter int // To allocate an new ID to each client's connection
 	msg           *msg.Client
 }
 
 func NewServer() *Server {
-	s := &Server{clients: make(map[int]*ClientHandler)}
+	s := &Server{clients: m2common.NewRegistry()}
 	return s
 }
 
@@ -33,7 +34,10 @@ func (s *Server) handleIncomingConnection(c net.Conn) {
 
 	id := s.clientCounter
 	ch := NewClientHandler(s, id, c)
-	s.clients[id] = ch
+
+	primary := fmt.Sprintf("%d", id)
+	s.clients.AddPrimaryKey(primary, ch)
+	s.clients.AddSecondaryKey(primary, fmt.Sprintf("source=%s", c.RemoteAddr().String()))
 
 	go ch.Start()
 }
@@ -51,18 +55,26 @@ func (s *Server) acceptIncomingConnections() {
 	}
 }
 
-func (s *Server) NbClients() int {
-	s.RLock()
-	defer s.RUnlock()
+func (s *Server) clientIdentified(ch *ClientHandler) {
+	//if ch.device == nil {
+	//	log.Warning("Device is nil, this is very wrong !")
+	//}
+	s.clients.AddSecondaryKey(fmt.Sprintf("%d", ch.Id), fmt.Sprintf("device_id=%s", ch.device.Id()))
+}
 
-	return len(s.clients)
+func (s *Server) NbClients() int {
+	//s.RLock()
+	//defer s.RUnlock()
+
+	return s.clients.NbPrimary()
 }
 
 func (s *Server) removeClientHandler(ch *ClientHandler) {
-	s.Lock()
-	defer s.Unlock()
+	//s.Lock()
+	//defer s.Unlock()
 
-	delete(s.clients, ch.Id)
+	//delete(s.clients, ch.Id)
+	s.clients.RemovePrimaryKey(fmt.Sprintf("%d", ch.Id))
 }
 
 func (s *Server) listen() error {
@@ -82,21 +94,31 @@ func (s *Server) listen() error {
 }
 
 func (s *Server) handleMessageForConnectionId(m *msg.JsonWrapper, connectionId int) {
-	s.Lock()
-	defer s.Unlock()
+	//s.Lock()
+	//defer s.Unlock()
 
-	if clientHandler := s.clients[connectionId]; clientHandler != nil {
+	if clientHandler := s.clients.Primary(fmt.Sprintf("%d", connectionId)).(*ClientHandler); clientHandler != nil {
 		clientHandler.HandleMQMessage(m)
 	} else {
-		log.Warning("Could not find connectionId=%d", connectionId)
+		log.Warning("Could not find connection_id=%d", connectionId)
 	}
 }
 
 func (s *Server) handleMessageForDeviceId(m *msg.JsonWrapper, deviceId string) {
-	s.Lock()
-	defer s.Unlock()
+	//s.Lock()
+	//defer s.Unlock()
 
-	log.Warning("device_id not handled at this point !")
+	c := 0
+	for _, i := range s.clients.Secondary(fmt.Sprintf("device_id=%s", deviceId)) {
+		ch := i.(*ClientHandler)
+		ch.HandleMQMessage(m)
+
+		c += 1
+	}
+
+	if c == 0 {
+		log.Warning("Could not find device_id=\"%s\"", deviceId)
+	}
 }
 
 func (s *Server) handleMessage(m *msg.JsonWrapper) {
@@ -145,7 +167,7 @@ func (s *Server) runMessaging() error {
 	for {
 		m := <-s.msg.Recv
 		if m == nil {
-			log.Warning("Stopping messaging...")
+			log.Critical("Stopping messaging...")
 			return nil
 		}
 		s.handleMessage(m)

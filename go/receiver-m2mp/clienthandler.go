@@ -159,9 +159,17 @@ func (ch *ClientHandler) considerCurrentStatus() {
 func (this *ClientHandler) handleMQMessage(msg *mq.JsonWrapper) {
 	switch msg.Call() {
 	case "disconnect":
-		{
-			log.Warning("Server requesting to close the connection !")
-			this.Close()
+		log.Warning("%s - Server requesting to close the connection !", this)
+		this.Close()
+	case "send_settings":
+		log.Debug("%s - Sending settings", this)
+		if err := this.sendSettingsToSend(); err != nil {
+			log.Warning("%s - Error while sending settings: %v", this, err)
+		}
+	case "send_commands":
+		log.Debug("%s - Sending commands", this)
+		if err := this.sendCommands(); err != nil {
+			log.Warning("%s - Error while sending commands: %v", this, err)
 		}
 	}
 }
@@ -216,13 +224,14 @@ func (ch *ClientHandler) handleIdentRequest(m *pr.MessageIdentRequest) error {
 	}
 
 	// OK
-	if err == nil {
+	if err == nil && ch.device != nil {
 		err = ch.Send(&pr.MessageIdentResponse{Ok: true})
 		if err == nil {
 			err = ch.justIdentified()
 		}
 		return err
 	} else {
+		// We send an identification refusal but we don't disconnect the device
 		return ch.Send(&pr.MessageIdentResponse{Ok: false})
 	}
 }
@@ -246,6 +255,8 @@ func (ch *ClientHandler) getDeviceChannelTranslator() *ent.DeviceChannelTrans {
 }
 
 func (ch *ClientHandler) justIdentified() error {
+	ch.daddy.clientIdentified(ch)
+
 	err := ch.sendSettingsToSend()
 
 	if err == nil {

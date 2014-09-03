@@ -18,6 +18,7 @@ type Parameters struct {
 	MQTopic        string
 	console        bool
 	keyspace       string
+	//acceptFailure  bool
 }
 
 func NewParameters() *Parameters {
@@ -38,6 +39,7 @@ func (par *Parameters) parseFromFlag() {
 	flag.StringVar(&par.MQTopic, "mqtopic", msg.TOPIC_RECEIVERS, "NSQ topic")
 	flag.StringVar(&par.keyspace, "cassandra-keyspace", "ks_test", "Cassandra keyspace")
 	flag.BoolVar(&par.console, "console", false, "Provide console to issue commands")
+	//flag.BoolVar(&par.acceptFailure, "fail", false, "Accept some failures")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "usage: "+os.Args[0])
 		flag.PrintDefaults()

@@ -8,7 +8,7 @@ import (
 	mq "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	//	"github.com/gocql/gocql"
 	"bytes"
-	//"fmt"
+	"fmt"
 	"os"
 	"time"
 )
@@ -34,6 +34,17 @@ func (this *ConverterService) convertMessageSpecial(src, store *mq.JsonWrapper, 
 			send := mq.NewMessage(src.From(), "disconnect")
 			if err := this.mqClient.Publish(send); err != nil {
 				log.Warning("Error sending disconnect message: %v", err)
+			}
+		}
+	case "disconnect_us":
+		{
+			if deviceId, err := src.Data.Get("device_id").String(); err != nil {
+				log.Warning("Could not get device_id ! \"disconnect_us\" cannot be applied: %v", err)
+			} else {
+				send := mq.NewMessage(fmt.Sprintf("receivers;device_id=%s", deviceId), "disconnect")
+				if err := this.mqClient.Publish(send); err != nil {
+					log.Warning("Error sending disconnect message: %v", err)
+				}
 			}
 		}
 	default:

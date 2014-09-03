@@ -60,8 +60,13 @@ func (this *StorageService) handleMessaging(m *mq.JsonWrapper) {
 			}
 
 			log.Debug("Saving key=%s, type=%s, time=%s, data=%s", key, dataType, date_uuid.Time(), data)
-			if err = db.SaveTSUUID(key, dataType, &date_uuid, data); err != nil {
-				log.Warning("Problem storing data: %v", err)
+
+			for c := 0; c < 3; c++ {
+				if err = db.SaveTSUUID(key, dataType, &date_uuid, data); err != nil {
+					log.Warning("Problem storing data: %v", err)
+				} else {
+
+				}
 			}
 		}
 

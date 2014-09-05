@@ -68,5 +68,5 @@ clean:
 
 test_package_remote:
 	make package
-	rsync dist/package/*.deb $(TARGET):package.deb
+	rsync -avz --progress dist/package/*.deb $(TARGET):package.deb
 	ssh $(TARGET) dpkg -i package.deb

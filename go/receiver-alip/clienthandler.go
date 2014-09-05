@@ -207,16 +207,17 @@ func (ch *ClientHandler) runCoreHandling() {
 						err = ch.handleSettingRequest(content)
 					case "D":
 						err = ch.handleDataRequest(content)
-					case "HELP":
-						err = ch.handleHelpRequest(content)
 					case "A":
 						ch.Send("B " + content)
-					case "B":
+					case "T":
+						t := time.Now().UTC().Unix()
+						ch.Send(fmt.Sprintf("T %d", t))
+					case "B": // Acknowledge response is not used at this point
 					case "QUIT":
 						ch.Send("QUIT bye !")
 						err = ch.Conn.Close()
 					default:
-						err = errors.New(fmt.Sprintf("Command \"%s\" not understood !", cmd))
+						err = errors.New(fmt.Sprintf("Command \"%s\" not understood ! - See http://bit.ly/WqnmB1 for help", cmd))
 					}
 				} else {
 					log.Warning("%s - We got disconnected !", ch)
@@ -325,33 +326,6 @@ func (ch *ClientHandler) handleSettingRequest(request string) error {
 	return nil
 }
 
-func (ch *ClientHandler) handleHelpRequest(content string) error {
-	switch content {
-	case "":
-		ch.Send("GENERAL COMMANDS:")
-		ch.Send("=================")
-		ch.Send("HELP <command>    - Help on a specific command")
-		ch.Send("ID <ident>        - Identification")
-		ch.Send("S ...             - Settings handling")
-		ch.Send("C ...             - Commands handling")
-		ch.Send("D <type> <data>   - Data transmission")
-		ch.Send("A <anything>      - Acknowledge request")
-		ch.Send("B <anything>      - Acknowledge response")
-		ch.Send("QUIT <message>    - Disconnect")
-		ch.Send("DB ...            - Debug")
-	case "DB":
-		ch.Send("DEBUG COMMANDS:")
-		ch.Send("===============")
-		ch.Send("DB ID             - Get device id")
-		ch.Send("DB SOURCE         - Get connection's source IP")
-		ch.Send("")
-
-	default:
-		ch.Send(fmt.Sprintf("Not help on \"%s\"", content))
-	}
-	return nil
-}
-
 func (ch *ClientHandler) handleDebugRequest(request string) error {
 	tokens := strings.SplitN(request, " ", 2)
 	cmd := tokens[0]
@@ -436,7 +410,7 @@ func (ch *ClientHandler) handleDataRequest(content string) error {
 	store := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
 	store.Data.Set("date_uuid", mq.UUIDFromTime(time.Now().UTC()))
 	store.Data.Set("key", "dev-"+ch.device.Id())
-	store.Data.Set("type", dataType+"__")
+	store.Data.Set("type", dataType)
 
 	switch dataType {
 	case "echo":
@@ -471,8 +445,34 @@ func (ch *ClientHandler) handleDataRequest(content string) error {
 					data.Set("lon", lon)
 				}
 
-			} else if len(tokens) == 2 {
+				if len(tokens) >= 4 {
+					if spd, err := strconv.ParseFloat(tokens[3], 64); err != nil {
+						return errors.New(fmt.Sprintf("Invalid speed \"%s\" : %v", tokens[3]))
+					} else {
+						data.Set("spd", spd)
+					}
+				}
 
+				if len(tokens) >= 5 {
+					if alt, err := strconv.ParseFloat(tokens[4], 64); err != nil {
+						return errors.New(fmt.Sprintf("Invalid altitude \"%s\" : %v", tokens[4]))
+					} else {
+						data.Set("alt", alt)
+					}
+				}
+
+			} else if len(tokens) == 2 {
+				if t, err := strconv.Atoi(tokens[0]); err != nil {
+					return errors.New(fmt.Sprintf("Invalid time \"%s\": %v", tokens[0], err))
+				} else {
+					store.Data.Set("date_uuid", mq.UUIDFromTime(time.Unix(int64(t), 0)))
+				}
+
+				if sat, err := strconv.Atoi(tokens[1]); err != nil {
+					return errors.New(fmt.Sprintf("Invalid number of satellites \"%s\": %v", tokens[1], err))
+				} else {
+					data.Set("sat", sat)
+				}
 			} else {
 				return errors.New("Location: Not enough tokens")
 			}
@@ -561,8 +561,8 @@ func (ch *ClientHandler) sendSettingsAll() error {
 }
 
 func (ch *ClientHandler) checkSettings() error {
-	if len(ch.device.Settings()) == 0 {
-		return ch.Send("S GA")
+	if len(ch.device.Settings()) == 0 { // If we don't have any setting
+		return ch.Send("S GA") // We ask the device to transmit them all ("get all")
 	}
 	return nil
 }

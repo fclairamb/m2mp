@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	//	msg "github.com/fclairamb/m2mp/go/m2mp-messaging"
+	mq "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	"os"
 )
 
@@ -34,10 +34,7 @@ func (par *Parameters) parseFromFlag() {
 	flag.StringVar(&par.MQServer, "mqserver", "nsq:localhost:4150", "NSQ server")
 	flag.StringVar(&par.MQTopic, "mqtopic", "converter-m2mp", "NSQ topic")
 	{
-		hostname, err := os.Hostname()
-		if err != nil {
-			hostname = "shared"
-		}
+		hostname := mq.HostnameSimple()
 		flag.StringVar(&par.MQChannel, "mqchannel", hostname, "NSQ channel")
 	}
 	flag.Usage = func() {

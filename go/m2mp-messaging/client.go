@@ -62,22 +62,25 @@ func NewClient(topic, channel string) (clt *Client, err error) {
 	return
 }
 
+func NewClientAddingHost(topic, channel string) (clt *Client, err error) {
+	return NewClient(topic, channel+HostnameSimple())
+}
+
+func HostnameSimple() string {
+	hostname, _ := os.Hostname()
+
+	spl := strings.SplitN(hostname, ".", 2)
+	hostname = spl[0]
+
+	return hostname
+}
+
 func NewClientUsingHost(topic string) (clt *Client, err error) {
-	var hostname string
-	hostname, err = os.Hostname()
-	if err != nil {
-		return
-	}
-	return NewClient(topic, hostname)
+	return NewClient(topic, HostnameSimple())
 }
 
 func NewClientUsingHostTemp(topic string) (clt *Client, err error) {
-	var hostname string
-	hostname, err = os.Hostname()
-	if err != nil {
-		return
-	}
-	return NewClient(topic, hostname+"#ephemeral")
+	return NewClient(topic, HostnameSimple()+"#ephemeral")
 }
 
 func NewClientGlobal(topic string) (clt *Client, err error) {

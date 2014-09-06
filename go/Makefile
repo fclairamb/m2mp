@@ -34,6 +34,10 @@ install: binaries
 	cp package/bin/* $(DESTDIR)/usr/bin
 	chmod a+rx $(DESTDIR)/usr/bin/*
 
+	# Config
+	mkdir -p $(DESTDIR)/etc/m2mp
+	cp receiver-m2mp/receiver-m2mp.conf $(DESTDIR)/etc/m2mp
+
 	# Data dir
 	mkdir -p $(DESTDIR)/var/lib/m2mp
 

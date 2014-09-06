@@ -29,24 +29,24 @@ func (this *StorageService) handleMessaging(m *mq.JsonWrapper) {
 			var key, dataType, data string
 			var date_uuid gocql.UUID
 			var err error
-			if key, err = m.Data.Get("key").String(); err != nil {
+			if key, err = m.Get("key").String(); err != nil {
 				log.Warning("Could not get key: %v", err)
 				return
 			}
-			if dataType, err = m.Data.Get("type").String(); err != nil {
+			if dataType, err = m.Get("type").String(); err != nil {
 				log.Warning("Could not get dataType: %v", err)
 				return
 			}
-			if binData, err := m.Data.Get("data").MarshalJSON(); err != nil {
+			if binData, err := m.Get("data").MarshalJSON(); err != nil {
 				log.Warning("Could not get data: %v", err)
 				return
 			} else {
 				data = string(binData)
 			}
 
-			if s_date_uuid, err := m.Data.Get("date_uuid").String(); err != nil {
+			if s_date_uuid, err := m.Get("date_uuid").String(); err != nil {
 				log.Warning("Could not get date_uuid: %v", err)
-				if date_nano, err := m.Data.Get("date_nano").Int64(); err != nil {
+				if date_nano, err := m.Get("date_nano").Int64(); err != nil {
 					log.Warning("Could not get date_nano either: %v", err)
 					return
 				} else {

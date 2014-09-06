@@ -174,7 +174,7 @@ func (s *Server) Start() error {
 
 	if err == nil {
 		m := msg.NewMessage(msg.TOPIC_GENERAL_EVENTS, "new_receiver")
-		m.Data.Set("tcp_port", par.ListenPort)
+		m.Set("tcp_port", par.ListenPort)
 		s.SendMessage(m)
 	}
 

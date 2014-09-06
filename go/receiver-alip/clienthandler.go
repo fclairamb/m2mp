@@ -41,7 +41,7 @@ func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
 		Conn:             conn,
 		reader:           bufio.NewReader(conn),
 		connectionTime:   now,
-		LogLevel:         9,
+		LogLevel:         5,
 		connRecv:         make(chan *string, 3),
 		msgRecv:          make(chan *mq.JsonWrapper, 10),
 		ticker:           time.NewTicker(time.Minute),
@@ -62,8 +62,8 @@ func (ch *ClientHandler) Start() {
 
 	{ // We report it in events
 		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_connected")
-		m.Data.Set("source", ch.Conn.RemoteAddr().String())
-		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
+		m.Set("source", ch.Conn.RemoteAddr().String())
+		m.Set("connection_id", fmt.Sprint(ch.Id))
 		ch.SendMessage(m)
 	}
 }
@@ -92,11 +92,11 @@ func (ch *ClientHandler) end() {
 
 	{ // We save the event
 		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_disconnected")
-		m.Data.Set("source", ch.Conn.RemoteAddr().String())
-		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
-		m.Data.Set("connection_duration", connectionDuration)
+		m.Set("source", ch.Conn.RemoteAddr().String())
+		m.Set("connection_id", fmt.Sprint(ch.Id))
+		m.Set("connection_duration", connectionDuration)
 		if ch.device != nil {
-			m.Data.Set("device_id", ch.device.Id())
+			m.Set("device_id", ch.device.Id())
 		}
 		ch.SendMessage(m)
 	}
@@ -105,16 +105,16 @@ func (ch *ClientHandler) end() {
 		m := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
 		{
 			data := sjson.New()
-			m.Data.Set("data", data)
+			m.Set("data", data)
 
 			data.Set("type", "device_disconnected")
 			data.Set("source", ch.Conn.RemoteAddr().String())
 			data.Set("connection_id", fmt.Sprint(ch.Id))
 			data.Set("connection_duration", connectionDuration)
 		}
-		m.Data.Set("key", "dev-"+ch.device.Id())
-		m.Data.Set("date_uuid", mq.UUIDFromTime(time.Now()))
-		m.Data.Set("type", "_server")
+		m.Set("key", "dev-"+ch.device.Id())
+		m.Set("date_uuid", mq.UUIDFromTime(time.Now()))
+		m.Set("type", "_server")
 		ch.SendMessage(m)
 	}
 }
@@ -134,7 +134,9 @@ func (ch *ClientHandler) runRecv() {
 }
 
 func (ch *ClientHandler) Send(data string) error {
-	log.Info("%s <-- %s", ch, data)
+	if ch.LogLevel >= 3 {
+		log.Info("%s <-- %s", ch, data)
+	}
 	_, err := ch.Conn.Write([]byte((data + "\n")))
 	ch.lastSentData = time.Now().UTC()
 	return err
@@ -146,15 +148,17 @@ func (ch *ClientHandler) receivedData() {
 
 func (ch *ClientHandler) considerCurrentStatus() {
 	now := time.Now().UTC()
-	if ch.LogLevel >= 5 {
-		log.Debug("%s - Considering current status (%s)", ch, now)
+	if ch.LogLevel >= 7 {
+		log.Debug("%s - Considering current status", ch)
 	}
 
 	// We don't actually disconnect connections, we let the TCP connection
 	// be killed by some routers.
 	if now.Sub(ch.lastReceivedData) > time.Duration(time.Minute*15) &&
 		now.Sub(ch.lastSentData) > time.Duration(time.Second*30) {
-		log.Debug("%s - Sending ping request", ch)
+		if ch.LogLevel >= 5 {
+			log.Debug("%s - Sending ping request", ch)
+		}
 		ch.Send(fmt.Sprintf("A %d", ch.pingCounter))
 		ch.pingCounter += 1
 	}
@@ -189,7 +193,9 @@ func (ch *ClientHandler) runCoreHandling() {
 					msg := *msgPtr
 					tokens := strings.SplitN(msg, " ", 2)
 					cmd := tokens[0]
-					log.Info("%s --> %s", ch, msg)
+					if ch.LogLevel >= 3 {
+						log.Info("%s --> %s", ch, msg)
+					}
 					var content string
 					if len(tokens) == 2 {
 						content = tokens[1]
@@ -239,7 +245,7 @@ func (ch *ClientHandler) runCoreHandling() {
 			}
 		case <-ch.ticker.C:
 			{
-				if ch.LogLevel >= 5 {
+				if ch.LogLevel >= 6 {
 					log.Debug("%s - Tick", ch)
 				}
 			}
@@ -388,7 +394,13 @@ func (ch *ClientHandler) handleDebugRequest(request string) error {
 			ch.Send(fmt.Sprintf("%25s, %20s, %s", td.UTime.Time(), td.Type, td.Data))
 		}
 		ch.Send("END")
-
+	case "LOGLEVEL":
+		tokens = strings.Split(request, " ")
+		if level, err := strconv.Atoi(tokens[2]); err != nil {
+			return errors.New(fmt.Sprintf("Bad loglevel \"%s\": %v", tokens[2], err))
+		} else {
+			ch.LogLevel = level
+		}
 	default:
 		return errors.New(fmt.Sprintf("Debug command \"%s\" is not understood !", cmd))
 	}
@@ -408,9 +420,9 @@ func (ch *ClientHandler) handleDataRequest(content string) error {
 	content = tokens[1]
 
 	store := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
-	store.Data.Set("date_uuid", mq.UUIDFromTime(time.Now().UTC()))
-	store.Data.Set("key", "dev-"+ch.device.Id())
-	store.Data.Set("type", dataType)
+	store.Set("date_uuid", mq.UUIDFromTime(time.Now().UTC()))
+	store.Set("key", "dev-"+ch.device.Id())
+	store.Set("type", dataType)
 
 	switch dataType {
 	case "echo":
@@ -420,16 +432,16 @@ func (ch *ClientHandler) handleDataRequest(content string) error {
 		}
 	case "L":
 		{
-			store.Data.Set("type", "sen:loc")
+			store.Set("type", "sen:loc")
 			tokens := strings.Split(content, ",")
 			data := sjson.New()
-			store.Data.Set("data", data)
+			store.Set("data", data)
 			// date,lat,lon
 			if len(tokens) >= 3 {
 				if t, err := strconv.Atoi(tokens[0]); err != nil {
 					return errors.New(fmt.Sprintf("Invalid time: %v", err))
 				} else {
-					store.Data.Set("date_uuid", mq.UUIDFromTime(time.Unix(int64(t), 0)))
+					store.Set("date_uuid", mq.UUIDFromTime(time.Unix(int64(t), 0)))
 				}
 
 				if lat, err := strconv.ParseFloat(tokens[1], 64); err != nil {
@@ -465,7 +477,7 @@ func (ch *ClientHandler) handleDataRequest(content string) error {
 				if t, err := strconv.Atoi(tokens[0]); err != nil {
 					return errors.New(fmt.Sprintf("Invalid time \"%s\": %v", tokens[0], err))
 				} else {
-					store.Data.Set("date_uuid", mq.UUIDFromTime(time.Unix(int64(t), 0)))
+					store.Set("date_uuid", mq.UUIDFromTime(time.Unix(int64(t), 0)))
 				}
 
 				if sat, err := strconv.Atoi(tokens[1]); err != nil {
@@ -480,7 +492,7 @@ func (ch *ClientHandler) handleDataRequest(content string) error {
 
 	default:
 		{
-			store.Data.Set("data", content)
+			store.Set("data", content)
 		}
 	}
 
@@ -503,9 +515,9 @@ func (ch *ClientHandler) justIdentified() error {
 
 	{ // We report it in events
 		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_identified")
-		m.Data.Set("source", ch.Conn.RemoteAddr().String())
-		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
-		m.Data.Set("device_id", ch.device.Id())
+		m.Set("source", ch.Conn.RemoteAddr().String())
+		m.Set("connection_id", fmt.Sprint(ch.Id))
+		m.Set("device_id", ch.device.Id())
 		ch.SendMessage(m)
 	}
 
@@ -513,15 +525,15 @@ func (ch *ClientHandler) justIdentified() error {
 		m := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
 		{
 			data := sjson.New()
-			m.Data.Set("data", data)
+			m.Set("data", data)
 
 			data.Set("source", ch.Conn.RemoteAddr().String())
 			data.Set("connection_id", fmt.Sprint(ch.Id))
 			data.Set("type", "device_identified")
 		}
-		m.Data.Set("key", "dev-"+ch.device.Id())
-		m.Data.Set("date_uuid", mq.UUIDFromTime(time.Now()))
-		m.Data.Set("type", "_server")
+		m.Set("key", "dev-"+ch.device.Id())
+		m.Set("date_uuid", mq.UUIDFromTime(time.Now()))
+		m.Set("type", "_server")
 		ch.SendMessage(m)
 	}
 
@@ -529,15 +541,15 @@ func (ch *ClientHandler) justIdentified() error {
 		m := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
 		{
 			data := sjson.New()
-			m.Data.Set("data", data)
+			m.Set("data", data)
 
 			data.Set("source", ch.Conn.RemoteAddr().String())
 			data.Set("connection_id", fmt.Sprint(ch.Id))
 			data.Set("type", "device_connected")
 		}
-		m.Data.Set("key", "dev-"+ch.device.Id())
-		m.Data.Set("date_uuid", mq.UUIDFromTime(ch.connectionTime))
-		m.Data.Set("type", "_server")
+		m.Set("key", "dev-"+ch.device.Id())
+		m.Set("date_uuid", mq.UUIDFromTime(ch.connectionTime))
+		m.Set("type", "_server")
 		ch.SendMessage(m)
 	}
 

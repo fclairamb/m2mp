@@ -58,8 +58,8 @@ func (ch *ClientHandler) Start() {
 
 	{ // We report it in events
 		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_connected")
-		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
-		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
+		m.Set("source", ch.Conn.Conn.RemoteAddr().String())
+		m.Set("connection_id", fmt.Sprint(ch.Id))
 		ch.SendMessage(m)
 	}
 }
@@ -88,11 +88,11 @@ func (ch *ClientHandler) end() {
 
 	{ // We save the event
 		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_disconnected")
-		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
-		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
-		m.Data.Set("connection_duration", connectionDuration)
+		m.Set("source", ch.Conn.Conn.RemoteAddr().String())
+		m.Set("connection_id", fmt.Sprint(ch.Id))
+		m.Set("connection_duration", connectionDuration)
 		if ch.device != nil {
-			m.Data.Set("device_id", ch.device.Id())
+			m.Set("device_id", ch.device.Id())
 		}
 		ch.SendMessage(m)
 	}
@@ -101,16 +101,16 @@ func (ch *ClientHandler) end() {
 		m := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
 		{
 			data := sjson.New()
-			m.Data.Set("data", data)
+			m.Set("data", data)
 
 			data.Set("type", "device_disconnected")
 			data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 			data.Set("connection_id", fmt.Sprint(ch.Id))
 			data.Set("connection_duration", connectionDuration)
 		}
-		m.Data.Set("key", "dev-"+ch.device.Id())
-		m.Data.Set("date_uuid", mq.UUIDFromTime(time.Now()))
-		m.Data.Set("type", "_server")
+		m.Set("key", "dev-"+ch.device.Id())
+		m.Set("date_uuid", mq.UUIDFromTime(time.Now()))
+		m.Set("type", "_server")
 		ch.SendMessage(m)
 	}
 }
@@ -273,9 +273,9 @@ func (ch *ClientHandler) justIdentified() error {
 
 	{ // We report it in events
 		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_identified")
-		m.Data.Set("source", ch.Conn.Conn.RemoteAddr().String())
-		m.Data.Set("connection_id", fmt.Sprint(ch.Id))
-		m.Data.Set("device_id", ch.device.Id())
+		m.Set("source", ch.Conn.Conn.RemoteAddr().String())
+		m.Set("connection_id", fmt.Sprint(ch.Id))
+		m.Set("device_id", ch.device.Id())
 		ch.SendMessage(m)
 	}
 
@@ -283,15 +283,15 @@ func (ch *ClientHandler) justIdentified() error {
 		m := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
 		{
 			data := sjson.New()
-			m.Data.Set("data", data)
+			m.Set("data", data)
 
 			data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 			data.Set("connection_id", fmt.Sprint(ch.Id))
 			data.Set("type", "device_identified")
 		}
-		m.Data.Set("key", "dev-"+ch.device.Id())
-		m.Data.Set("date_uuid", mq.UUIDFromTime(time.Now()))
-		m.Data.Set("type", "_server")
+		m.Set("key", "dev-"+ch.device.Id())
+		m.Set("date_uuid", mq.UUIDFromTime(time.Now()))
+		m.Set("type", "_server")
 		ch.SendMessage(m)
 	}
 
@@ -299,15 +299,15 @@ func (ch *ClientHandler) justIdentified() error {
 		m := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
 		{
 			data := sjson.New()
-			m.Data.Set("data", data)
+			m.Set("data", data)
 
 			data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 			data.Set("connection_id", fmt.Sprint(ch.Id))
 			data.Set("type", "device_connected")
 		}
-		m.Data.Set("key", "dev-"+ch.device.Id())
-		m.Data.Set("date_uuid", mq.UUIDFromTime(ch.connectionTime))
-		m.Data.Set("type", "_server")
+		m.Set("key", "dev-"+ch.device.Id())
+		m.Set("date_uuid", mq.UUIDFromTime(ch.connectionTime))
+		m.Set("type", "_server")
 		ch.SendMessage(m)
 	}
 
@@ -340,10 +340,10 @@ func (ch *ClientHandler) handleData(msg *pr.MessageDataSimple) error {
 			{ // We send the data to the converter, and it has to deal with it...
 				m := mq.NewMessage(target, "data_simple")
 				m.SetFrom(fmt.Sprintf(":connection_id:%d", ch.Id))
-				m.Data.Set("connection_id", fmt.Sprint(ch.Id))
-				m.Data.Set("device_id", ch.device.Id())
-				m.Data.Set("data", hex.EncodeToString(msg.Data))
-				m.Data.Set("channel", msg.Channel)
+				m.Set("connection_id", fmt.Sprint(ch.Id))
+				m.Set("device_id", ch.device.Id())
+				m.Set("data", hex.EncodeToString(msg.Data))
+				m.Set("channel", msg.Channel)
 				ch.SendMessage(m)
 			}
 		}

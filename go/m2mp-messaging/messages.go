@@ -16,29 +16,28 @@ const (
 )
 
 type JsonWrapper struct {
-	Data *simple.Json
+	*simple.Json
 }
 
 func NewJsonWrapper() *JsonWrapper {
-	json := simple.New()
-	return &JsonWrapper{Data: json}
+	return NewJsonWrapperFromJson(simple.New())
 }
 
 func NewJsonWrapperFromJson(json *simple.Json) *JsonWrapper {
-	return &JsonWrapper{Data: json}
+	return &JsonWrapper{json}
 }
 
 func (jw *JsonWrapper) From() (out string) {
-	out, _ = jw.Data.Get(FIELD_FROM).String()
+	out, _ = jw.Get(FIELD_FROM).String()
 	return
 }
 
 func (jw *JsonWrapper) SetFrom(from string) {
-	jw.Data.Set(FIELD_FROM, from)
+	jw.Set(FIELD_FROM, from)
 }
 
 func (jw *JsonWrapper) To() (out string) {
-	out, _ = jw.Data.Get(FIELD_TO).String()
+	out, _ = jw.Get(FIELD_TO).String()
 	return
 }
 
@@ -49,30 +48,30 @@ func (jw *JsonWrapper) To() (out string) {
 //
 // The only actual rule through is that the first part is the NSQ topic or topic/channel (later).
 func (jw *JsonWrapper) SetTo(to string) {
-	jw.Data.Set(FIELD_TO, to)
+	jw.Set(FIELD_TO, to)
 }
 
 func (jw *JsonWrapper) Call() (out string) {
-	out, _ = jw.Data.Get(FIELD_CALL).String()
+	out, _ = jw.Get(FIELD_CALL).String()
 	return
 }
 
 func (jw *JsonWrapper) SetCall(call string) {
-	jw.Data.Set(FIELD_CALL, call)
+	jw.Set(FIELD_CALL, call)
 }
 
 func (jw *JsonWrapper) SetVS(key string, value string) {
-	jw.Data.Set(key, value)
+	jw.Set(key, value)
 }
 
 func (jw *JsonWrapper) Time() time.Time {
-	t, _ := jw.Data.Get(FIELD_TIME).Int64()
+	t, _ := jw.Get(FIELD_TIME).Int64()
 	return time.Unix(t, 0)
 }
 
 func (jw *JsonWrapper) SetTime() {
 	time := time.Now().UTC().Unix()
-	jw.Data.Set(FIELD_TIME, time)
+	jw.Set(FIELD_TIME, time)
 }
 
 var MANDATORY_FIELDS []string
@@ -84,7 +83,7 @@ func init() {
 func (jw *JsonWrapper) Check() error {
 
 	for _, field := range MANDATORY_FIELDS {
-		if _, err := jw.Data.Get(field).String(); err != nil {
+		if _, err := jw.Get(field).String(); err != nil {
 			return errors.New(fmt.Sprintf("Missing field \"%s\"", field))
 		}
 	}
@@ -93,7 +92,7 @@ func (jw *JsonWrapper) Check() error {
 }
 
 func (jw *JsonWrapper) String() string {
-	json, err := jw.Data.MarshalJSON()
+	json, err := jw.MarshalJSON()
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 	}

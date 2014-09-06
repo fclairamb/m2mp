@@ -1,4 +1,10 @@
-m2mp (0.1-8) UNRELEASED; urgency=medium
+m2mp (0.1-9) unstable; urgency=low
+
+  * Cleaned up MQ API.
+
+ -- Florent Clairambault <florent@clairambault.fr>  Sat, 06 Sep 2014 00:53:11 +0200
+
+m2mp (0.1-8) unstable; urgency=low
 
   * Added ALIP protocol receiver
 

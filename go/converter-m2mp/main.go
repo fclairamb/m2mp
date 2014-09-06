@@ -26,7 +26,7 @@ func NewConverterService() *ConverterService {
 
 func (this *ConverterService) convertMessageSpecial(src, store *mq.JsonWrapper, raw []byte) error {
 	cmd := string(raw)
-	store.Data.Set("data", cmd)
+	store.Set("data", cmd)
 
 	switch cmd {
 	case "disconnect_me":
@@ -38,7 +38,7 @@ func (this *ConverterService) convertMessageSpecial(src, store *mq.JsonWrapper, 
 		}
 	case "disconnect_us":
 		{
-			if deviceId, err := src.Data.Get("device_id").String(); err != nil {
+			if deviceId, err := src.Get("device_id").String(); err != nil {
 				log.Warning("Could not get device_id ! \"disconnect_us\" cannot be applied: %v", err)
 			} else {
 				send := mq.NewMessage(fmt.Sprintf("receivers;device_id=%s", deviceId), "disconnect")
@@ -61,13 +61,13 @@ func (this *ConverterService) convertMessageLoc(src, store *mq.JsonWrapper, raw 
 	buf := bytes.NewReader(raw)
 
 	data := sjson.New()
-	store.Data.Set("data", data)
+	store.Set("data", data)
 
 	if rawlen >= 4 { // time
 		rawlen -= 4
 		var timestamp uint32
 		binary.Read(buf, binary.BigEndian, &timestamp)
-		store.Data.Set("date_uuid", mq.UUIDFromTime(time.Unix(int64(timestamp), 0)))
+		store.Set("date_uuid", mq.UUIDFromTime(time.Unix(int64(timestamp), 0)))
 	}
 	if rawlen == 1 { // If we have only one byte left it means we only have the number of satellites in view
 		var sat uint8
@@ -100,12 +100,12 @@ func (this *ConverterService) convertMessageLoc(src, store *mq.JsonWrapper, raw 
 
 func (this *ConverterService) convertMessage(src *mq.JsonWrapper) {
 	store := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
-	channel := src.Data.Get("channel").MustString("")
-	store.Data.Set("date_uuid", mq.UUIDFromTime(src.Time()))
-	store.Data.Set("key", "dev-"+src.Data.Get("device_id").MustString(""))
-	store.Data.Set("type", channel)
+	channel := src.Get("channel").MustString("")
+	store.Set("date_uuid", mq.UUIDFromTime(src.Time()))
+	store.Set("key", "dev-"+src.Get("device_id").MustString(""))
+	store.Set("type", channel)
 
-	raw, err := hex.DecodeString(src.Data.Get("data").MustString(""))
+	raw, err := hex.DecodeString(src.Get("data").MustString(""))
 	if err != nil {
 		log.Warning("Wrong data: %v", err)
 	}
@@ -117,7 +117,7 @@ func (this *ConverterService) convertMessage(src *mq.JsonWrapper) {
 		case "_special":
 			err = this.convertMessageSpecial(src, store, raw)
 		default:
-			store.Data.Set("data", string(raw))
+			store.Set("data", string(raw))
 		}
 	}
 

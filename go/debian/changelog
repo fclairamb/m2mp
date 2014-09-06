@@ -1,3 +1,9 @@
+m2mp (0.1-10) unstable; urgency=low
+
+  * Using config file for everything.
+
+ -- Florent Clairambault <florent@clairambault.fr>  Sat, 06 Sep 2014 04:25:01 +0200
+
 m2mp (0.1-9) unstable; urgency=low
 
   * Cleaned up MQ API.

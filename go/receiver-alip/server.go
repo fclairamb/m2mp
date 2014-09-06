@@ -69,7 +69,7 @@ func (s *Server) removeClientHandler(ch *ClientHandler) {
 
 func (s *Server) listen() error {
 	var err error = nil
-	s.listener, err = net.Listen("tcp", fmt.Sprintf(":%d", par.ListenPort))
+	s.listener, err = net.Listen("tcp", fmt.Sprintf(":%d", par.Net.ListenPort))
 	if err != nil {
 		return err
 	}
@@ -161,11 +161,13 @@ func (s *Server) runMessaging() error {
 func (s *Server) Start() error {
 	err := s.listen()
 
-	s.msg, err = msg.NewClientUsingHost(msg.TOPIC_RECEIVERS)
+	if err == nil {
+		s.msg, err = msg.NewClient(par.Mq.Topic, par.Mq.Channel)
+	}
 
 	if err == nil {
-		log.Debug("Opening MQ %s", par.MQServer)
-		err = s.msg.Start(par.MQServer)
+		log.Debug("Opening MQ %s", par.Mq.Server)
+		err = s.msg.Start(par.Mq.Server)
 	}
 
 	if err == nil {
@@ -174,12 +176,8 @@ func (s *Server) Start() error {
 
 	if err == nil {
 		m := msg.NewMessage(msg.TOPIC_GENERAL_EVENTS, "new_receiver")
-		m.Set("tcp_port", par.ListenPort)
+		m.Set("tcp_port", par.Net.ListenPort)
 		s.SendMessage(m)
-	}
-
-	if err != nil {
-		log.Warning("Error: %v", err)
 	}
 
 	return err

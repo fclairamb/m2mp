@@ -30,7 +30,7 @@ func LoadConfig() *Config {
 	var config Config
 	var configFile string
 
-	flag.StringVar(&configFile, "config", "/etc/m2mp/receiver-m2mp.conf", "Config file")
+	flag.StringVar(&configFile, "config", "/etc/m2mp/receiver-alip.conf", "Config file")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "usage: "+os.Args[0])
 		flag.PrintDefaults()

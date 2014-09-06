@@ -4,14 +4,10 @@ import (
 	"code.google.com/p/gcfg"
 	"flag"
 	"fmt"
-	mq "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	"os"
 )
 
 type Config struct {
-	Net struct {
-		ListenPort int
-	}
 	Mq struct {
 		Server  string
 		Topic   string
@@ -30,7 +26,7 @@ func LoadConfig() *Config {
 	var config Config
 	var configFile string
 
-	flag.StringVar(&configFile, "config", "/etc/m2mp/receiver-m2mp.conf", "Config file")
+	flag.StringVar(&configFile, "config", "/etc/m2mp/converter-m2mp.conf", "Config file")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "usage: "+os.Args[0])
 		flag.PrintDefaults()
@@ -43,7 +39,7 @@ func LoadConfig() *Config {
 	}
 
 	if config.Mq.Channel == "" {
-		config.Mq.Channel = mq.HostnameSimple()
+		config.Mq.Channel = "shared"
 	}
 
 	return &config

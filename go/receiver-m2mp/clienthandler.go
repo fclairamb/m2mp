@@ -27,7 +27,6 @@ type ClientHandler struct {
 	lastSentData            time.Time
 	ticker                  *time.Ticker
 	pingCounter             byte
-	//connSend         chan interface{}
 }
 
 func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {

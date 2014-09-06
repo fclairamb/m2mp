@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-var par *Parameters
+var par *Config
 var waitForRc chan int
 
 func init() {
@@ -54,7 +54,7 @@ func handleSimpleCommand(line string) string {
 			if name == "" {
 				name = time.Now().UTC().Format("2006-01-02_15-04-05")
 			}
-			fileName := fmt.Sprintf("%s_%s", par.PprofPrefix, name)
+			fileName := fmt.Sprintf("%s_%s", "receiver-alip", name)
 			f, err := os.Create(fileName)
 			if err != nil {
 				log.Fatal(err)
@@ -116,8 +116,7 @@ func console_handling() {
 var server *Server
 
 func main() {
-	par = NewParameters()
-	defer par.Close()
+	par = LoadConfig()
 
 	// We need to reload logging because it was initialized in init (to have one whatever happens)
 	LoadLog()
@@ -126,8 +125,8 @@ func main() {
 		log.Debug("Starting !")
 	}
 
-	if par.HttpListenPort > 0 {
-		port := fmt.Sprintf(":%d", par.HttpListenPort)
+	if par.Control.HttpListenPort > 0 {
+		port := fmt.Sprintf(":%d", par.Control.HttpListenPort)
 		go func() {
 			if err := http.ListenAndServe(port, nil); err != nil {
 				log.Fatal("HTTP listening error: ", err)
@@ -154,7 +153,7 @@ func main() {
 		log.Notice("Ready !")
 	}
 
-	if par.console {
+	if par.Control.Console {
 		go console_handling()
 	}
 

@@ -35,8 +35,6 @@ func GetLoggerAgain() *logging.Logger {
 }
 
 func init() {
-	// We setup logging
 	flag.BoolVar(&NoColor, "log-nocolor", false, "Do not use color for stdout logging")
 	flag.IntVar(&Level, "log-level", 5, "Log level (from 0 to 9)")
-	//	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
 }

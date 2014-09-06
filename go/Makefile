@@ -36,7 +36,10 @@ install: binaries
 
 	# Config
 	mkdir -p $(DESTDIR)/etc/m2mp
+	cp m2mp-storage/m2mp-storage.conf $(DESTDIR)/etc/m2mp
 	cp receiver-m2mp/receiver-m2mp.conf $(DESTDIR)/etc/m2mp
+	cp converter-m2mp/converter-m2mp.conf $(DESTDIR)/etc/m2mp
+	cp receiver-alip/receiver-alip.conf $(DESTDIR)/etc/m2mp
 
 	# Data dir
 	mkdir -p $(DESTDIR)/var/lib/m2mp

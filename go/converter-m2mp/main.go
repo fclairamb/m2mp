@@ -16,11 +16,11 @@ import (
 type ConverterService struct {
 	mqClient *mq.Client
 	quitRc   chan int
-	par      *Parameters
+	par      *Config
 }
 
 func NewConverterService() *ConverterService {
-	svc := &ConverterService{quitRc: make(chan int), par: NewParameters()}
+	svc := &ConverterService{quitRc: make(chan int), par: LoadConfig()}
 	return svc
 }
 
@@ -167,12 +167,12 @@ func main() {
 	log.Debug("Connecting to NSQ...")
 	{
 		var err error
-		if service.mqClient, err = mq.NewClient(service.par.MQTopic, service.par.MQChannel); err != nil {
+		if service.mqClient, err = mq.NewClient(service.par.Mq.Topic, service.par.Mq.Channel); err != nil {
 			log.Fatal("MQ error: ", err)
 		}
 	}
 
-	service.mqClient.Start(service.par.MQServer)
+	service.mqClient.Start(service.par.Mq.Server)
 
 	go service.runMessaging()
 

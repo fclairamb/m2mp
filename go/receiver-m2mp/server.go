@@ -177,7 +177,7 @@ func (s *Server) runMessaging() error {
 func (s *Server) Start() error {
 	err := s.listen()
 
-	s.msg, err = msg.NewClientUsingHost(msg.TOPIC_RECEIVERS)
+	s.msg, err = msg.NewClient(par.Mq.Topic, par.Mq.Channel)
 
 	if err == nil {
 		log.Debug("Opening MQ %s", par.Mq.Server)

@@ -8,5 +8,6 @@ import (
 var log *logging.Logger
 
 func init() {
+	m2log.NoColor = true
 	log = m2log.GetLogger()
 }

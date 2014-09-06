@@ -15,4 +15,9 @@
 	daily
 	rotate 365
 	missingok
+	postrotate
+		# We have to restart the logging process to reopen the the logging
+		# files
+		supervisorctl restart nsq:nsq_log_all_topics
+	endscript
 }

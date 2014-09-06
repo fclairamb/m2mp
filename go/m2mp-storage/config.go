@@ -20,10 +20,17 @@ type Config struct {
 		HttpListenPort int
 		Console        bool
 	}
+	Storage struct {
+		Actors int
+	}
 }
 
 func LoadConfig() *Config {
-	var config Config
+	config := Config{}
+	// Default config
+	config.Mq.Channel = "shared"
+	config.Storage.Actors = 1
+
 	var configFile string
 
 	flag.StringVar(&configFile, "config", "/etc/m2mp/m2mp-storage.conf", "Config file")
@@ -36,10 +43,6 @@ func LoadConfig() *Config {
 
 	if err := gcfg.ReadFileInto(&config, configFile); err != nil {
 		log.Fatalf("Could not read \"%s\" : %v", configFile, err)
-	}
-
-	if config.Mq.Channel == "" {
-		config.Mq.Channel = "shared"
 	}
 
 	return &config

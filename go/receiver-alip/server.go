@@ -46,7 +46,7 @@ func (s *Server) acceptIncomingConnections() {
 	for {
 		conn, err := s.listener.Accept()
 		if err != nil {
-			log.Error("Error while listening: ", err)
+			log.Error("Error while listening: %v", err)
 			time.Sleep(time.Millisecond * 50)
 			continue
 		}

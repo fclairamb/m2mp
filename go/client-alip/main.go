@@ -8,11 +8,41 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
-var waitForRc chan int
+type Core struct {
+	sync.RWMutex
+	waitForRc      chan int
+	clients        map[int]*Client
+	clientCounter  int
+	selectedClient *Client
+}
+
+func NewCore() *Core {
+	return &Core{
+		waitForRc: make(chan int),
+		clients:   make(map[int]*Client),
+	}
+}
+
+func (this *Core) AddClient(c *Client) {
+	this.Lock()
+	defer this.Unlock()
+	this.clients[c.Id] = c
+	if this.selectedClient == nil {
+		this.selectedClient = c
+	}
+}
+
+func (this *Core) Client(id int) *Client {
+	this.RLock()
+	defer this.RUnlock()
+	return this.clients[id]
+}
 
 // This is a sample client implementation of the ALIP protocol.
 // Lots of checks (like boundary) aren't performed. It's supposed to be
@@ -21,6 +51,7 @@ var waitForRc chan int
 
 type Client struct {
 	// Data
+	Id   int
 	File string
 	data *Data
 
@@ -29,6 +60,7 @@ type Client struct {
 	reader   *bufio.Reader
 	writer   *bufio.Writer
 	recvLine chan string
+	cmdLine  chan string
 
 	// State machine
 	identified bool
@@ -38,12 +70,13 @@ type Client struct {
 	//rand       *rand.Rand
 }
 
-func NewClient(file string) *Client {
+func NewClient(id int) *Client {
 	clt := &Client{
-		File:     file,
+		Id:       id,
+		File:     fmt.Sprintf("c%d.json", id),
 		recvLine: make(chan string),
+		cmdLine:  make(chan string),
 		ticker:   time.NewTicker(time.Second * 15),
-		//	rand:     rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 	return clt
 }
@@ -138,7 +171,7 @@ func (this *Client) handleCommandCmd(command string) {
 	switch content {
 	case "quit":
 		log.Warning("%s - We're quitting !", this)
-		waitForRc <- 0
+		core.waitForRc <- 0
 	}
 }
 
@@ -176,6 +209,15 @@ func (this *Client) core() {
 			case "C":
 				this.handleCommandCmd(tokens[1])
 			}
+		case line := <-this.cmdLine:
+			tokens := strings.SplitN(line, " ", 2)
+			cmd := tokens[0]
+			switch cmd {
+			case "disconnect":
+				this.conn.Close()
+			default:
+				this.Send(line)
+			}
 		}
 	}
 }
@@ -185,7 +227,7 @@ func (this *Client) Save() error {
 }
 
 func (this *Client) String() string {
-	return this.conn.LocalAddr().String()
+	return fmt.Sprintf("%d", this.Id) //this.conn.LocalAddr().String()
 }
 
 func (this *Client) Run() {
@@ -221,23 +263,76 @@ func (this *Client) Start() {
 	go this.Run()
 }
 
-func init() {
-	waitForRc = make(chan int)
-}
-
 type Parameters struct {
 	NbClients int
 }
 
 var par Parameters
 
+func handleConsoleCommand(line string) error {
+	tokens := strings.SplitN(line, " ", 2)
+	switch tokens[0] {
+	case "select":
+		if id, err := strconv.Atoi(tokens[1]); err == nil {
+			if c := core.Client(id); c != nil {
+				core.selectedClient = c
+			} else {
+				log.Warning("Could not find client %d.", id)
+			}
+		}
+	case "new":
+		nbClients := 1
+		if len(tokens) == 2 {
+			if nb, err := strconv.Atoi(tokens[1]); err == nil {
+				nbClients = nb
+			}
+		}
+		client := createClients(nbClients)
+		core.selectedClient = client
+	case "":
+	default:
+		core.selectedClient.cmdLine <- line
+	}
+	return nil
+}
+
+func consoleHandling() {
+	in := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Printf("%v > ", core.selectedClient)
+		line, err := in.ReadString('\n')
+		if err != nil {
+			log.Warning("Console: %v", err)
+			return
+		}
+		line = strings.TrimRight(line, "\n")
+		if err := handleConsoleCommand(line); err != nil {
+			log.Error("Command \"%s\" created an error: %v", line, err)
+		}
+	}
+}
+
+var core *Core
+
+func createClients(nb int) *Client {
+	var client *Client = nil
+	for i := 0; i < nb; i++ {
+		core.clientCounter += 1
+		client = NewClient(core.clientCounter)
+		client.Start()
+		core.AddClient(client)
+	}
+	return client
+}
+
 func main() {
+	core = NewCore()
+
 	flag.IntVar(&par.NbClients, "clients", 1, "Number of clients")
 
-	for i := 0; i < par.NbClients; i++ {
-		client := NewClient(fmt.Sprintf("c%d.json", i))
-		client.Start()
-	}
+	createClients(par.NbClients)
 
-	os.Exit(<-waitForRc)
+	go consoleHandling()
+
+	os.Exit(<-core.waitForRc)
 }

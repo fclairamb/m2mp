@@ -86,7 +86,8 @@ func (s *StorageService) runMessaging() error {
 	for {
 		m := <-s.mqClient.Recv
 		if m == nil {
-			return nil
+			log.Warning("Error while receiving message.")
+			s.quitRc <- 1
 		}
 		s.handleMessaging(m)
 	}
@@ -95,7 +96,7 @@ func (s *StorageService) runMessaging() error {
 func main() {
 	service := NewStorageService()
 	log.Debug("Connecting to DB...")
-	if err := db.NewSessionSimple("ks_test"); err != nil {
+	if err := db.NewSessionSimple(service.par.Db.Keyspace); err != nil {
 		log.Fatal("DB error: ", err)
 	}
 	defer db.Close()
@@ -110,7 +111,9 @@ func main() {
 
 	service.mqClient.Start(service.par.Mq.Server)
 
-	go service.runMessaging()
+	for i := 0; i < service.par.Storage.Actors; i++ {
+		go service.runMessaging()
+	}
 
 	log.Debug("OK")
 

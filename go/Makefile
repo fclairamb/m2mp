@@ -2,11 +2,12 @@ all: binaries win-binaries
 
 binaries: dist/bin/client-m2mp dist/bin/receiver-m2mp dist/bin/m2mp-storage dist/bin/converter-m2mp dist/bin/receiver-alip dist/bin/client-alip
 
-win-binaries: dist/client-alip.exe
+win-binaries: dist/win/client-alip.exe
 
-dist/client-alip.exe: client-alip/*.go
+dist/win/client-alip.exe: client-alip/*.go
+	mkdir -p dist/win
 	cd client-alip && make client-alip.exe
-	cp client-alip/client-alip.exe dist/
+	cp client-alip/client-alip.exe dist/win
 
 dist/bin/client-m2mp: client-m2mp/*.go
 	cd client-m2mp ; go get -v ; go build -v
@@ -23,7 +24,7 @@ dist/bin/converter-m2mp: converter-m2mp/*.go
 	mkdir -p dist/bin
 	mv converter-m2mp/converter-m2mp dist/bin/converter-m2mp
 
-dist/bin/client-m2mp: client-alip/*.go
+dist/bin/client-alip: client-alip/*.go
 	cd client-alip ; go get -v ; go build -v
 	mkdir -p dist/bin
 	mv client-alip/client-alip dist/bin/client-alip

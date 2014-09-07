@@ -63,7 +63,7 @@ func TestTimeSerieReading(t *testing.T) {
 	var i time.Duration
 	for i = 0; i < NB; i++ {
 		time := initialTime.Add(i * time.Hour)
-		log.Println("Inserting", time, "...")
+		//log.Println("Inserting", time, "...")
 		SaveTSTime(id, "test", time, "Hello you !")
 	}
 
@@ -71,12 +71,14 @@ func TestTimeSerieReading(t *testing.T) {
 	defer iter.Close()
 
 	var td TimedData
-	for c := 0; iter.Scan(&td); c++ {
-		log.Println("td: ", td, "(", td.Time(), ")")
-		c += 1
-	}
-	if c != NB {
-		t.Fatalf("We got %d rows instead of %d", c, NB)
+	{
+		c := 0
+		for ; iter.Scan(&td); c++ {
+			//log.Println("td: ", td, "(", td.Time(), ")")
+		}
+		if c != NB {
+			t.Fatalf("We got %d rows instead of %d", c, NB)
+		}
 	}
 }
 

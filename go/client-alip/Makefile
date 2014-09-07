@@ -7,7 +7,7 @@ FILES=$(shell ls *.go)
 all: $(BINARIES)
 
 clean:
-	rm $(BINARIES)
+	rm $(BINARIES) *.log || printf ""
 
 $(BINARIES): $(FILES)
 	#export GOROOT=/usr/local/go
@@ -17,3 +17,6 @@ $(BINARIES): $(FILES)
 	go build -v -o $(TARGET)
 	env GOARCH=386 GOOS=windows go get -d -v
 	env GOARCH=386 GOOS=windows go build -v -o $(TARGET).exe
+
+run: $(TARGET)
+	./$(TARGET)

@@ -14,6 +14,8 @@ import (
 	"time"
 )
 
+const DATA_DIR = "client-alip-data"
+
 type Core struct {
 	sync.RWMutex
 	waitForRc      chan int
@@ -73,7 +75,7 @@ type Client struct {
 func NewClient(id int) *Client {
 	clt := &Client{
 		Id:       id,
-		File:     fmt.Sprintf("c%d.json", id),
+		File:     fmt.Sprintf("%s/c%d.json", DATA_DIR, id),
 		recvLine: make(chan string),
 		cmdLine:  make(chan string),
 		ticker:   time.NewTicker(time.Second * 15),
@@ -285,10 +287,15 @@ func handleConsoleCommand(line string) error {
 		if len(tokens) == 2 {
 			if nb, err := strconv.Atoi(tokens[1]); err == nil {
 				nbClients = nb
+			} else {
+				log.Error("Invalid nb %s: %v", tokens[1], err)
 			}
 		}
 		client := createClients(nbClients)
 		core.selectedClient = client
+	case "quit":
+		log.Info("We're quitting...")
+		core.waitForRc <- 0
 	case "":
 	default:
 		core.selectedClient.cmdLine <- line
@@ -305,7 +312,7 @@ func consoleHandling() {
 			log.Warning("Console: %v", err)
 			return
 		}
-		line = strings.TrimRight(line, "\n")
+		line = strings.TrimRight(line, "\r\n")
 		if err := handleConsoleCommand(line); err != nil {
 			log.Error("Command \"%s\" created an error: %v", line, err)
 		}
@@ -327,6 +334,8 @@ func createClients(nb int) *Client {
 
 func main() {
 	core = NewCore()
+
+	os.MkdirAll(DATA_DIR, 0777)
 
 	flag.IntVar(&par.NbClients, "clients", 1, "Number of clients")
 

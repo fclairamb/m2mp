@@ -161,4 +161,40 @@ func TestUserOnDomain(t *testing.T) {
 			t.Fatal("u6 wasn't found ! nbUsers =", nbUsers)
 		}
 	}
+
+	{
+		d1, err := NewDomainByNameCreate("d1")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		d3, err := NewDomainByName("d3")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if nb := len(d3.Users()); nb != 1 {
+			t.Fatalf("We have %d users instead of 1.", nb)
+		}
+
+		u, err := NewUserByName("u6")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if u.Domain().Name() != "d3" {
+			t.Fatal("Wrong domain \"%s\"", u.Domain().Name())
+		}
+
+		u.SetDomain(d1)
+
+		if nb := len(d1.Users()); nb != 1 {
+			t.Fatalf("We have %d users instead of 1.", nb)
+		}
+
+		if nb := len(d3.Users()); nb != 0 {
+			t.Fatalf("We have %d users instead of 0.", nb)
+		}
+
+	}
 }

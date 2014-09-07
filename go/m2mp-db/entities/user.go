@@ -5,7 +5,7 @@ import (
 	"fmt"
 	db "github.com/fclairamb/m2mp/go/m2mp-db"
 	"github.com/gocql/gocql"
-	"log"
+	//"log"
 )
 
 // User
@@ -115,7 +115,7 @@ func (u *User) SetDomain(d *Domain) error {
 	{ // We remove it from the previous domain
 		previousDomain := u.Domain()
 		if previousDomain != nil {
-			previousDomain.Node.GetChild("users").Check().DelValue(u.Id())
+			previousDomain.Node.GetChild("users").GetChild(u.Id()).Delete(true)
 		}
 	}
 
@@ -123,7 +123,7 @@ func (u *User) SetDomain(d *Domain) error {
 	u.Node.SetValue("domain", d.Id())
 
 	// And add it to the references of the new domain
-	d.Node.GetChild("users").Check().SetValue(u.Id(), "")
+	d.Node.GetChild("users").GetChild(u.Id()).Check()
 
 	return nil
 }
@@ -136,19 +136,4 @@ func (u *User) Domain() *Domain {
 		return nil
 	}
 	return NewDomainById(domainId)
-}
-
-func (d *Domain) Users() []*User {
-	users := []*User{}
-
-	for n, _ := range d.Node.GetChild("users").Values() {
-		userId, err := gocql.ParseUUID(n)
-		if err == nil {
-			users = append(users, NewUserById(userId))
-		} else {
-			log.Print("Err:", err)
-		}
-	}
-
-	return users
 }

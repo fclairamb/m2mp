@@ -6,6 +6,7 @@ import (
 	"fmt"
 	db "github.com/fclairamb/m2mp/go/m2mp-db"
 	"github.com/gocql/gocql"
+	"log"
 )
 
 // Domain
@@ -109,4 +110,19 @@ func (d *Domain) Rename(name string) error {
 	}
 
 	return nil
+}
+
+func (d *Domain) Users() []*User {
+	users := []*User{}
+
+	for _, n := range d.Node.GetChild("users").ChildrenNames() {
+		userId, err := gocql.ParseUUID(n)
+		if err == nil {
+			users = append(users, NewUserById(userId))
+		} else {
+			log.Print("Err:", err)
+		}
+	}
+
+	return users
 }

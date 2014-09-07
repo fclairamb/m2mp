@@ -1,10 +1,15 @@
 TARGET=client-alip
 
+BINARIES=$(TARGET) $(TARGET).exe
 
-all: $(TARGET) $(TARGET).exe
+FILES=$(shell ls *.go)
 
+all: $(BINARIES)
 
-$(TARGET) $(TARGET).exe: $(FILES)
+clean:
+	rm $(BINARIES)
+
+$(BINARIES): $(FILES)
 	#export GOROOT=/usr/local/go
 	#export PATH=$PATH:$GOROOT/bin
 	#export GOPATH=`pwd`/go

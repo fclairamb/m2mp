@@ -30,6 +30,9 @@ func LoadConfig() *Config {
 	var config Config
 	var configFile string
 
+	config.Mq.Topic = "receivers"
+	config.Mq.Channel = "alip_" + mq.HostnameSimple()
+
 	flag.StringVar(&configFile, "config", "/etc/m2mp/receiver-alip.conf", "Config file")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "usage: "+os.Args[0])
@@ -40,10 +43,6 @@ func LoadConfig() *Config {
 
 	if err := gcfg.ReadFileInto(&config, configFile); err != nil {
 		log.Fatalf("Could not read \"%s\" : %v", configFile, err)
-	}
-
-	if config.Mq.Channel == "" {
-		config.Mq.Channel = mq.HostnameSimple()
 	}
 
 	return &config

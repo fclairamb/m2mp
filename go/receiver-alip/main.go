@@ -128,16 +128,15 @@ func main() {
 	if par.Control.HttpListenPort > 0 {
 		port := fmt.Sprintf(":%d", par.Control.HttpListenPort)
 		go func() {
+			log.Info("HTTP Listening on %s", port)
 			if err := http.ListenAndServe(port, nil); err != nil {
 				log.Fatal("HTTP listening error: ", err)
-			} else {
-				log.Debug("HTTP listening on %d", port)
 			}
 		}()
 	}
 
 	log.Debug("Connecting to DB...")
-	if err := db.NewSessionSimple("ks_test"); err != nil {
+	if err := db.NewSessionSimple(par.Db.Keyspace); err != nil {
 		log.Fatal("DB error: ", err)
 	}
 	defer db.Close()

@@ -27,7 +27,9 @@ type Config struct {
 
 func LoadConfig() *Config {
 	config := Config{}
+
 	// Default config
+	config.Mq.Topic = "storage"
 	config.Mq.Channel = "shared"
 	config.Storage.Actors = 1
 

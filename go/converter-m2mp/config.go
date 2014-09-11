@@ -26,6 +26,9 @@ func LoadConfig() *Config {
 	var config Config
 	var configFile string
 
+	config.Mq.Topic = "converter-m2mp"
+	config.Mq.Channel = "shared"
+
 	flag.StringVar(&configFile, "config", "/etc/m2mp/converter-m2mp.conf", "Config file")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "usage: "+os.Args[0])
@@ -36,10 +39,6 @@ func LoadConfig() *Config {
 
 	if err := gcfg.ReadFileInto(&config, configFile); err != nil {
 		log.Fatalf("Could not read \"%s\" : %v", configFile, err)
-	}
-
-	if config.Mq.Channel == "" {
-		config.Mq.Channel = "shared"
 	}
 
 	return &config

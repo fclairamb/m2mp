@@ -9,7 +9,6 @@ import com.google.common.cache.LoadingCache;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,7 +37,7 @@ public class DB {
 
     public static void stop() {
         if (cluster != null) {
-            cluster.shutdown(5, TimeUnit.SECONDS);
+            cluster.close();
             cluster = null;
         }
         psCache.cleanUp();
@@ -94,7 +93,7 @@ public class DB {
     private static final LoadingCache<String, PreparedStatement> psCache = CacheBuilder.newBuilder().maximumSize(100).build(new CacheLoader<String, PreparedStatement>() {
         @Override
         public PreparedStatement load(String query) throws Exception {
-            return prepareNoCache(query);
+            return prepareNoCache(query).setConsistencyLevel(ConsistencyLevel.LOCAL_ONE);
         }
     });
 
@@ -129,7 +128,7 @@ public class DB {
      * @param query Query to execute
      * @return The result
      */
-    public static ResultSet execute(Query query) {
+    public static ResultSet execute(Statement query) {
         return session.execute(query);
     }
 
@@ -149,7 +148,7 @@ public class DB {
      * @param query Query to execute
      * @return The result future
      */
-    public static ResultSetFuture executeAsync(Query query) {
+    public static ResultSetFuture executeAsync(Statement query) {
         return session.executeAsync(query);
     }
 
@@ -159,7 +158,7 @@ public class DB {
      *
      * @param query Query to execute
      */
-    public static void executeLater(final Query query) {
+    public static void executeLater(final Statement query) {
         executor.execute(new Runnable() {
             @Override
             public void run() {

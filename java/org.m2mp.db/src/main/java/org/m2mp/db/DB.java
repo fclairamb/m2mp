@@ -6,6 +6,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -28,9 +30,33 @@ public class DB {
     private static Cluster cluster;
     private static Session session;
 
+    private static List<String> contactPoints = new ArrayList<String>() {{
+        add("localhost");
+    }};
+
+    /**
+     * Change the default servers.
+     *
+     * @param contactPoints
+     */
+    public static void setContactPoints(List<String> contactPoints) {
+        DB.contactPoints = contactPoints;
+        reset();
+    }
+
+    private static void reset() {
+        cluster = null;
+        session = null;
+        psCache.cleanUp();
+    }
+
     private static Cluster getCluster() {
         if (cluster == null) {
-            cluster = Cluster.builder().addContactPoint("localhost").build();
+            Cluster.Builder c = Cluster.builder();
+            for (String cp : contactPoints) {
+                c.addContactPoint(cp);
+            }
+            cluster = c.build();
         }
         return cluster;
     }
@@ -52,8 +78,7 @@ public class DB {
     public static void keyspace(String name, boolean create) {
         try {
             keyspaceName = name;
-            psCache.cleanUp();
-            session = getCluster().connect(keyspaceName);
+            reset();
         } catch (InvalidQueryException ex) {
             if (create) {
                 cluster.connect().execute("CREATE KEYSPACE " + name + " WITH replication = {'class':'SimpleStrategy', 'replication_factor':3};");
@@ -79,7 +104,10 @@ public class DB {
      */
     public static Session session() {
         if (session == null) {
-            throw new RuntimeException("You need to define a keyspace !");
+            if (keyspaceName == null) {
+                throw new RuntimeException("You need to define a keyspace !");
+            }
+            session = getCluster().connect(keyspaceName);
         }
         return session;
     }
@@ -90,7 +118,7 @@ public class DB {
      * @return Metadata object
      */
     public static KeyspaceMetadata meta() {
-        return session.getCluster().getMetadata().getKeyspace(keyspaceName);
+        return session().getCluster().getMetadata().getKeyspace(keyspaceName);
     }
 
     private static final LoadingCache<String, PreparedStatement> psCache = CacheBuilder.newBuilder().maximumSize(100).build(new CacheLoader<String, PreparedStatement>() {
@@ -122,7 +150,7 @@ public class DB {
      * @return PreparedStatement
      */
     public static PreparedStatement prepareNoCache(String query) {
-        return session().prepare(query);
+        return session().prepare(query).setConsistencyLevel(ConsistencyLevel.LOCAL_ONE);
     }
 
     /**
@@ -142,7 +170,8 @@ public class DB {
      * @return The result
      */
     public static ResultSet execute(String query) {
-        return session.execute(query);
+        BoundStatement statement = prepare(query).bind();
+        return session.execute(statement);
     }
 
     /**

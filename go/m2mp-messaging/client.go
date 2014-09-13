@@ -63,7 +63,7 @@ func NewClient(topic, channel string) (clt *Client, err error) {
 }
 
 func NewClientAddingHost(topic, channel string) (clt *Client, err error) {
-	return NewClient(topic, channel+HostnameSimple())
+	return NewClient(topic, channel+"_"+HostnameSimple())
 }
 
 func HostnameSimple() string {

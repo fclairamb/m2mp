@@ -159,7 +159,7 @@ func (s *ConverterService) runMessaging() error {
 func main() {
 	service := NewConverterService()
 	log.Debug("Connecting to DB...")
-	if err := db.NewSessionSimple("ks_test"); err != nil {
+	if err := db.NewSessionSimple(service.par.Db.Keyspace); err != nil {
 		log.Fatal("DB error: ", err)
 	}
 	defer db.Close()

@@ -1,3 +1,9 @@
+m2mp (0.1-11) unstable; urgency=low
+
+  * Changes around actual multi-host deployment.
+
+ -- Florent Clairambault <florent@clairambault.fr>  Thu, 11 Sep 2014 23:09:04 +0200
+
 m2mp (0.1-10) unstable; urgency=low
 
   * Using config file for everything.

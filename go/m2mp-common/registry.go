@@ -107,6 +107,9 @@ func (this *Registry) removeSecondaryKey(first, second string) {
 				// we remove it
 				sentries = append(sentries[:i], sentries[i+1:]...)
 				if len(sentries) == 0 {
+					if DEBUG {
+						log.Println("Deleting ", first, second)
+					}
 					delete(this.indexes, second)
 				} else {
 					this.indexes[second] = sentries

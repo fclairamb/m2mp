@@ -78,6 +78,9 @@ public class DB {
      * @return Session object
      */
     public static Session session() {
+        if (session == null) {
+            throw new RuntimeException("You need to define a keyspace !");
+        }
         return session;
     }
 
@@ -119,7 +122,7 @@ public class DB {
      * @return PreparedStatement
      */
     public static PreparedStatement prepareNoCache(String query) {
-        return session.prepare(query);
+        return session().prepare(query);
     }
 
     /**

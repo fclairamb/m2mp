@@ -5,8 +5,11 @@ import datetime
 
 from cassandra.cluster import Cluster
 
-cluster = Cluster(['127.0.0.1'])
-session = cluster.connect('ks_test')
+
+def set_session(keyspace='ks_test', hosts=['127.0.0.1']):
+    global cluster, session
+    cluster = Cluster(hosts)
+    session = cluster.connect(keyspace)
 
 
 class RegistryNode:
@@ -61,11 +64,15 @@ class RegistryNode:
         if self.properties:
             return self.properties
 
+        self.properties = {}
         for row in session.execute('select values from registrynode where path=%s;', [self.path]):
             self.properties = row[0]
+
+            if not self.properties:
+                self.properties = {}
+
             return self.properties
 
-        self.properties = {}
         return self.properties
 
     def get_property(self, name):
@@ -136,8 +143,7 @@ class RegistryNode:
 
 class Domain:
     PATH = '/domain/'
-
-    PROPERTY_NAME = '__name'
+    PATH_BY_NAME = PATH + 'by-name/'
 
     def __init__(self, id):
         self.id = id
@@ -145,8 +151,11 @@ class Domain:
 
     @staticmethod
     def get_by_name(name):
-        for row in session.execute('select id from domain where name=%s;', [name]):
-            return Domain(row[0])
+        byNameNode = RegistryNode('{base}{name}/'.format(base=Domain.PATH_BY_NAME, name=name))
+        if byNameNode.exists():
+            id = byNameNode.get_property('id')
+            if id:
+                return Domain(id)
         return None
 
     @staticmethod
@@ -154,26 +163,39 @@ class Domain:
         ins = Domain.get_by_name(name)
         if ins:
             return ins
+
+        # We get an ID
         id = uuid.uuid1()
-        session.execute('insert into domain (name, id) values (%s, %s);', [name, id])
+
+        # Create the domain node
         domain = Domain(id)
         domain.node.check()
-        domain.node.set_property(Domain.PROPERTY_NAME, name)
+        domain.node.set_property('name', name)
+
+        # And register its ID
+        byNameNode = RegistryNode('{base}{name}/'.format(base=Domain.PATH_BY_NAME, name=name)).check()
+        byNameNode.set_property('id', str(id))
+
         return domain
 
     def get_name(self):
-        return self.node.get_property(Domain.PROPERTY_NAME)
+        return self.node.get_property('name')
 
-    def delete(self):
-        name = self.get_name()
-        if name:
-            session.execute('delete from domain where name=%s;', [name])
+    def get_id(self):
+        return self.node.get_name()
+
+    def delete(self, for_real=False):
+        # We delete the name reference
+        byNameNode = RegistryNode('{base}{name}/'.format(base=Domain.PATH_BY_NAME, name=self.get_name()))
+        byNameNode.delete(for_real)
+
+        # And then node itself
+        self.node.delete(for_real)
 
 
 class User:
     PATH = '/user/'
-
-    PROPERTY_NAME = '__name'
+    PATH_BY_NAME = PATH + 'by-name/'
 
     def __init__(self, id):
         self.id = id
@@ -181,8 +203,11 @@ class User:
 
     @staticmethod
     def get_by_name(name):
-        for row in session.execute('select id from user where name=%s;', [name]):
-            return User(row[0])
+        byNameNode = RegistryNode('{base}{name}/'.format(base=User.PATH_BY_NAME, name=name))
+        if byNameNode.exists():
+            id = byNameNode.get_property('id')
+            if id:
+                return User(id)
         return None
 
     @staticmethod
@@ -190,33 +215,48 @@ class User:
         ins = User.get_by_name(name)
         if ins:
             return ins
-        domain = Domain.get_by_name_or_create('user_' + name)
+
+        # We get an ID
         id = uuid.uuid1()
-        session.execute('insert into user (name, id, domain) values (%s, %s, %s);', [name, id, domain.id])
+
+        # Create the user node
         user = User(id)
         user.node.check()
-        user.node.set_property(User.PROPERTY_NAME, name)
+        user.node.set_property('name', name)
+
+        # And register its ID
+        byNameNode = RegistryNode('{base}{name}/'.format(base=User.PATH_BY_NAME, name=name)).check()
+        byNameNode.set_property('id', str(id))
+
+        # And register the corresponding domain name
+        domain = Domain.get_by_name_or_create('user_'+name)
+        user.set_domain(domain)
+
         return user
 
     def get_name(self):
-        return self.node.get_property(User.PROPERTY_NAME)
+        return self.node.get_property('name')
 
     def get_domain(self):
-        for row in session.execute('select domain from user where name=%s;', [self.get_name()]):
-            return Domain(row[0])
+        return Domain(self.node.get_property('domain'))
 
-    def delete(self):
-        name = self.get_name()
-        if name:
-            session.execute('delete from user where name=%s;', [name])
+    def set_domain(self, domain):
+        self.node.set_property('domain', domain.get_id())
+
+    def delete(self, for_real=False):
+        # We delete the name reference
+        byNameNode = RegistryNode('{base}{name}/'.format(base=User.PATH_BY_NAME, name=self.get_name()))
+        byNameNode.delete(for_real)
+
+        # And then node itself
+        self.node.delete(for_real)
 
 
 class TimeSeries:
-
     def __init__(self, id):
         pass
 
-    DTD_SECS_DELTA = (datetime.datetime(*time.gmtime(0)[0:3])-datetime.datetime(1582, 10, 15)).days * 86400
+    DTD_SECS_DELTA = (datetime.datetime(*time.gmtime(0)[0:3]) - datetime.datetime(1582, 10, 15)).days * 86400
 
     @staticmethod
     def uuid1_to_date(u):

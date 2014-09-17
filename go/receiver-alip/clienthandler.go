@@ -448,7 +448,7 @@ func (ch *ClientHandler) processDataRequest(dataTime time.Time, dataType, conten
 
 				if len(tokens) >= 3 {
 					if spd, err := strconv.ParseFloat(tokens[2], 64); err != nil {
-						return errors.New(fmt.Sprintf("Invalid speed \"%s\" : %v", tokens[3]))
+						return errors.New(fmt.Sprintf("Invalid speed \"%s\" : %v", tokens[2]))
 					} else {
 						data.Set("spd", spd)
 					}
@@ -456,7 +456,7 @@ func (ch *ClientHandler) processDataRequest(dataTime time.Time, dataType, conten
 
 				if len(tokens) >= 4 {
 					if alt, err := strconv.ParseFloat(tokens[3], 64); err != nil {
-						return errors.New(fmt.Sprintf("Invalid altitude \"%s\" : %v", tokens[4]))
+						return errors.New(fmt.Sprintf("Invalid altitude \"%s\" : %v", tokens[3]))
 					} else {
 						data.Set("alt", alt)
 					}
@@ -464,7 +464,7 @@ func (ch *ClientHandler) processDataRequest(dataTime time.Time, dataType, conten
 
 			} else if len(tokens) == 1 {
 				if sat, err := strconv.Atoi(tokens[0]); err != nil {
-					return errors.New(fmt.Sprintf("Invalid number of satellites \"%s\": %v", tokens[1], err))
+					return errors.New(fmt.Sprintf("Invalid number of satellites \"%s\": %v", tokens[0], err))
 				} else {
 					data.Set("sat", sat)
 				}

@@ -71,6 +71,9 @@ install: binaries
 	# NSQ setup (this is temporary, it should be in an other package)
 	mkdir -p $(DESTDIR)/var/lib/nsq $(DESTDIR)/var/log/nsq/topics
 
+clean:
+	[ ! -d dist ] || rm -R dist
+
 package: binaries
 	dpkg-buildpackage -b -us -uc
 	mkdir -p dist/package
@@ -82,10 +85,7 @@ test_package_local:
 	make package
 	sudo dpkg -i dist/package/*.deb
 
-clean:
-	[ ! -d dist ] || rm -R dist
-
 test_package_remote:
 	make package
-	rsync -avz --progress dist/package/*.deb $(TARGET):package.deb
-	ssh $(TARGET) dpkg -i package.deb
+	rsync -avz --progress dist/package/*.deb $(TARGET):m2mp.deb
+	ssh $(TARGET) dpkg -i m2mp.deb

@@ -29,3 +29,9 @@ supervisorctl reread
 supervisorctl update
 supervisorctl start "nsq:*"
 supervisorctl restart "m2mp:*"
+
+if [ -x /usr/sbin/ufw ]; then
+    /usr/sbin/ufw allow 3010
+    /usr/sbin/ufw allow 3050
+fi
+

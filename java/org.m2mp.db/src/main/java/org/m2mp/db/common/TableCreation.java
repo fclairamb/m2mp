@@ -1,8 +1,6 @@
 package org.m2mp.db.common;
 
 import com.datastax.driver.core.TableMetadata;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.m2mp.db.DB;
 
 /**
@@ -14,7 +12,6 @@ import org.m2mp.db.DB;
  */
 public class TableCreation {
 
-    private final Logger log = LogManager.getLogger(TableCreation.class);
 
     public static void checkTable(TableIncrementalDefinition tableDef) {
         int version;
@@ -31,7 +28,7 @@ public class TableCreation {
                     try {
                         DB.execute(tc.cql);
                     } catch (Exception ex) {
-                        Logger.getRootLogger().warn("CQL execution issue", ex);
+                        ex.printStackTrace();
                     }
                     version = tc.version;
                 }

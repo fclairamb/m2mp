@@ -70,4 +70,6 @@ class TimeSeriesTestCase(unittest.TestCase):
                                json.dumps({"lat": 48.8, "lon": 2.5, "spd": 25, "alt": 1000}))
 
 
+models.set_session()
+
 unittest.main()

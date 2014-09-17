@@ -4,7 +4,7 @@ import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.utils.UUIDs;
-import org.apache.commons.lang.time.FastDateFormat;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.m2mp.db.DB;
 import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.common.TableCreation;

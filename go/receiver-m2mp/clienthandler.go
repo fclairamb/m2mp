@@ -36,7 +36,7 @@ func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
 		Id:               id,
 		Conn:             pr.NewProtoHandlerServer(conn),
 		connectionTime:   now,
-		LogLevel:         9,
+		LogLevel:         7,
 		connRecv:         make(chan interface{}, 3),
 		msgRecv:          make(chan *mq.JsonWrapper, 10),
 		ticker:           time.NewTicker(time.Minute),
@@ -141,7 +141,7 @@ func (ch *ClientHandler) receivedData() {
 
 func (ch *ClientHandler) considerCurrentStatus() {
 	now := time.Now().UTC()
-	if ch.LogLevel >= 5 {
+	if ch.LogLevel >= 9 {
 		log.Debug("%s - Considering current status (%s)", ch, now)
 	}
 
@@ -205,7 +205,7 @@ func (ch *ClientHandler) runCoreHandling() {
 			}
 		case <-ch.ticker.C:
 			{
-				if ch.LogLevel >= 5 {
+				if ch.LogLevel >= 9 {
 					log.Debug("%s - Tick", ch)
 				}
 			}

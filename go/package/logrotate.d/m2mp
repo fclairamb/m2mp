@@ -3,6 +3,7 @@
 	daily
 	rotate 365
 	missingok
+	su m2mp
 	
 	postrotate
 		# We trigger log file re-opening

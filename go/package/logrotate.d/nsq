@@ -3,6 +3,7 @@
 	daily
 	rotate 365
 	missingok
+	su nsq
 
 	postrotate
 		# We trigger log file re-opening
@@ -15,6 +16,8 @@
 	daily
 	rotate 365
 	missingok
+	su nsq
+
 	postrotate
 		# We have to restart the logging process to reopen the the logging
 		# files

@@ -311,24 +311,37 @@ func (ch *ClientHandler) handleSettingRequest(request string) error {
 	}
 
 	tokens := strings.SplitN(request, " ", 3)
-	if len(tokens) == 2 && tokens[0] == "G" {
+
+	switch { // Sorted by their probability of usage
+
+	// Acknowledge a setting
+	case tokens[0] == "A" && len(tokens) == 3:
+		return ch.device.AckSetting(tokens[1] /* name */, tokens[2] /* value */)
+
+	// Define a new setting
+	case tokens[0] == "S" && len(tokens) == 3:
+		return ch.device.AckSetting(tokens[1] /* name */, tokens[2] /* value */)
+
+	// Get all the settings (even the one acknowledged)
+	case tokens[0] == "GA" && len(tokens) == 1:
+		return ch.sendSettingsAll()
+
+		// Erasing a setting because it's undefined
+	case tokens[0] == "U" && len(tokens) == 2:
+		ch.device.DelSetting(tokens[1] /* name */)
+
+	// Get a particular setting
+	case tokens[0] == "G" && len(tokens) == 2:
 		name := tokens[1]
 		value := ch.device.Setting(name)
-		ch.Send(fmt.Sprintf("S S %s %s", tokens[1], value))
+		ch.Send(fmt.Sprintf("S S %s %s", name, value))
 		return nil
-	} else if len(tokens) == 3 {
-		if tokens[0] == "A" {
-			return ch.device.AckSetting(tokens[1], tokens[2])
-		} else if tokens[0] == "S" {
-			name := tokens[1]
-			value := tokens[2]
-			return ch.device.AckSetting(name, value)
-		}
-	} else if len(tokens) == 1 && tokens[0] == "G" {
+
+	// Get all settings that we need to send
+	case tokens[0] == "G":
 		return ch.sendSettingsToSend()
-	} else if len(tokens) == 1 && tokens[0] == "GA" {
-		return ch.sendSettingsAll()
-	} else {
+
+	default:
 		return errors.New(fmt.Sprintf("Command not understood: %v", tokens))
 	}
 	return nil

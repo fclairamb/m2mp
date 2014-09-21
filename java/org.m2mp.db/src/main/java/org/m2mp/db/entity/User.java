@@ -22,6 +22,7 @@ public class User extends Entity {
 
 	private static final String NODE_USER = "/user/";
 	private static final String NODE_BY_NAME = NODE_USER + "by-name/";
+	private static final String NODE_SETTINGS = "settings";
 
 	private static final Pattern VALIDATION = Pattern.compile("^[a-z][a-z0-9]{3,24}$");
 
@@ -74,6 +75,10 @@ public class User extends Entity {
 		}
 	}
 
+	public static User byName(String name) {
+		return byName(name, false);
+	}
+
 	private static final String PROPERTY_NAME = "name";
 	private static final String PROPERTY_DISPLAYNAME = "display_name";
 	private static final String PROPERTY_DOMAIN = "domain";
@@ -110,11 +115,15 @@ public class User extends Entity {
 		return getProperty(PROPERTY_PASSWORD, null);
 	}
 
-	public static User authenticate(String username, String password) {
-		User user = User.byName(username, false);
-		return (user != null && password != null && password.equals(user.getPassword())) ? user : null;
-	}
-
+	/**
+	 * Set the password.
+	 *
+	 * There is no password mechanism specified here. It has to be handled on
+	 * the upper levels. It is wise to choose something like "[salt];[sha1 of
+	 * password + salt]" but it's not the concern of this part.
+	 *
+	 * @param pass Password
+	 */
 	public void setPassword(String pass) {
 		setProperty(PROPERTY_PASSWORD, pass);
 	}
@@ -145,7 +154,7 @@ public class User extends Entity {
 
 	public RegistryNode getSettings() {
 		if (settings == null) {
-			settings = node.getChild("settings");
+			settings = node.getChild(NODE_SETTINGS);
 		}
 		return settings;
 	}

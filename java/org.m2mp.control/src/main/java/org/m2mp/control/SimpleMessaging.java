@@ -22,6 +22,10 @@ public class SimpleMessaging {
 		send(new Message("receivers;device_id=" + deviceId, "send_commands"));
 	}
 
+	public static void requestReceiversDisconnect(String target, int connectionId) {
+		send(new Message(target + ";connection_id=" + connectionId, "disconnect"));
+	}
+
 	private static void send(Message msg) {
 		try {
 			SharedClient.send(msg);

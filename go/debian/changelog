@@ -1,3 +1,15 @@
+m2mp (0.1-14) unstable; urgency=low
+
+  * Added GPRMC's specific date parsing. This should make integration with low-cost trackers even easier.
+
+ -- Florent Clairambault <florent@xps>  Mon, 22 Sep 2014 00:51:56 +0200
+
+m2mp (0.1-13) unstable; urgency=low
+
+  * Added ALIP's "S U" message handling.
+
+ -- Florent Clairambault <florent@xps>  Fri, 19 Sep 2014 00:03:36 +0200
+
 m2mp (0.1-12) unstable; urgency=low
 
   * Added ALIP's E message handling.

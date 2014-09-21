@@ -422,6 +422,121 @@ func (ch *ClientHandler) handleDebugRequest(request string) error {
 	return nil
 }
 
+func (ch *ClientHandler) processDataRequestL(store *mq.JsonWrapper, content string) error {
+	store.Set("type", "sen:loc")
+	tokens := strings.Split(content, ",")
+	data := sjson.New()
+	store.Set("data", data)
+	// lat,lon
+	if len(tokens) >= 2 {
+		if lat, err := strconv.ParseFloat(tokens[0], 64); err != nil {
+			return errors.New(fmt.Sprintf("Invalid latitude: %v", err))
+		} else {
+			data.Set("lat", lat)
+		}
+
+		lon, err := strconv.ParseFloat(tokens[1], 64)
+		if err != nil {
+			return errors.New(fmt.Sprintf("Invalid longitude: %v", err))
+		} else {
+			data.Set("lon", lon)
+		}
+
+		if len(tokens) >= 3 {
+			if spd, err := strconv.ParseFloat(tokens[2], 64); err != nil {
+				return errors.New(fmt.Sprintf("Invalid speed \"%s\" : %v", tokens[2]))
+			} else {
+				data.Set("spd", spd)
+			}
+		}
+
+		if len(tokens) >= 4 {
+			if alt, err := strconv.ParseFloat(tokens[3], 64); err != nil {
+				return errors.New(fmt.Sprintf("Invalid altitude \"%s\" : %v", tokens[3]))
+			} else {
+				data.Set("alt", alt)
+			}
+		}
+
+	} else if len(tokens) == 1 {
+		if sat, err := strconv.Atoi(tokens[0]); err != nil {
+			return errors.New(fmt.Sprintf("Invalid number of satellites \"%s\": %v", tokens[0], err))
+		} else {
+			data.Set("sat", sat)
+		}
+	} else {
+		return errors.New("Location: Not enough tokens")
+	}
+	return nil
+}
+
+func convertRMC(deg float64) float64 {
+	dec := float64(int32(deg / 100))
+	deg = (deg - (dec * 100))
+	dec += deg / 60
+
+	return dec
+}
+
+func (ch *ClientHandler) processDataRequestG(store *mq.JsonWrapper, content string) error {
+	store.Set("type", "sen:loc")
+	tokens := strings.Split(content, ",")
+	data := sjson.New()
+	store.Set("data", data)
+	// date,lat,lon
+	if len(tokens) >= 3 {
+		// We accept all time formats
+		if dataTime, err := doYourBestWithTime(tokens[0]); err == nil {
+			store.Set("date_uuid", mq.UUIDFromTime(dataTime))
+		} else {
+			return errors.New(fmt.Sprintf("Invalid date: \"%s\": %v", tokens[0], err))
+		}
+
+		if lat, err := strconv.ParseFloat(tokens[1], 64); err != nil {
+			return errors.New(fmt.Sprintf("Invalid latitude: %v", err))
+		} else {
+			lat = convertRMC(lat)
+			data.Set("lat", lat)
+		}
+
+		lon, err := strconv.ParseFloat(tokens[2], 64)
+		if err != nil {
+			return errors.New(fmt.Sprintf("Invalid longitude: %v", err))
+		} else {
+			lon = convertRMC(lon)
+			data.Set("lon", lon)
+		}
+
+		if len(tokens) >= 4 {
+			if spd, err := strconv.ParseFloat(tokens[3], 64); err != nil {
+				return errors.New(fmt.Sprintf("Invalid speed \"%s\" : %v", tokens[2]))
+			} else {
+				// Speed is in knots here
+				spd *= 1.852
+				data.Set("spd", spd)
+			}
+		}
+
+		if len(tokens) >= 5 {
+			if alt, err := strconv.ParseFloat(tokens[4], 64); err != nil {
+				return errors.New(fmt.Sprintf("Invalid altitude \"%s\" : %v", tokens[3]))
+			} else {
+				data.Set("alt", alt)
+			}
+		}
+
+	} else if len(tokens) == 1 {
+		if sat, err := strconv.Atoi(tokens[0]); err != nil {
+			return errors.New(fmt.Sprintf("Invalid number of satellites \"%s\": %v", tokens[0], err))
+		} else {
+			data.Set("sat", sat)
+		}
+	} else {
+		return errors.New("Location: Not enough tokens")
+	}
+	return nil
+}
+
 func (ch *ClientHandler) processDataRequest(dataTime time.Time, dataType, content string) error {
 	if ch.device == nil {
 		return errors.New("You must be identified !")
@@ -434,62 +549,19 @@ func (ch *ClientHandler) processDataRequest(dataTime time.Time, dataType, conten
 
 	switch dataType {
 	case "echo":
-		{
-			ch.Send(fmt.Sprintf("D %s %s", dataType, content))
-			return nil
-		}
+		ch.Send(fmt.Sprintf("D %s %s", dataType, content))
+		return nil
+
 	case "L":
-		{
-			store.Set("type", "sen:loc")
-			tokens := strings.Split(content, ",")
-			data := sjson.New()
-			store.Set("data", data)
-			// date,lat,lon
-			if len(tokens) >= 2 {
-				if lat, err := strconv.ParseFloat(tokens[0], 64); err != nil {
-					return errors.New(fmt.Sprintf("Invalid latitude: %v", err))
-				} else {
-					data.Set("lat", lat)
-				}
-
-				lon, err := strconv.ParseFloat(tokens[1], 64)
-				if err != nil {
-					return errors.New(fmt.Sprintf("Invalid longitude: %v", err))
-				} else {
-					data.Set("lon", lon)
-				}
-
-				if len(tokens) >= 3 {
-					if spd, err := strconv.ParseFloat(tokens[2], 64); err != nil {
-						return errors.New(fmt.Sprintf("Invalid speed \"%s\" : %v", tokens[2]))
-					} else {
-						data.Set("spd", spd)
-					}
-				}
-
-				if len(tokens) >= 4 {
-					if alt, err := strconv.ParseFloat(tokens[3], 64); err != nil {
-						return errors.New(fmt.Sprintf("Invalid altitude \"%s\" : %v", tokens[3]))
-					} else {
-						data.Set("alt", alt)
-					}
-				}
-
-			} else if len(tokens) == 1 {
-				if sat, err := strconv.Atoi(tokens[0]); err != nil {
-					return errors.New(fmt.Sprintf("Invalid number of satellites \"%s\": %v", tokens[0], err))
-				} else {
-					data.Set("sat", sat)
-				}
-			} else {
-				return errors.New("Location: Not enough tokens")
-			}
+		if err := ch.processDataRequestL(store, content); err != nil {
+			return err
 		}
-
+	case "G":
+		if err := ch.processDataRequestG(store, content); err != nil {
+			return err
+		}
 	default:
-		{
-			store.Set("data", content)
-		}
+		store.Set("data", content)
 	}
 
 	ch.SendMessage(store)
@@ -517,23 +589,26 @@ func (ch *ClientHandler) handleTimedDataRequest(content string) error {
 }
 
 func doYourBestWithTime(input string) (time.Time, error) {
-	if value, err := strconv.ParseInt(input, 10, 64); err == nil {
-		// If we are bellow this value
-		if value < 140915000000 /* roughly the minimum GPS time */ {
-			// We are in unix time
+	length := len(input)
+	switch {
+	case length >= 10 && length < 12:
+		if value, err := strconv.ParseInt(input, 10, 64); err == nil {
 			return time.Unix(int64(value), 0), nil
-		} else {
-			// If not we try to parse it in a format that looks like yymmddHHMMSS
-			if t, err := time.Parse("060102150405", input); err == nil {
-				return t, nil
-			} else {
-				return time.Unix(0, 0), errors.New(fmt.Sprintf("GPS time: %v", err))
-			}
 		}
-	} else {
-		// int parse error
-		return time.Unix(0, 0), err
+	case length == 12:
+		if t, err := time.Parse("060102150405", input); err == nil {
+			return t, nil
+		} else {
+			return time.Unix(0, 0), errors.New(fmt.Sprintf("GPS1 time: %v", err))
+		}
+	case length >= 14:
+		if t, err := time.Parse("20060102150405", input); err == nil {
+			return t, nil
+		} else {
+			return time.Unix(0, 0), errors.New(fmt.Sprintf("GPS2 time: %v", err))
+		}
 	}
+	return time.Unix(0, 0), errors.New(fmt.Sprintf("Could not guess time: %v", input))
 }
 
 func (ch *ClientHandler) justIdentified() error {

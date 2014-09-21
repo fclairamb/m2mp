@@ -1,5 +1,7 @@
 package org.m2mp.msg;
 
+import java.util.Map;
+import java.util.TreeMap;
 import ly.bit.nsq.NSQProducer;
 import ly.bit.nsq.NSQReader;
 import ly.bit.nsq.exceptions.NSQException;
@@ -10,16 +12,22 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-public class Client {
+public class Client implements AutoCloseable {
 
-	private final String topic, channel;
+	private final String topic, channel, nsqServer;
 	private final NSQReader reader;
+	private final TreeMap<String, NSQProducer> producers = new TreeMap<>();
 
 	private MessageHandler handler;
 
 	public Client(String topic, String channel) {
+		this(topic, channel, "http://127.0.0.1:4161", "http://127.0.0.1:4151");
+	}
+
+	public Client(String topic, String channel, String lookupServer, String nsqServer) {
 		this.topic = topic;
 		this.channel = channel;
+		this.nsqServer = nsqServer;
 
 		reader = new SyncResponseReader(topic, channel, new SyncResponseHandler() {
 
@@ -33,8 +41,7 @@ public class Client {
 				}
 			}
 		});
-		reader.addLookupd(new BasicLookupd("http://127.0.0.1:4161"));
-		//producer = new NSQProducer("http://127.0.0.1:4151", "");
+		reader.addLookupd(new BasicLookupd(lookupServer));
 	}
 
 	public void setHandler(MessageHandler msgHandler) {
@@ -62,9 +69,26 @@ public class Client {
 		{ // Conversion
 			String msgTopic = m2.getTopic();
 			String msgBody = m2.toString();
-			NSQProducer producer = new NSQProducer("http://127.0.0.1:4151", msgTopic);
+			NSQProducer producer;
+			synchronized (producers) {
+				producer = producers.get(msgTopic);
+				if (producer == null) {
+					producer = new NSQProducer(nsqServer, msgTopic);
+					producers.put(msgTopic, producer);
+				}
+			}
 			producer.setTopic(msgTopic);
 			producer.put(msgBody);
+		}
+	}
+
+	@Override
+	public void close() {
+		reader.shutdown();
+		synchronized (producers) {
+			for (Map.Entry<String, NSQProducer> me : producers.entrySet()) {
+				me.getValue().shutdown();
+			}
 		}
 	}
 }

@@ -117,7 +117,7 @@ func (pt *ProtoHandler) getSendChannel(channel string) (channelId int, err error
 		pt.sendChannels[channel] = channelId
 
 		if pt.LogLevel >= 8 {
-			log.Debug("%s <-- \"%s\" created on %d", pt, channel, channelId)
+			log.Debug("%s <-- Channel \"%s\" created with id %d", pt, channel, channelId)
 		}
 
 		_, err = pt.Conn.Write(frame)
@@ -299,6 +299,19 @@ func (pt *ProtoHandler) Recv() interface{} {
 	return msg
 }
 
+func UvarintBE(data []byte) (int, error) {
+	switch len(data) {
+	case 4:
+		return int(binary.BigEndian.Uint32(data)), nil
+	case 2:
+		return int(binary.BigEndian.Uint16(data)), nil
+	case 1:
+		return int(data[0]), nil
+	default:
+		return -1, errors.New(fmt.Sprintf("Size %v cannot be parsed !", data))
+	}
+}
+
 func (pt *ProtoHandler) actualRecv() interface{} {
 
 	// We're currently re-allocating the buffer for every message
@@ -357,7 +370,7 @@ func (pt *ProtoHandler) actualRecv() interface{} {
 				channelName := string(buffer[1:size])
 				pt.recvChannels[channelId] = channelName
 				if pt.LogLevel >= 7 {
-					log.Debug("%s --> \"%s\" created on %d", pt, channelName, channelId)
+					log.Debug("%s --> Channel \"%s\" created with id %d", pt, channelName, channelId)
 				}
 			}
 			// All the data messages
@@ -380,7 +393,7 @@ func (pt *ProtoHandler) actualRecv() interface{} {
 				// We convert this to a size
 				var size int
 				{
-					s, _ := binary.Uvarint(buffer[1 : sizeLength+1])
+					s, _ := UvarintBE(buffer[1 : sizeLength+1])
 					size = int(s)
 				}
 
@@ -398,6 +411,7 @@ func (pt *ProtoHandler) actualRecv() interface{} {
 				// We get the channel id
 				channelId := int(buffer[0])
 				channelName := pt.recvChannels[channelId]
+
 				switch ft {
 
 				case 0x21, 0x41, 0x61: // Single byte array messages
@@ -409,7 +423,7 @@ func (pt *ProtoHandler) actualRecv() interface{} {
 						offset := 1
 						data := make([][]byte, 0, 5) // 5 is arbitrary, it's likely to be something like that
 						for offset < size {
-							s, _ := binary.Uvarint(buffer[offset : offset+sizeLength])
+							s, _ := UvarintBE(buffer[offset : offset+sizeLength])
 							subSize := int(s)
 							offset += sizeLength
 							data = append(data, buffer[offset:offset+subSize])

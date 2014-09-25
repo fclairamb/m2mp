@@ -111,7 +111,12 @@ public class DB {
 			if (keyspaceName == null) {
 				throw new RuntimeException("You need to define a keyspace !");
 			}
-			session = getCluster().connect(keyspaceName);
+            try {
+                session = getCluster().connect(keyspaceName);
+            }
+            catch( IllegalStateException ex ) {
+                cluster = null;
+            }
 		}
 		return session;
 	}

@@ -3,6 +3,7 @@ package org.m2mp.db.entity;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,7 +25,7 @@ public class User extends Entity {
 	private static final String NODE_BY_NAME = NODE_USER + "by-name/";
 	private static final String NODE_SETTINGS = "settings";
 
-	private static final Pattern VALIDATION = Pattern.compile("^[a-z][a-z0-9]{3,24}$");
+	private static final Pattern VALIDATION = Pattern.compile("^[a-z][a-z0-9\\.]{3,24}$");
 
 	public User(UUID userId) {
 		node = new RegistryNode(NODE_USER + userId);
@@ -158,6 +159,47 @@ public class User extends Entity {
 		}
 		return settings;
 	}
+
+    public static Iterable<User> getAll() {
+        return new Iterable<User>() {
+            @Override
+            public Iterator<User> iterator() {
+                return new Iterator<User>() {
+
+                    private final Iterator<String> iter = new RegistryNode(NODE_USER).getChildrenNames().iterator();
+
+                    private UUID next;
+
+                    @Override
+                    public boolean hasNext() {
+                        while (iter.hasNext()) {
+                            String name = iter.next();
+                            if (name.equals("by-name")) {
+                                continue;
+                            }
+                            try {
+                                next = UUID.fromString(name);
+                            } catch (IllegalArgumentException ex) {
+                                continue;
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
+
+                    @Override
+                    public User next() {
+                        return new User(next);
+                    }
+
+                    @Override
+                    public void remove() {
+
+                    }
+                };
+            }
+        };
+    }
 
 	@Override
 	public boolean equals(Object obj) {

@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  */
 public class Domain extends Entity {
 
-	private static final Pattern VALIDATION = Pattern.compile("^[a-z][a-z0-9]{3,}$");
+	private static final Pattern VALIDATION = Pattern.compile("^[a-z][a-z0-9\\-]{3,}$");
 
 	public static Domain getDefault() {
 		return Domain.byName("default", true);
@@ -46,44 +46,44 @@ public class Domain extends Entity {
 		this.node = node;
 	}
 
-	public static Domain byName(String name, boolean create) {
-		RegistryNode node = new RegistryNode(NODE_BY_NAME + name);
-		if (!VALIDATION.matcher(name).matches()) {
-			throw new RuntimeException("Domain \"" + name + "\" doesn't match \"" + VALIDATION.pattern() + "\" matching pattern.");
-		}
-		if (node.exists()) {
-			return new Domain(node.getPropertyUUID("id"));
-		} else if (create) {
-			byte[] digest = new byte[20];
-			try {
-				digest = MessageDigest.getInstance("SHA-1").digest(name.getBytes());
-			} catch (NoSuchAlgorithmException e) {
-				e.printStackTrace();
-			}
-			byte[] uuidRaw = new byte[16];
-			System.arraycopy(digest, 0, uuidRaw, 0, 16);
-			UUID deviceId = UUID.nameUUIDFromBytes(uuidRaw);
-			Domain domain = new Domain(deviceId);
+    public static Domain byName(String name, boolean create) {
+        if (!VALIDATION.matcher(name).matches()) {
+            throw new RuntimeException("Domain \"" + name + "\" doesn't match \"" + VALIDATION.pattern() + "\" matching pattern.");
+        }
+        RegistryNode node = new RegistryNode(NODE_BY_NAME + name);
+        if (node.exists()) {
+            return new Domain(node.getPropertyUUID("id"));
+        } else if (create) {
+            byte[] digest = new byte[20];
+            try {
+                digest = MessageDigest.getInstance("SHA-1").digest(name.getBytes());
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+            byte[] uuidRaw = new byte[16];
+            System.arraycopy(digest, 0, uuidRaw, 0, 16);
+            UUID deviceId = UUID.nameUUIDFromBytes(uuidRaw);
+            Domain domain = new Domain(deviceId);
 
-			if (domain.exists()) {
-				domain = new Domain(UUID.randomUUID());
-			} else {
-				domain.create();
-			}
-			domain.setProperty(PROPERTY_CREATED_DATE, new Date());
-			domain.setName(name);
-			return domain;
-		} else {
-			return null;
-		}
-	}
+            if (domain.exists()) { // This can happen if a domain was created with the same name and then renamed
+                domain = new Domain(UUID.randomUUID());
+            }
 
-	public String getName() {
+            domain.create();
+            domain.setProperty(PROPERTY_CREATED_DATE, new Date());
+            domain.setName(name);
+            return domain;
+        } else {
+            return null;
+        }
+    }
+
+    public String getName() {
 		return getProperty(PROPERTY_NAME, null);
 	}
 
 	public void setName(String name) {
-		if (byName(name, false) != null) {
+		if (name != null && byName(name, false) != null) {
 			throw new IllegalArgumentException("This domain name is already taken !");
 		}
 		String previousName = getName();
@@ -95,8 +95,6 @@ public class Domain extends Entity {
 			setProperty(PROPERTY_NAME, name);
 		}
 	}
-
-	public static final String TABLE = "Domain";
 
 	public UUID getId() {
 		return domainId;
@@ -295,6 +293,6 @@ public class Domain extends Entity {
 	@Override
 	public void delete() {
 		setName(null);
-		node.delete(false);
+		node.delete(true);
 	}
 }

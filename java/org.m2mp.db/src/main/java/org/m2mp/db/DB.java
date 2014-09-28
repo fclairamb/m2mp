@@ -2,6 +2,9 @@ package org.m2mp.db;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
+import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
+import com.datastax.driver.core.policies.ExponentialReconnectionPolicy;
+import com.datastax.driver.core.policies.LatencyAwarePolicy;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -21,121 +24,144 @@ import java.util.logging.Logger;
  */
 public class DB {
 
-	private DB() {
-	}
-
-	private static Executor executor = Executors.newCachedThreadPool();
-
+    private static final PoolingOptions poolingOptions = new PoolingOptions() {
+        {
+            setCoreConnectionsPerHost(HostDistance.LOCAL, 1);
+            setCoreConnectionsPerHost(HostDistance.REMOTE, 1);
+            setMaxConnectionsPerHost(HostDistance.LOCAL, 2);
+            setMaxConnectionsPerHost(HostDistance.REMOTE, 2);
+        }
+    };
+    private static final SocketOptions socketOptions = new SocketOptions() {
+        {
+            setConnectTimeoutMillis(1000);
+        }
+    };
+    private static final LoadingCache<String, PreparedStatement> psCache = CacheBuilder.newBuilder().maximumSize(100).build(new CacheLoader<String, PreparedStatement>() {
+        @Override
+        public PreparedStatement load(String query) throws Exception {
+            return prepareNoCache(query).setConsistencyLevel(ConsistencyLevel.LOCAL_ONE);
+        }
+    });
+    private static Executor executor = Executors.newCachedThreadPool();
 	private static String keyspaceName;
 	private static Cluster cluster;
 	private static Session session;
-
 	private static List<String> contactPoints = new ArrayList<String>() {
 		{
 			add("localhost");
 		}
 	};
 
-	/**
-	 * Change the default servers.
-	 *
-	 * @param contactPoints
-	 */
-	public static void setContactPoints(List<String> contactPoints) {
-		DB.contactPoints = contactPoints;
-		reset();
-	}
+    private DB() {
+    }
 
-	private static void reset() {
-		cluster = null;
-		session = null;
-		psCache.cleanUp();
-	}
+    /**
+     * Change the default servers.
+     *
+     * @param contactPoints
+     */
+    public static void setContactPoints(List<String> contactPoints) {
+        DB.contactPoints = contactPoints;
+        reset();
+    }
 
-	private static Cluster getCluster() {
-		if (cluster == null) {
-			Cluster.Builder c = Cluster.builder();
-			for (String cp : contactPoints) {
-				c.addContactPoint(cp);
-			}
-			cluster = c.build();
-		}
-		return cluster;
-	}
+    private static void reset() {
+        cluster = null;
+        session = null;
+        psCache.cleanUp();
+    }
 
-	public static void stop() {
-		if (cluster != null) {
-			cluster.close();
-			cluster = null;
-		}
-		psCache.cleanUp();
-	}
+    private static Cluster getCluster() {
+        if (cluster == null) {
+            Cluster.Builder c = Cluster.builder();
+            for (String cp : contactPoints) {
+                c.addContactPoint(cp);
+            }
+            c.withPoolingOptions(poolingOptions)
+                    .withSocketOptions(socketOptions)
+                    .withLoadBalancingPolicy(LatencyAwarePolicy.builder(new DCAwareRoundRobinPolicy(null, 10, true)).build())
+                    .withReconnectionPolicy(new ExponentialReconnectionPolicy(1000, 30000));
 
-	/**
-	 * Change keyspace
-	 *
-	 * @param name Name of the keyspace
-	 * @param create To create it if not already there
-	 *
-	 * Create option should never be set to free. It is only used for testing.
-	 */
-	public static void keyspace(String name, boolean create) {
-		try {
-			keyspaceName = name;
-			reset();
-		} catch (InvalidQueryException ex) {
-			if (create) {
-				cluster.connect().execute("CREATE KEYSPACE " + name + " WITH replication = {'class':'SimpleStrategy', 'replication_factor':3};");
-			} else {
-				throw new RuntimeException("Could not load keyspace " + name + " !", ex);
-			}
-		}
-	}
+            cluster = c.build();
+        }
+        return cluster;
+    }
+
+    public static void stop() {
+        if (cluster != null) {
+            cluster.close();
+            cluster = null;
+        }
+        psCache.cleanUp();
+    }
 
 	/**
 	 * Change keyspace
-	 *
-	 * @param name Keyspace name
-	 */
-	public static void keyspace(String name) {
-		keyspace(name, false);
-	}
+     *
+     * @param name Name of the keyspace
+     * @param create To create it if not already there
+     *
+     * Create option should never be set to free. It is only used for testing.
+     */
+    public static void keyspace(String name, boolean create) {
+        try {
+            keyspaceName = name;
+            reset();
+        } catch (InvalidQueryException ex) {
+            if (create) {
+                cluster.connect().execute("CREATE KEYSPACE " + name + " WITH replication = {'class':'SimpleStrategy', 'replication_factor':3};");
+            } else {
+                throw new RuntimeException("Could not load keyspace " + name + " !", ex);
+            }
+        }
+    }
 
-	/**
-	 * Get the internal session object
-	 *
-	 * @return Session object
-	 */
-	public static Session session() {
-		if (session == null) {
-			if (keyspaceName == null) {
-				throw new RuntimeException("You need to define a keyspace !");
-			}
+    /**
+     * Change keyspace
+     *
+     * @param name Keyspace name
+     */
+    public static void keyspace(String name) {
+        keyspace(name, false);
+    }
+
+    /**
+     * Get the internal session object
+     *
+     * @return Session object
+     */
+    public static Session session() {
+        if (session == null) {
+            if (keyspaceName == null) {
+                throw new RuntimeException("You need to define a keyspace !");
+            }
             try {
-                session = getCluster().connect(keyspaceName);
-            }
-            catch( IllegalStateException ex ) {
+                Cluster c = getCluster();
+                Metadata metadata = c.getMetadata();
+
+
+                Logger.getLogger(DB.class.getName()).log(Level.INFO, String.format("Connecting to cluster '%s' on %s.", metadata.getClusterName(), metadata.getAllHosts()));
+
+                session = c.connect(keyspaceName);
+
+                Logger.getLogger(DB.class.getName()).log(Level.INFO, String.format("Connected to cluster '%s' on %s.", metadata.getClusterName(), metadata.getAllHosts()));
+            } catch (Exception ex) {
                 cluster = null;
+                throw new RuntimeException("Could not connect to the cluster", ex);
             }
-		}
-		return session;
-	}
+        }
+        return session;
+    }
 
-	/**
-	 * Get the keyspace metadata
-	 *
-	 * @return Metadata object
-	 */
-	public static KeyspaceMetadata meta() {
-		return session().getCluster().getMetadata().getKeyspace(keyspaceName);
-	}
-
-	private static final LoadingCache<String, PreparedStatement> psCache = CacheBuilder.newBuilder().maximumSize(100).build(new CacheLoader<String, PreparedStatement>() {
-		@Override
-		public PreparedStatement load(String query) throws Exception {
-			return prepareNoCache(query).setConsistencyLevel(ConsistencyLevel.LOCAL_ONE);
-		}
-	});
+    /**
+     * Get the keyspace metadata
+     *
+     * @return Metadata object
+     */
+    public static KeyspaceMetadata meta() {
+        return session().getCluster().getMetadata().getKeyspace(keyspaceName);
+    }
 
 	/**
 	 * Prepare a query and put it in cache.

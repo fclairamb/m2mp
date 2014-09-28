@@ -546,7 +546,7 @@ public class RegistryNode {
         JSONObject obj = new JSONObject();
 
         for (Map.Entry<String, String> me : getProperties().entrySet()) {
-            obj.put(me.getKey(), JSONValue.parse(me.getValue()));
+            obj.put(me.getKey(), me.getValue());
         }
 
         for (RegistryNode rn : getChildren()) {

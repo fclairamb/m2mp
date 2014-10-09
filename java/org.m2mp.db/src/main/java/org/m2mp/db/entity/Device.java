@@ -2,9 +2,13 @@ package org.m2mp.db.entity;
 
 import org.m2mp.db.common.Entity;
 import org.m2mp.db.registry.RegistryNode;
+import org.m2mp.db.ts.TimeSerie;
+import org.m2mp.db.ts.TimedData;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.UUID;
 
 public class Device extends Entity {
@@ -17,7 +21,8 @@ public class Device extends Entity {
 			PROPERTY_DISPLAYNAME = "display_name",
 			NODE_SETTINGS = "settings",
 			NODE_SETTINGS_TO_SEND = "settings-to-send",
-			NODE_COMMANDS = "commands",
+            NODE_SETTINGS_ACK_TIME = "ack-time",
+            NODE_COMMANDS = "commands",
 			NODE_COMMANDS_RESPONSE = "commands-response",
 			NODE_STATUS = "status",
 			NODE_SERVER_SETTINGS = "server-settings",
@@ -31,105 +36,200 @@ public class Device extends Entity {
 		this.node = new RegistryNode(DEVICE_NODE_PATH + deviceId);
 	}
 
-	public void setDomain(Domain domain) {
-		Domain previousDomain = getDomain();
-		if (previousDomain != null) {
-			previousDomain.removeDevice(getId());
-		}
-		setProperty(PROPERTY_DOMAIN, domain.getId());
-		domain.addDevice(getId());
+    public static Device byIdent(String ident, boolean create) {
+        RegistryNode node = new RegistryNode(DEVICE_BY_IDENT_NODE_PATH + ident);
+        if (node.exists()) {
+            UUID id = UUID.fromString(node.getPropertyString(PROPERTY_ID));
+            return new Device(id);
+        } else if (create) {
+            byte[] digest = new byte[0];
+            try {
+                digest = MessageDigest.getInstance("SHA-1").digest(ident.getBytes());
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+            byte[] uuidRaw = new byte[16];
+            System.arraycopy(digest, 0, uuidRaw, 0, 16);
+            UUID deviceId = UUID.nameUUIDFromBytes(uuidRaw);
+            Device device = new Device(deviceId);
+
+            if (device.exists()) {
+                device = new Device(UUID.randomUUID());
+            } else {
+                device.create();
+            }
+
+            device.setDomain(Domain.getDefault());
+            device.setProperty(PROPERTY_IDENT, ident);
+
+            return device;
+        } else {
+            return null;
+        }
 	}
 
-	public Domain getDomain() {
-		UUID domainId = getPropertyUUID(PROPERTY_DOMAIN);
-		return domainId != null ? new Domain(domainId) : null;
-	}
+    public static Iterable<Device> getAll() {
+        return new Iterable<Device>() {
+            @Override
+            public Iterator<Device> iterator() {
+                return new Iterator<Device>() {
 
-	public UUID getId() {
-		return UUID.fromString(node.getName());
-	}
+                    private final Iterator<String> iter;
 
-	public static Device byIdent(String ident, boolean create) {
-		RegistryNode node = new RegistryNode(DEVICE_BY_IDENT_NODE_PATH + ident);
-		if (node.exists()) {
-			UUID id = UUID.fromString(node.getPropertyString(PROPERTY_ID));
-			return new Device(id);
-		} else if (create) {
-			byte[] digest = new byte[0];
-			try {
-				digest = MessageDigest.getInstance("SHA-1").digest(ident.getBytes());
-			} catch (NoSuchAlgorithmException e) {
-				e.printStackTrace();
-			}
-			byte[] uuidRaw = new byte[16];
-			System.arraycopy(digest, 0, uuidRaw, 0, 16);
-			UUID deviceId = UUID.nameUUIDFromBytes(uuidRaw);
-			Device device = new Device(deviceId);
+                    private UUID next;
 
-			if (device.exists()) {
-				device = new Device(UUID.randomUUID());
-			} else {
-				device.create();
-			}
+                    {
+                        iter = new RegistryNode(DEVICE_NODE_PATH).getChildrenNames().iterator();
+                    }
 
-			device.setDomain(Domain.getDefault());
-			device.setProperty(PROPERTY_IDENT, ident);
+                    @Override
+                    public boolean hasNext() {
+                        while (iter.hasNext()) {
+                            String name = iter.next();
+                            if (name.equals("by-ident")) {
+                                continue;
+                            }
+                            try {
+                                next = UUID.fromString(name);
+                            } catch (IllegalArgumentException ex) {
+                                continue;
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
 
-			return device;
-		} else {
-			return null;
-		}
-	}
+                    @Override
+                    public Device next() {
+                        return new Device(next);
+                    }
 
-	public String getIdent() {
-		return getProperty(PROPERTY_IDENT, null);
-	}
+                    @Override
+                    public void remove() {
 
-	public String getDisplayName() {
-		return getProperty(PROPERTY_DISPLAYNAME, "");
-	}
+                    }
+                };
+            }
+        };
+    }
 
-	public void setDisplayName(String value) {
-		setProperty(PROPERTY_DISPLAYNAME, value);
-	}
+    public Domain getDomain() {
+        UUID domainId = getPropertyUUID(PROPERTY_DOMAIN);
+        return domainId != null ? new Domain(domainId) : null;
+    }
 
-	public RegistryNode getSettings() {
-		return node.getChild(NODE_SETTINGS).check();
-	}
+    public void setDomain(Domain domain) {
+        Domain previousDomain = getDomain();
+        if (previousDomain != null) {
+            previousDomain.removeDevice(getId());
+        }
+        setProperty(PROPERTY_DOMAIN, domain.getId());
+        domain.addDevice(getId());
+    }
 
-	public RegistryNode getSettingsToSend() {
-		return node.getChild(NODE_SETTINGS_TO_SEND).check();
-	}
+    public UUID getId() {
+        return UUID.fromString(node.getName());
+    }
 
-	public void setSetting(String name, String value) {
-		getSettings().setProperty(name, value);
-		getSettingsToSend().setProperty(name, value);
-	}
+    public String getIdent() {
+        return getProperty(PROPERTY_IDENT, null);
+    }
 
-	public String getSetting(String name) {
-		return getSettings().getPropertyString(name);
-	}
+    public String getDisplayName() {
+        return getProperty(PROPERTY_DISPLAYNAME, "");
+    }
 
-	public RegistryNode getCommands() {
-		return node.getChild(NODE_COMMANDS).check();
-	}
+    public void setDisplayName(String value) {
+        setProperty(PROPERTY_DISPLAYNAME, value);
+    }
 
-	public void setCommand(String id, String value) {
-		getCommands().setProperty(id, value);
-	}
+    public RegistryNode getSettings() {
+        return node.getChild(NODE_SETTINGS).check();
+    }
 
-	public void addCommand(String value) {
-		setCommand(UUID.randomUUID().toString(), value);
-	}
+    public RegistryNode getSettingsToSend() {
+        return node.getChild(NODE_SETTINGS_TO_SEND).check();
+    }
+
+    private RegistryNode getSettingsAckNode() {
+        return getSettings().getChild(NODE_SETTINGS_ACK_TIME).check();
+    }
+
+    public void setSetting(String name, String value) {
+        getSettings().setProperty(name, value);
+        getSettingsToSend().setProperty(name, value);
+    }
+
+    public String getSetting(String name) {
+        return getSettings().getPropertyString(name);
+    }
+
+    public void ackSetting(String name, String value) {
+        String requiredValue = getSettingsToSend().getPropertyString(name);
+        if (value.equals(requiredValue)) {
+            getSettingsToSend().delProperty(value);
+            getSettingsAckNode().setProperty(name, new Date());
+        }
+    }
+
+    public Date getSettingAckTime(String name) {
+        return getSettingsAckNode().getPropertyDate(name);
+    }
+
+    public RegistryNode getCommands() {
+        return node.getChild(NODE_COMMANDS).check();
+    }
+
+    public void setCommand(String id, String value) {
+        getCommands().setProperty(id, value);
+    }
+
+    public void addCommand(String value) {
+        setCommand(UUID.randomUUID().toString(), value);
+    }
+
+    public void ackCommand(String id) {
+        getCommands().delProperty(id);
+    }
 
 	@Override
-	public Device check() {
-		super.check();
-		return this;
-	}
+    public Device check() {
+        super.check();
+        return this;
+    }
 
-	@Override
-	protected int getObjectVersion() {
+    private final String getTSID() {
+        return "dev-" + getId();
+    }
+
+    public Iterable<TimedData> getData(String type, Date dateBegin, Date dateEnd, boolean reverse) {
+        return TimeSerie.getData(getTSID(), type, dateBegin, dateEnd, reverse);
+    }
+
+    public TimedData getDataLast(String type) {
+        for (TimedData td : getData(type, null, null, true)) {
+            return td;
+        }
+        return null;
+    }
+
+    public String getDataLastString(String type) {
+        TimedData dataLast = getDataLast(type);
+        return dataLast != null ? dataLast.getData() : null;
+    }
+
+    @Override
+    protected int getObjectVersion() {
 		return 1;
 	}
+
+
+    /**
+     * Timeserie ID
+     *
+     * @return Timeserie ID
+     */
+    public String getTSId() {
+        return "dev-" + getId();
+    }
 }

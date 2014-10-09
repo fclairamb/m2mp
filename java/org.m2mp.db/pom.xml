@@ -1,10 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.m2mp</groupId>
     <artifactId>org.m2mp.db</artifactId>
-    <version>1.2</version>
+    <version>1.2-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>org.m2mp.db</name>
     <url>http://maven.apache.org</url>

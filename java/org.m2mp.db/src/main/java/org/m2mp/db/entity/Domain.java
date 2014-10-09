@@ -21,30 +21,29 @@ import java.util.regex.Pattern;
  */
 public class Domain extends Entity {
 
-	private static final Pattern VALIDATION = Pattern.compile("^[a-z][a-z0-9\\-]{3,}$");
+    private static final Pattern VALIDATION = Pattern.compile("^[a-z][a-z0-9\\-]{3,}$");
+    private static final String NODE_DOMAIN = "/domain/",
+            PROPERTY_MASTER_ID = "master",
+            PROPERTY_NAME = "name",
+            PROPERTY_CREATED_DATE = "created_date",
+            NODE_DEVICES = "devices",
+            NODE_USERS = "users",
+            NODE_BY_NAME = NODE_DOMAIN + "by-name/";
+    private UUID domainId;
 
-	public static Domain getDefault() {
-		return Domain.byName("default", true);
-	}
+    public Domain(UUID id) {
+        domainId = id;
+        node = new RegistryNode(NODE_DOMAIN + id);
+    }
 
-	private UUID domainId;
-	private static final String NODE_DOMAIN = "/domain/",
-			PROPERTY_MASTER_ID = "master",
-			PROPERTY_NAME = "name",
-			PROPERTY_CREATED_DATE = "created_date",
-			NODE_DEVICES = "devices",
-			NODE_USERS = "users",
-			NODE_BY_NAME = NODE_DOMAIN + "by-name/";
+    public Domain(RegistryNode node) {
+        domainId = UUID.fromString(node.getName());
+        this.node = node;
+    }
 
-	public Domain(UUID id) {
-		domainId = id;
-		node = new RegistryNode(NODE_DOMAIN + id);
-	}
-
-	public Domain(RegistryNode node) {
-		domainId = UUID.fromString(node.getName());
-		this.node = node;
-	}
+    public static Domain getDefault() {
+        return Domain.byName("default", true);
+    }
 
     public static Domain byName(String name, boolean create) {
         if (!VALIDATION.matcher(name).matches()) {
@@ -78,221 +77,230 @@ public class Domain extends Entity {
         }
     }
 
+    public static Iterable<Domain> getAll() {
+        return new Iterable<Domain>() {
+            @Override
+            public Iterator<Domain> iterator() {
+                return new Iterator<Domain>() {
+
+                    private final Iterator<String> iter;
+
+                    private UUID next;
+
+                    {
+                        iter = new RegistryNode(NODE_DOMAIN).getChildrenNames().iterator();
+                    }
+
+                    @Override
+                    public boolean hasNext() {
+                        while (iter.hasNext()) {
+                            String name = iter.next();
+                            if (name.equals("by-name")) {
+                                continue;
+                            }
+                            try {
+                                next = UUID.fromString(name);
+                            } catch (IllegalArgumentException ex) {
+                                continue;
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
+
+                    @Override
+                    public Domain next() {
+                        return new Domain(next);
+                    }
+
+                    @Override
+                    public void remove() {
+
+                    }
+                };
+            }
+        };
+    }
+
     public String getName() {
-		return getProperty(PROPERTY_NAME, null);
-	}
+        return getProperty(PROPERTY_NAME, null);
+    }
 
-	public void setName(String name) {
-		if (name != null && byName(name, false) != null) {
-			throw new IllegalArgumentException("This domain name is already taken !");
-		}
-		String previousName = getName();
-		if (previousName != null) {
-			new RegistryNode(NODE_BY_NAME + previousName).delete(true);
-		}
-		if (name != null) {
-			new RegistryNode(NODE_BY_NAME + name).check().setProperty("id", getId());
-			setProperty(PROPERTY_NAME, name);
-		}
-	}
+    public void setName(String name) {
+        if (name != null && byName(name, false) != null) {
+            throw new IllegalArgumentException("This domain name is already taken !");
+        }
+        String previousName = getName();
+        if (previousName != null) {
+            new RegistryNode(NODE_BY_NAME + previousName).delete(true);
+        }
+        if (name != null) {
+            new RegistryNode(NODE_BY_NAME + name).check().setProperty("id", getId());
+            setProperty(PROPERTY_NAME, name);
+        }
+    }
 
-	public UUID getId() {
-		return domainId;
-	}
+    public UUID getId() {
+        return domainId;
+    }
 
-	@Override
-	public Domain check() {
-		node.check();
-		return this;
-	}
+    @Override
+    public Domain check() {
+        node.check();
+        return this;
+    }
 
-	public void setMaster(User master) {
-		setProperty(PROPERTY_MASTER_ID, master.getId());
-	}
+    public User getMaster() {
+        return getMaster();
+    }
 
-	public User getMaster() {
-		return getMaster();
-	}
+    public void setMaster(User master) {
+        setProperty(PROPERTY_MASTER_ID, master.getId());
+    }
 
-	@Override
-	protected int getObjectVersion() {
-		return 1;
-	}
+    @Override
+    protected int getObjectVersion() {
+        return 1;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		return obj != null && obj instanceof Domain && getId().equals(((Domain) obj).getId());
-	}
+    @Override
+    public boolean equals(Object obj) {
+        return obj != null && obj instanceof Domain && getId().equals(((Domain) obj).getId());
+    }
 
-	@Override
-	public int hashCode() {
-		return domainId.hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return domainId.hashCode();
+    }
 
-	public static Iterable<Domain> getAll() {
-		return new Iterable<Domain>() {
-			@Override
-			public Iterator<Domain> iterator() {
-				return new Iterator<Domain>() {
+    private RegistryNode getDevicesNode() {
+        return node.getChild(NODE_DEVICES).check();
+    }
 
-					private final Iterator<String> iter;
+    public void addDevice(UUID deviceId) {
+        getDevicesNode().setProperty(deviceId.toString(), "");
+    }
 
-					private UUID next;
+    public void removeDevice(UUID deviceId) {
+        getDevicesNode().delProperty(deviceId.toString());
+    }
 
-					{
-						iter = new RegistryNode(NODE_DOMAIN).getChildrenNames().iterator();
-					}
+    public Iterable<Device> getDevices() {
+        return new Iterable<Device>() {
 
-					@Override
-					public boolean hasNext() {
-						while (iter.hasNext()) {
-							String name = iter.next();
-							if (name.equals("by-name")) {
-								continue;
-							}
-							try {
-								next = UUID.fromString(name);
-							} catch (IllegalArgumentException ex) {
-								continue;
-							}
-							return true;
-						}
-						return false;
-					}
+            @Override
+            public Iterator<Device> iterator() {
+                return new Iterator<Device>() {
 
-					@Override
-					public Domain next() {
-						return new Domain(next);
-					}
+                    private final Iterator<String> iter;
 
-					@Override
-					public void remove() {
+                    private UUID next;
 
-					}
-				};
-			}
-		};
-	}
+                    {
+                        iter = getNode().getChild(NODE_DEVICES).getChildrenNames().iterator();
+                    }
 
-	private RegistryNode getDevicesNode() {
-		return node.getChild(NODE_DEVICES).check();
-	}
+                    @Override
+                    public boolean hasNext() {
+                        while (iter.hasNext()) {
+                            String name = iter.next();
+                            if (name.equals("by-name")) {
+                                continue;
+                            }
+                            try {
+                                next = UUID.fromString(name);
+                            } catch (IllegalArgumentException ex) {
+                                continue;
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
 
-	public void addDevice(UUID deviceId) {
-		getDevicesNode().setProperty(deviceId.toString(), "");
-	}
+                    @Override
+                    public Device next() {
+                        return new Device(next);
+                    }
 
-	public void removeDevice(UUID deviceId) {
-		getDevicesNode().delProperty(deviceId.toString());
-	}
+                    @Override
+                    public void remove() {
 
-	public Iterable<Device> getDevices() {
-		return new Iterable<Device>() {
+                    }
+                };
+            }
+        };
+    }
 
-			@Override
-			public Iterator<Device> iterator() {
-				return new Iterator<Device>() {
+    private RegistryNode getUsersNode() {
+        return node.getChild(NODE_USERS).check();
+    }
 
-					private final Iterator<String> iter;
+    public void addUser(UUID userId) {
+        getUsersNode().setProperty(userId.toString(), "");
+    }
 
-					private UUID next;
+    public void removeUser(UUID userId) {
+        getUsersNode().delProperty(userId.toString());
+    }
 
-					{
-						iter = getNode().getChild(NODE_DEVICES).getChildrenNames().iterator();
-					}
+    public Iterable<User> getUsers() {
+        return new Iterable<User>() {
 
-					@Override
-					public boolean hasNext() {
-						while (iter.hasNext()) {
-							String name = iter.next();
-							if (name.equals("by-name")) {
-								continue;
-							}
-							try {
-								next = UUID.fromString(name);
-							} catch (IllegalArgumentException ex) {
-								continue;
-							}
-							return true;
-						}
-						return false;
-					}
+            @Override
+            public Iterator<User> iterator() {
+                return new Iterator<User>() {
 
-					@Override
-					public Device next() {
-						return new Device(next);
-					}
+                    private final Iterator<String> iter;
 
-					@Override
-					public void remove() {
+                    private UUID next;
 
-					}
-				};
-			}
-		};
-	}
+                    {
+                        iter = getNode().getChild(NODE_USERS).getChildrenNames().iterator();
+                    }
 
-	private RegistryNode getUsersNode() {
-		return node.getChild(NODE_USERS).check();
-	}
+                    @Override
+                    public boolean hasNext() {
+                        while (iter.hasNext()) {
+                            String name = iter.next();
+                            if (name.equals("by-name")) {
+                                continue;
+                            }
+                            try {
+                                next = UUID.fromString(name);
+                            } catch (IllegalArgumentException ex) {
+                                continue;
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
 
-	public void addUser(UUID userId) {
-		getUsersNode().setProperty(userId.toString(), "");
-	}
+                    @Override
+                    public User next() {
+                        return new User(next);
+                    }
 
-	public void removeUser(UUID userId) {
-		getUsersNode().delProperty(userId.toString());
-	}
+                    @Override
+                    public void remove() {
 
-	public Iterable<User> getUsers() {
-		return new Iterable<User>() {
+                    }
+                };
+            }
+        };
+    }
 
-			@Override
-			public Iterator<User> iterator() {
-				return new Iterator<User>() {
+    @Override
+    public void delete() {
+        setName(null);
+        node.delete(true);
+    }
 
-					private final Iterator<String> iter;
-
-					private UUID next;
-
-					{
-						iter = getNode().getChild(NODE_USERS).getChildrenNames().iterator();
-					}
-
-					@Override
-					public boolean hasNext() {
-						while (iter.hasNext()) {
-							String name = iter.next();
-							if (name.equals("by-name")) {
-								continue;
-							}
-							try {
-								next = UUID.fromString(name);
-							} catch (IllegalArgumentException ex) {
-								continue;
-							}
-							return true;
-						}
-						return false;
-					}
-
-					@Override
-					public User next() {
-						return new User(next);
-					}
-
-					@Override
-					public void remove() {
-
-					}
-				};
-			}
-		};
-	}
-
-	@Override
-	public void delete() {
-		setName(null);
-		node.delete(true);
-	}
+    /**
+     * Timeserie ID
+     *
+     * @return Timeserie ID
+     */
+    public String getTSId() {
+        return "dom-" + getId();
+    }
 }

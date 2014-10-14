@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  */
 public class Domain extends Entity {
 
-    private static final Pattern VALIDATION = Pattern.compile("^[a-z][a-z0-9\\-]{3,}$");
+    private static final Pattern VALIDATION = Pattern.compile("^[a-z][a-z0-9\\-]{3,30}$");
     private static final String NODE_DOMAIN = "/domain/",
             PROPERTY_MASTER_ID = "master",
             PROPERTY_NAME = "name",
@@ -42,11 +42,15 @@ public class Domain extends Entity {
     }
 
     public static Domain getDefault() {
-        return Domain.byName("default", true);
+        return Domain.byName("default", true, true);
     }
 
     public static Domain byName(String name, boolean create) {
-        if (!VALIDATION.matcher(name).matches()) {
+        return byName(name, create, true);
+    }
+
+    public static Domain byName(String name, boolean create, boolean validate) {
+        if (validate && !VALIDATION.matcher(name).matches()) {
             throw new RuntimeException("Domain \"" + name + "\" doesn't match \"" + VALIDATION.pattern() + "\" matching pattern.");
         }
         RegistryNode node = new RegistryNode(NODE_BY_NAME + name);

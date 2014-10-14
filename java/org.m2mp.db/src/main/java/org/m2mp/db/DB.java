@@ -28,19 +28,19 @@ public class DB {
         {
             setCoreConnectionsPerHost(HostDistance.LOCAL, 1);
             setCoreConnectionsPerHost(HostDistance.REMOTE, 1);
-            setMaxConnectionsPerHost(HostDistance.LOCAL, 2);
-            setMaxConnectionsPerHost(HostDistance.REMOTE, 2);
+            setMaxConnectionsPerHost(HostDistance.LOCAL, 5);
+            setMaxConnectionsPerHost(HostDistance.REMOTE, 5);
         }
     };
     private static final SocketOptions socketOptions = new SocketOptions() {
         {
-            setConnectTimeoutMillis(1000);
+            setConnectTimeoutMillis(2000);
         }
     };
     private static final LoadingCache<String, PreparedStatement> psCache = CacheBuilder.newBuilder().maximumSize(100).build(new CacheLoader<String, PreparedStatement>() {
         @Override
         public PreparedStatement load(String query) throws Exception {
-            return prepareNoCache(query).setConsistencyLevel(ConsistencyLevel.LOCAL_ONE);
+            return prepareNoCache(query).setConsistencyLevel(ConsistencyLevel.ONE);
         }
     });
     private static Executor executor = Executors.newCachedThreadPool();

@@ -2,9 +2,9 @@ package org.m2mp.db;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
-import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy;
 import com.datastax.driver.core.policies.ExponentialReconnectionPolicy;
 import com.datastax.driver.core.policies.LatencyAwarePolicy;
+import com.datastax.driver.core.policies.RoundRobinPolicy;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,8 +29,8 @@ public class DB {
         {
             setCoreConnectionsPerHost(HostDistance.LOCAL, 1);
             setCoreConnectionsPerHost(HostDistance.REMOTE, 1);
-            setMaxConnectionsPerHost(HostDistance.LOCAL, 5);
-            setMaxConnectionsPerHost(HostDistance.REMOTE, 5);
+            setMaxConnectionsPerHost(HostDistance.LOCAL, 50);
+            setMaxConnectionsPerHost(HostDistance.REMOTE, 50);
         }
     };
     private static final SocketOptions socketOptions = new SocketOptions() {
@@ -69,7 +70,17 @@ public class DB {
     private static void reset() {
         cluster = null;
         session = null;
+        latencyPolicy = null;
         psCache.cleanUp();
+    }
+
+    private static LatencyAwarePolicy latencyPolicy;
+
+    public static LatencyAwarePolicy getLatencyPolicy() {
+        if (latencyPolicy == null) {
+            latencyPolicy = LatencyAwarePolicy.builder(new RoundRobinPolicy()).withRetryPeriod(5, TimeUnit.MINUTES).withScale(5, TimeUnit.SECONDS).withExclusionThreshold(1.1).build();
+        }
+        return latencyPolicy;
     }
 
     private static Cluster getCluster() {
@@ -78,10 +89,11 @@ public class DB {
             for (String cp : contactPoints) {
                 c.addContactPoint(cp);
             }
+
             c.withPoolingOptions(poolingOptions)
                     .withSocketOptions(socketOptions)
-                    .withLoadBalancingPolicy(LatencyAwarePolicy.builder(new DCAwareRoundRobinPolicy(null, 10, true)).build())
-                    .withReconnectionPolicy(new ExponentialReconnectionPolicy(1000, 30000));
+                    .withLoadBalancingPolicy(getLatencyPolicy())
+                    .withReconnectionPolicy(new ExponentialReconnectionPolicy(30000, 900000));
 
             cluster = c.build();
         }
@@ -195,7 +207,12 @@ public class DB {
 	 * @return The result
 	 */
 	public static ResultSet execute(Statement query) {
-		return session().execute(query);
+        //Iterator<Host> hostIterator = latencyPolicy.newQueryPlan("", query);
+        //System.out.println("Query plan: ");
+        //while( hostIterator.hasNext() ) {
+        //    System.out.println("  * "+hostIterator.next());
+        //}
+        return session().execute(query);
 	}
 
 	/**
@@ -206,7 +223,8 @@ public class DB {
 	 */
 	public static ResultSet execute(String query) {
 		BoundStatement statement = prepare(query).bind();
-		return session().execute(statement);
+        statement.setConsistencyLevel(ConsistencyLevel.ONE);
+        return session().execute(statement);
 	}
 
 	/**

@@ -78,7 +78,7 @@ public class DB {
 
     public static LatencyAwarePolicy getLatencyPolicy() {
         if (latencyPolicy == null) {
-            latencyPolicy = LatencyAwarePolicy.builder(new RoundRobinPolicy()).withRetryPeriod(5, TimeUnit.MINUTES).withScale(5, TimeUnit.SECONDS).withExclusionThreshold(1.1).build();
+            latencyPolicy = LatencyAwarePolicy.builder(new RoundRobinPolicy()).withRetryPeriod(15, TimeUnit.MINUTES).withScale(5, TimeUnit.SECONDS).withExclusionThreshold(1.5).build();
         }
         return latencyPolicy;
     }
@@ -93,7 +93,7 @@ public class DB {
             c.withPoolingOptions(poolingOptions)
                     .withSocketOptions(socketOptions)
                     .withLoadBalancingPolicy(getLatencyPolicy())
-                    .withReconnectionPolicy(new ExponentialReconnectionPolicy(30000, 900000));
+                    .withReconnectionPolicy(new ExponentialReconnectionPolicy(10000, 900000));
 
             cluster = c.build();
         }

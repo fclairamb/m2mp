@@ -41,20 +41,31 @@ public class DB {
     private static final LoadingCache<String, PreparedStatement> psCache = CacheBuilder.newBuilder().maximumSize(100).build(new CacheLoader<String, PreparedStatement>() {
         @Override
         public PreparedStatement load(String query) throws Exception {
-            return prepareNoCache(query).setConsistencyLevel(ConsistencyLevel.ONE);
+            return prepareNoCache(query).setConsistencyLevel(level);
         }
     });
     private static Executor executor = Executors.newCachedThreadPool();
-	private static String keyspaceName;
-	private static Cluster cluster;
-	private static Session session;
-	private static List<String> contactPoints = new ArrayList<String>() {
-		{
-			add("localhost");
-		}
-	};
+    private static String keyspaceName;
+    private static Cluster cluster;
+    private static Session session;
+    private static List<String> contactPoints = new ArrayList<String>() {
+        {
+            add("localhost");
+        }
+    };
 
     private DB() {
+    }
+
+    private static ConsistencyLevel level = ConsistencyLevel.ONE;
+
+    public static void setConsistencyLevel(ConsistencyLevel level) {
+        DB.level = level;
+        reset();
+    }
+
+    public static ConsistencyLevel getConsistencyLevel() {
+        return DB.level;
     }
 
     /**
@@ -108,13 +119,13 @@ public class DB {
         psCache.cleanUp();
     }
 
-	/**
-	 * Change keyspace
+    /**
+     * Change keyspace
      *
-     * @param name Name of the keyspace
+     * @param name   Name of the keyspace
      * @param create To create it if not already there
-     *
-     * Create option should never be set to free. It is only used for testing.
+     *               <p/>
+     *               Create option should never be set to free. It is only used for testing.
      */
     public static void keyspace(String name, boolean create) {
         try {
@@ -175,82 +186,82 @@ public class DB {
         return session().getCluster().getMetadata().getKeyspace(keyspaceName);
     }
 
-	/**
-	 * Prepare a query and put it in cache.
-	 *
-	 * @param query Query to prepare
-	 * @return PreparedStatement
-	 */
-	public static PreparedStatement prepare(String query) {
-		try {
-			return psCache.get(query);
-		} catch (ExecutionException ex) {
-			Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
-			return session().prepare(query);
-		}
-	}
+    /**
+     * Prepare a query and put it in cache.
+     *
+     * @param query Query to prepare
+     * @return PreparedStatement
+     */
+    public static PreparedStatement prepare(String query) {
+        try {
+            return psCache.get(query);
+        } catch (ExecutionException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+            return session().prepare(query);
+        }
+    }
 
-	/**
-	 * Prepare a query (whithout putting it in cache)
-	 *
-	 * @param query Query to prepare
-	 * @return PreparedStatement
-	 */
-	public static PreparedStatement prepareNoCache(String query) {
-		return session().prepare(query).setConsistencyLevel(ConsistencyLevel.LOCAL_ONE);
-	}
+    /**
+     * Prepare a query (whithout putting it in cache)
+     *
+     * @param query Query to prepare
+     * @return PreparedStatement
+     */
+    public static PreparedStatement prepareNoCache(String query) {
+        return session().prepare(query).setConsistencyLevel(level);
+    }
 
-	/**
-	 * Execute a query
-	 *
-	 * @param query Query to execute
-	 * @return The result
-	 */
-	public static ResultSet execute(Statement query) {
+    /**
+     * Execute a query
+     *
+     * @param query Query to execute
+     * @return The result
+     */
+    public static ResultSet execute(Statement query) {
         //Iterator<Host> hostIterator = latencyPolicy.newQueryPlan("", query);
         //System.out.println("Query plan: ");
         //while( hostIterator.hasNext() ) {
         //    System.out.println("  * "+hostIterator.next());
         //}
         return session().execute(query);
-	}
+    }
 
-	/**
-	 * Execute a query
-	 *
-	 * @param query Query to execute
-	 * @return The result
-	 */
-	public static ResultSet execute(String query) {
-		BoundStatement statement = prepare(query).bind();
-        statement.setConsistencyLevel(ConsistencyLevel.ONE);
+    /**
+     * Execute a query
+     *
+     * @param query Query to execute
+     * @return The result
+     */
+    public static ResultSet execute(String query) {
+        BoundStatement statement = prepare(query).bind();
+        statement.setConsistencyLevel(level);
         return session().execute(statement);
-	}
+    }
 
-	/**
-	 * Execute a query asynchronously
-	 *
-	 * @param query Query to execute
-	 * @return The result future
-	 */
-	public static ResultSetFuture executeAsync(Statement query) {
-		return session().executeAsync(query);
-	}
+    /**
+     * Execute a query asynchronously
+     *
+     * @param query Query to execute
+     * @return The result future
+     */
+    public static ResultSetFuture executeAsync(Statement query) {
+        return session().executeAsync(query);
+    }
 
-	/**
-	 * Execute a query later. We can't really say when.
-	 *
-	 * @param query Query to execute
-	 */
-	public static void executeLater(final Statement query) {
-		executor.execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					session().executeAsync(query);
-				} catch (Exception e) {
-				}
-			}
-		});
-	}
+    /**
+     * Execute a query later. We can't really say when.
+     *
+     * @param query Query to execute
+     */
+    public static void executeLater(final Statement query) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    session().executeAsync(query);
+                } catch (Exception e) {
+                }
+            }
+        });
+    }
 }

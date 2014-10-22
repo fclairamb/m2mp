@@ -2,13 +2,13 @@ package org.m2mp.db;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
-import com.datastax.driver.core.policies.ExponentialReconnectionPolicy;
-import com.datastax.driver.core.policies.LatencyAwarePolicy;
-import com.datastax.driver.core.policies.RoundRobinPolicy;
+import com.datastax.driver.core.policies.*;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -57,6 +57,22 @@ public class DB {
     private DB() {
     }
 
+    public enum Mode {
+        RoundRobin,
+        LocalOnly
+    }
+
+    private static Mode mode = Mode.LocalOnly;
+
+    public static void setMode(Mode m) {
+        mode = m;
+        reset();
+    }
+
+    public static Mode getMode() {
+        return mode;
+    }
+
     private static ConsistencyLevel level = ConsistencyLevel.ONE;
 
     public static void setConsistencyLevel(ConsistencyLevel level) {
@@ -85,11 +101,20 @@ public class DB {
         psCache.cleanUp();
     }
 
-    private static LatencyAwarePolicy latencyPolicy;
+    private static LoadBalancingPolicy latencyPolicy;
 
-    public static LatencyAwarePolicy getLatencyPolicy() {
+    public static LoadBalancingPolicy getLatencyPolicy() {
         if (latencyPolicy == null) {
-            latencyPolicy = LatencyAwarePolicy.builder(new RoundRobinPolicy()).withRetryPeriod(15, TimeUnit.MINUTES).withScale(5, TimeUnit.SECONDS).withExclusionThreshold(1.5).build();
+            if (mode == Mode.LocalOnly) {
+                ArrayList<InetSocketAddress> list = new ArrayList<InetSocketAddress>() {
+                    {
+                        add(new InetSocketAddress(InetAddress.getLoopbackAddress(), 9042));
+                    }
+                };
+                latencyPolicy = new WhiteListPolicy(new RoundRobinPolicy(), list);
+            } else {
+                latencyPolicy = LatencyAwarePolicy.builder(new RoundRobinPolicy()).withRetryPeriod(15, TimeUnit.MINUTES).withScale(5, TimeUnit.SECONDS).withExclusionThreshold(1.5).build();
+            }
         }
         return latencyPolicy;
     }

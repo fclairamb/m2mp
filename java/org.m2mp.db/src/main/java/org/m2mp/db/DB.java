@@ -58,15 +58,22 @@ public class DB {
     }
 
     public enum Mode {
-        RoundRobin,
+        Standard,
+        Nearest,
         LocalOnly
     }
 
-    private static Mode mode = Mode.LocalOnly;
+    private static Mode mode = Mode.Nearest;
 
     public static void setMode(Mode m) {
         mode = m;
         reset();
+    }
+
+    private static long slowQueryThreshold = 1000;
+
+    public static void setSlowQueryThreshold(long threshold) {
+        slowQueryThreshold = threshold;
     }
 
     public static Mode getMode() {
@@ -103,17 +110,23 @@ public class DB {
 
     private static LoadBalancingPolicy latencyPolicy;
 
-    public static LoadBalancingPolicy getLatencyPolicy() {
+    public static LoadBalancingPolicy getLoadBalancingPolicy() {
         if (latencyPolicy == null) {
-            if (mode == Mode.LocalOnly) {
-                ArrayList<InetSocketAddress> list = new ArrayList<InetSocketAddress>() {
-                    {
-                        add(new InetSocketAddress(InetAddress.getLoopbackAddress(), 9042));
-                    }
-                };
-                latencyPolicy = new WhiteListPolicy(new RoundRobinPolicy(), list);
-            } else {
-                latencyPolicy = LatencyAwarePolicy.builder(new RoundRobinPolicy()).withRetryPeriod(15, TimeUnit.MINUTES).withScale(5, TimeUnit.SECONDS).withExclusionThreshold(1.5).build();
+            switch (mode) {
+                case LocalOnly: {
+                    ArrayList<InetSocketAddress> list = new ArrayList<InetSocketAddress>() {
+                        {
+                            add(new InetSocketAddress(InetAddress.getLoopbackAddress(), 9042));
+                        }
+                    };
+                    latencyPolicy = new WhiteListPolicy(new RoundRobinPolicy(), list);
+                    break;
+                }
+                case Nearest: {
+                    latencyPolicy = LatencyAwarePolicy.builder(new RoundRobinPolicy()).withRetryPeriod(15, TimeUnit.MINUTES).withScale(5, TimeUnit.SECONDS).withExclusionThreshold(1.5).build();
+                    break;
+                }
+                default:
             }
         }
         return latencyPolicy;
@@ -128,8 +141,14 @@ public class DB {
 
             c.withPoolingOptions(poolingOptions)
                     .withSocketOptions(socketOptions)
-                    .withLoadBalancingPolicy(getLatencyPolicy())
                     .withReconnectionPolicy(new ExponentialReconnectionPolicy(10000, 900000));
+
+            { // We apply a specific load balancing policy if we have one
+                LoadBalancingPolicy policy = getLoadBalancingPolicy();
+                if (policy != null) {
+                    c.withLoadBalancingPolicy(policy);
+                }
+            }
 
             cluster = c.build();
         }
@@ -243,12 +262,30 @@ public class DB {
      * @return The result
      */
     public static ResultSet execute(Statement query) {
-        //Iterator<Host> hostIterator = latencyPolicy.newQueryPlan("", query);
-        //System.out.println("Query plan: ");
-        //while( hostIterator.hasNext() ) {
-        //    System.out.println("  * "+hostIterator.next());
-        //}
-        return session().execute(query);
+        long before = System.currentTimeMillis();
+        ResultSet rs = session().execute(query);
+        long timeSpent = System.currentTimeMillis() - before;
+        if (timeSpent > slowQueryThreshold && query instanceof BoundStatement) {
+            BoundStatement bs = (BoundStatement) query;
+            PreparedStatement ps = bs.preparedStatement();
+
+            try {
+                ExecutionInfo execInfo = rs.getExecutionInfo();
+                System.out.println("SLOW QUERY: [" + timeSpent + " / " + execInfo.getQueriedHost() + "] " + ps.getQueryString());
+                QueryTrace queryTrace = execInfo.getQueryTrace();
+                if (queryTrace != null) {
+                    List<QueryTrace.Event> events = queryTrace.getEvents();
+                    if (events != null) {
+                        for (QueryTrace.Event ev : events) {
+                            System.out.println("  * " + ev.getDescription() + ", " + ev.getSourceElapsedMicros());
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                System.err.println("Ex: " + ex);
+            }
+        }
+        return rs;
     }
 
     /**

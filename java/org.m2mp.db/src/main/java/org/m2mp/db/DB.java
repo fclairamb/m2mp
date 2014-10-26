@@ -67,7 +67,6 @@ public class DB {
 
     public static void setMode(Mode m) {
         mode = m;
-        reset();
     }
 
     private static long slowQueryThreshold = 1000;
@@ -214,6 +213,7 @@ public class DB {
 
                 Logger.getLogger(DB.class.getName()).log(Level.INFO, String.format("Connecting to cluster '%s' on %s.", metadata.getClusterName(), metadata.getAllHosts()));
 
+                psCache.cleanUp();
                 session = c.connect(keyspaceName);
 
                 Logger.getLogger(DB.class.getName()).log(Level.INFO, String.format("Connected to cluster '%s' on %s.", metadata.getClusterName(), metadata.getAllHosts()));

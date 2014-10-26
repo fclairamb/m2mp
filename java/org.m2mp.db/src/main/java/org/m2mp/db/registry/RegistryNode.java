@@ -24,6 +24,8 @@ public class RegistryNode {
 
     // <editor-fold defaultstate="collapsed" desc="Column family preparation">
     public static final String TABLE_REGISTRY = "RegistryNode";
+    public static final String TABLE_REGISTRY_CHILDREN = TABLE_REGISTRY + "Children";
+    public static final String TABLE_REGISTRY_DATA = TABLE_REGISTRY + "Data";
     public static final String PROPERTY_IS_FILE = ".is_file";
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Status management">
@@ -109,7 +111,7 @@ public class RegistryNode {
             public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
                 List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
                 list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_REGISTRY + " ( path text PRIMARY KEY, values map<text,text>, status int );"));
-                list.add(new TableIncrementalDefinition.TableChange(2, "CREATE TABLE " + TABLE_REGISTRY + "Children ( path text, name text, PRIMARY KEY( path, name ) ) WITH CLUSTERING ORDER BY ( name ASC );"));
+                list.add(new TableIncrementalDefinition.TableChange(2, "CREATE TABLE " + TABLE_REGISTRY_CHILDREN + " ( path text, name text, PRIMARY KEY( path, name ) ) WITH CLUSTERING ORDER BY ( name ASC );"));
                 list.add(new TableIncrementalDefinition.TableChange(3, "CREATE INDEX ON " + TABLE_REGISTRY + " (status);"));
                 return list;
             }
@@ -205,8 +207,10 @@ public class RegistryNode {
         }
         if (forReal) {
             DB.execute(DB.prepare("DELETE FROM " + TABLE_REGISTRY + " WHERE path=?;").bind(path));
-            DB.execute(DB.prepare("DELETE FROM " + TABLE_REGISTRY + "Data WHERE path=?;").bind(path));
+            DB.execute(DB.prepare("DELETE FROM " + TABLE_REGISTRY_DATA + " WHERE path=?;").bind(path));
             properties = null;
+            // We obviously don't save the deleted status
+            status = STATUS_DELETED;
         } else {
             // We're just marking this as requiring a deletion
             setStatus(STATUS_DELETED);
@@ -264,11 +268,11 @@ public class RegistryNode {
     }
 
     private void addChild(String name) {
-        DB.execute(DB.prepare("INSERT INTO " + TABLE_REGISTRY + "Children ( path, name ) VALUES ( ?, ? );").bind(path, name));
+        DB.execute(DB.prepare("INSERT INTO " + TABLE_REGISTRY_CHILDREN + " ( path, name ) VALUES ( ?, ? );").bind(path, name));
     }
 
     private void removeChild(String name) {
-        DB.execute(DB.prepare("DELETE FROM " + TABLE_REGISTRY + "Children WHERE path = ? AND name = ?;").bind(path, name));
+        DB.execute(DB.prepare("DELETE FROM " + TABLE_REGISTRY_CHILDREN + " WHERE path = ? AND name = ?;").bind(path, name));
     }
 
     public Iterable<String> getChildrenNames() {
@@ -276,7 +280,7 @@ public class RegistryNode {
             @Override
             public Iterator<String> iterator() {
 
-                final Iterator<Row> iter = DB.execute(DB.prepare("SELECT name FROM " + TABLE_REGISTRY + "Children WHERE path = ?;").bind(path)).iterator();
+                final Iterator<Row> iter = DB.execute(DB.prepare("SELECT name FROM " + TABLE_REGISTRY_CHILDREN + " WHERE path = ?;").bind(path)).iterator();
 
                 return new Iterator<String>() {
                     @Override

@@ -27,38 +27,38 @@ public class DomainTest {
 
     @Test
     public void test_wrong_access() {
-        Domain d1 = Domain.byName("d1-wa", false);
+        Domain d1 = Domain.byName("domain1-wa", false);
         Assert.assertNull(d1);
     }
 
 	@Test
 	public void test_create() {
-        Domain d1 = Domain.byName("d1", false);
+        Domain d1 = Domain.byName("domain1", false);
         Assert.assertNull(d1);
 
-        Domain d2 = Domain.byName("d1", true);
+        Domain d2 = Domain.byName("domain1", true);
 
-        Domain d3 = Domain.byName("d1", false);
+        Domain d3 = Domain.byName("domain1", false);
 
 		Assert.assertEquals(d2, d3);
 	}
 
     @Test(expected = IllegalArgumentException.class)
     public void test_rename_wrong() {
-        Domain d1 = Domain.byName("d3", true);
-        Domain.byName("d4", true);
+        Domain d1 = Domain.byName("domain3", true);
+        Domain.byName("domain4", true);
 
-        d1.setName("d4");
+        d1.setName("domain4");
     }
 
     @Test
     public void test_rename_ok() {
-        Domain d1 = Domain.byName("d5", true);
-        d1.setName("d6");
+        Domain d1 = Domain.byName("domain5", true);
+        d1.setName("domain6");
 
-        Assert.assertEquals("d6", d1.getName());
+        Assert.assertEquals("domain6", d1.getName());
 
         // They should have the same id
-        Assert.assertEquals(Domain.byName("d6", false), d1);
+        Assert.assertEquals(Domain.byName("domain6", false), d1);
     }
 }

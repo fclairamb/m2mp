@@ -172,16 +172,20 @@ public class DB {
      *               Create option should never be set to free. It is only used for testing.
      */
     public static void keyspace(String name, boolean create) {
-        try {
-            keyspaceName = name;
-            reset();
-        } catch (InvalidQueryException ex) {
-            if (create) {
-                cluster.connect().execute("CREATE KEYSPACE " + name + " WITH replication = {'class':'SimpleStrategy', 'replication_factor':3};");
-            } else {
-                throw new RuntimeException("Could not load keyspace " + name + " !", ex);
+        keyspaceName = name;
+        reset();
+        if (create)
+            try {
+                session();
+            } catch (RuntimeException ex) {
+                if (create && ex.getCause() instanceof InvalidQueryException) {
+                    String cql = "CREATE KEYSPACE " + name + " WITH replication = {'class':'SimpleStrategy', 'replication_factor':3};";
+                    System.out.println("Executing: " + cql);
+                    getCluster().connect().execute(cql);
+                } else {
+                    throw new RuntimeException("Could not load keyspace " + name + " !", ex.getCause());
+                }
             }
-        }
     }
 
     /**

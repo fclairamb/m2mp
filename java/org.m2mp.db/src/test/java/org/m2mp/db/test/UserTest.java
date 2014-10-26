@@ -26,9 +26,6 @@ public class UserTest {
 
     @Test
     public void create() {
-        // Domain
-        Domain domain = Domain.byName("domain", true);
-
         {
             User user1 = User.byName("user1", false);
             Assert.assertNull(user1);
@@ -48,7 +45,6 @@ public class UserTest {
         Assert.assertTrue(d.exists());
         Assert.assertTrue(d.getNode().exists());
         d.delete();
-        Assert.assertTrue(d.deleted());
-        Assert.assertTrue(d.getNode().deleted());
+        Assert.assertFalse(d.exists());
     }
 }

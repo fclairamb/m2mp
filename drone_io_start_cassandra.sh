@@ -1,7 +1,7 @@
 #!/bin/bash
 export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/jre
 
-CASSANDRA_VERSION=2.0.9
+CASSANDRA_VERSION=2.1.1
 
 curl -LO http://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz
 tar xf apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz

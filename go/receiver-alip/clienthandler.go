@@ -9,6 +9,7 @@ import (
 	ent "github.com/fclairamb/m2mp/go/m2mp-db/entities"
 	mq "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	"net"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -257,6 +258,8 @@ func (ch *ClientHandler) runCoreHandling() {
 	}
 }
 
+var IDENT_CONSTRAINT = regexp.MustCompile("[a-z][0-9a-z]{2,6}:[a-zA-Z0-9]{4,20}")
+
 func (ch *ClientHandler) handleIdentRequest(ident string) error {
 	var err error = nil
 
@@ -264,8 +267,8 @@ func (ch *ClientHandler) handleIdentRequest(ident string) error {
 		return errors.New("You already identified !")
 	}
 
-	if ident == "" {
-		return errors.New("You need to specify an ID")
+	if !IDENT_CONSTRAINT.MatchString(ident) {
+		return errors.New("Invalid identification !")
 	}
 
 	ch.device, err = ent.NewDeviceByIdentCreate(ident)

@@ -34,6 +34,10 @@ type ClientHandler struct {
 	cmdShort                map[int]string
 }
 
+const IDENTIFICATION_TIMEOUT = time.Duration(time.Second * 30)
+
+const MQ_CALL_DISCONNECT_IF_NOT_IDENTIFIED = "disconnect_if_not_identified"
+
 func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
 	now := time.Now().UTC()
 	ch := &ClientHandler{
@@ -67,6 +71,14 @@ func (ch *ClientHandler) Start() {
 		m.Set("connection_id", fmt.Sprint(ch.Id))
 		ch.SendMessage(m)
 	}
+
+	// We will check the connection soon
+	go func() {
+		time.Sleep(IDENTIFICATION_TIMEOUT)
+		m := mq.NewJsonWrapper()
+		m.SetCall(MQ_CALL_DISCONNECT_IF_NOT_IDENTIFIED)
+		ch.msgRecv <- m
+	}()
 }
 
 func (ch *ClientHandler) SendMessage(m *mq.JsonWrapper) {
@@ -180,6 +192,16 @@ func (this *ClientHandler) handleMQMessage(msg *mq.JsonWrapper) {
 		if err := this.sendCommands(); err != nil {
 			log.Warning("%s - Error while sending commands: %v", this, err)
 		}
+	case MQ_CALL_DISCONNECT_IF_NOT_IDENTIFIED:
+		log.Debug("%s - Check if we are not identified !", this)
+		this.disconnectIfNotIdentified()
+	}
+}
+
+func (this *ClientHandler) disconnectIfNotIdentified() {
+	if this.device == nil {
+		this.Send("QUIT It took you too long to identify yourself !")
+		this.Conn.Close()
 	}
 }
 

@@ -1,3 +1,9 @@
+m2mp (0.1-16) unstable; urgency=low
+
+  * Added an identification timeout
+
+ -- Florent Clairambault <florent@xps>  Tue, 28 Oct 2014 00:44:34 +0100
+
 m2mp (0.1-15) unstable; urgency=low
 
   * Added a constraint on the device identifier.

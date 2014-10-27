@@ -7,20 +7,18 @@ package org.m2mp.db.test;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.m2mp.db.DB;
 import org.m2mp.db.entity.Domain;
 import org.m2mp.db.registry.RegistryNode;
 
 /**
- *
  * @author Florent Clairambault
  */
 public class DomainTest {
 
-//	private static DB db;
-	@BeforeClass
-	public static void setUpClass() {
-		DB.keyspace("ks_test", true);
+    //	private static DB db;
+    @BeforeClass
+    public static void setUpClass() {
+        General.setUpClass();
         RegistryNode.dropTable();
         RegistryNode.prepareTable();
     }
@@ -31,8 +29,8 @@ public class DomainTest {
         Assert.assertNull(d1);
     }
 
-	@Test
-	public void test_create() {
+    @Test
+    public void test_create() {
         Domain d1 = Domain.byName("domain1", false);
         Assert.assertNull(d1);
 
@@ -40,8 +38,8 @@ public class DomainTest {
 
         Domain d3 = Domain.byName("domain1", false);
 
-		Assert.assertEquals(d2, d3);
-	}
+        Assert.assertEquals(d2, d3);
+    }
 
     @Test(expected = IllegalArgumentException.class)
     public void test_rename_wrong() {

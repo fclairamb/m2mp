@@ -38,12 +38,6 @@ public class DB {
             setConnectTimeoutMillis(2000);
         }
     };
-    private static final LoadingCache<String, PreparedStatement> psCache = CacheBuilder.newBuilder().maximumSize(100).build(new CacheLoader<String, PreparedStatement>() {
-        @Override
-        public PreparedStatement load(String query) throws Exception {
-            return prepareNoCache(query).setConsistencyLevel(level);
-        }
-    });
     private static Executor executor = Executors.newCachedThreadPool();
     private static String keyspaceName;
     private static Cluster cluster;
@@ -53,23 +47,19 @@ public class DB {
             add("localhost");
         }
     };
+    private static Mode mode = Mode.Nearest;
+    private static long slowQueryThreshold = 1000;
+    private static ConsistencyLevel level = ConsistencyLevel.ONE;
+    private static final LoadingCache<String, PreparedStatement> psCache = CacheBuilder.newBuilder().maximumSize(100).build(new CacheLoader<String, PreparedStatement>() {
+        @Override
+        public PreparedStatement load(String query) throws Exception {
+            return prepareNoCache(query).setConsistencyLevel(level);
+        }
+    });
+    private static LoadBalancingPolicy latencyPolicy;
 
     private DB() {
     }
-
-    public enum Mode {
-        Standard,
-        Nearest,
-        LocalOnly
-    }
-
-    private static Mode mode = Mode.Nearest;
-
-    public static void setMode(Mode m) {
-        mode = m;
-    }
-
-    private static long slowQueryThreshold = 1000;
 
     public static void setSlowQueryThreshold(long threshold) {
         slowQueryThreshold = threshold;
@@ -79,15 +69,17 @@ public class DB {
         return mode;
     }
 
-    private static ConsistencyLevel level = ConsistencyLevel.ONE;
-
-    public static void setConsistencyLevel(ConsistencyLevel level) {
-        DB.level = level;
-        reset();
+    public static void setMode(Mode m) {
+        mode = m;
     }
 
     public static ConsistencyLevel getConsistencyLevel() {
         return DB.level;
+    }
+
+    public static void setConsistencyLevel(ConsistencyLevel level) {
+        DB.level = level;
+        reset();
     }
 
     /**
@@ -106,8 +98,6 @@ public class DB {
         latencyPolicy = null;
         psCache.cleanUp();
     }
-
-    private static LoadBalancingPolicy latencyPolicy;
 
     public static LoadBalancingPolicy getLoadBalancingPolicy() {
         if (latencyPolicy == null) {
@@ -159,7 +149,7 @@ public class DB {
             cluster.close();
             cluster = null;
         }
-        psCache.cleanUp();
+        reset();
     }
 
     /**
@@ -213,7 +203,6 @@ public class DB {
 
                 Logger.getLogger(DB.class.getName()).log(Level.INFO, String.format("Connecting to cluster '%s' on %s.", metadata.getClusterName(), metadata.getAllHosts()));
 
-                psCache.cleanUp();
                 session = c.connect(keyspaceName);
 
                 Logger.getLogger(DB.class.getName()).log(Level.INFO, String.format("Connected to cluster '%s' on %s.", metadata.getClusterName(), metadata.getAllHosts()));
@@ -304,6 +293,10 @@ public class DB {
         return session().execute(statement);
     }
 
+    public static ResultSet executeNoPrepare(String query) {
+        return session().execute(query);
+    }
+
     /**
      * Execute a query asynchronously
      *
@@ -329,5 +322,11 @@ public class DB {
                 }
             }
         });
+    }
+
+    public enum Mode {
+        Standard,
+        Nearest,
+        LocalOnly
     }
 }

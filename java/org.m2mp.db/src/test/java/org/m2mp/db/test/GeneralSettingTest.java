@@ -7,7 +7,6 @@ package org.m2mp.db.test;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.m2mp.db.DB;
 import org.m2mp.db.common.GeneralSetting;
 
 /**
@@ -17,11 +16,8 @@ public class GeneralSettingTest {
 
     @BeforeClass
     public static void setUpClass() {
-        DB.keyspace("ks_test", true);
-        try {
-            DB.execute("drop table " + GeneralSetting.TABLE + ";");
-        } catch (Exception ex) {
-        }
+        General.setUpClass();
+        GeneralSetting.dropTable();
         GeneralSetting.prepareTable();
     }
 

@@ -15,15 +15,15 @@ import org.m2mp.db.common.GeneralSetting;
  */
 public class PerformanceTest {
 
+    private static final int NB_TESTS = 10000;
+
     //	static DB db;
     @BeforeClass
     public static void setUpClass() {
-        DB.setMode(DB.Mode.LocalOnly);
-        DB.keyspace("ks_test", true);
+        General.setUpClass();
+        GeneralSetting.dropTable();
         GeneralSetting.prepareTable();
     }
-
-    private static final int NB_TESTS = 10000;
 
     @Test
     public void shouldBeSlow() { // 21.5s

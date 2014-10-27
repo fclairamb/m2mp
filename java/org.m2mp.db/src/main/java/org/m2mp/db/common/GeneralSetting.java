@@ -82,5 +82,9 @@ public class GeneralSetting {
             }
         });
     }
+
+    public static void dropTable() {
+        DB.execute("drop table " + GeneralSetting.TABLE + ";");
+    }
     // </editor-fold>
 }

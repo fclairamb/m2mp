@@ -44,10 +44,22 @@ public class User extends Entity {
     }
 
     public static User byName(String name, boolean create) {
-        RegistryNode node = new RegistryNode(NODE_BY_NAME + name);
-        if (node.exists()) {
-            return new User(node.getPropertyUUID("id"));
-        } else if (create) {
+        {// We check the named reference
+            RegistryNode namedNode = new RegistryNode(NODE_BY_NAME + name);
+            if (namedNode.exists()) {
+                User user = new User(namedNode.getPropertyUUID("id"));
+                // This is only to cleanup dirty data
+                if (user.exists()) {
+                    return user;
+                } else {
+                    // If the user didn't exist, we remove its named reference
+                    // and go on with our life.
+                    namedNode.delete();
+                }
+            }
+        }
+
+        if (create) {
             if (!VALIDATION.matcher(name).matches()) {
                 throw new RuntimeException("User \"" + name + "\" doesn't match the \"" + VALIDATION.pattern() + "\" pattern.");
             }
@@ -70,9 +82,8 @@ public class User extends Entity {
             user.setProperty(PROPERTY_CREATED_DATE, new Date());
             user.setName(name);
             return user;
-        } else {
-            return null;
         }
+        return null;
     }
 
     public static User byName(String name) {
@@ -118,6 +129,13 @@ public class User extends Entity {
                 };
             }
         };
+    }
+
+    public static void checkAll() {
+        RegistryNode names = new RegistryNode(NODE_BY_NAME);
+        for (String name : names.getChildrenNames()) {
+            User.byName(name);
+        }
     }
 
     public UUID getId() {
@@ -217,6 +235,16 @@ public class User extends Entity {
     public User check() {
         super.check();
         return this;
+    }
+
+    @Override
+    public void delete() {
+        // If we delete the user, we have to delete its named reference first
+        RegistryNode node = new RegistryNode(NODE_BY_NAME + getName());
+        if (node.exists())
+            node.delete();
+
+        super.delete();
     }
 
     /**

@@ -8,7 +8,6 @@ import com.google.common.collect.Lists;
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.m2mp.db.DB;
 import org.m2mp.db.ts.TimeSerie;
 import org.m2mp.db.ts.TimedData;
 import org.m2mp.db.ts.TimedDataWrapper;
@@ -21,16 +20,13 @@ import java.util.*;
  * @author Florent Clairambault
  */
 public class TimeSerieTest {
-//	private static DB db;
+
+    private long PERIOD = 3 * 3600 * 1000;
 
     @BeforeClass
     public static void setUpClass() {
-        DB.keyspace("ks_test", true);
-        try {
-            DB.execute("drop table TimeSeries;");
-            DB.execute("drop table TimeSeries_Index;");
-        } catch (Exception ex) {
-        }
+        General.setUpClass();
+        TimeSerie.dropTable();
         TimeSerie.prepareTable();
     }
 
@@ -66,8 +62,6 @@ public class TimeSerieTest {
         map2.put("lon", 1.5);
         TimeSerie.save(new TimedData(id, "loc", d2, map2));
     }
-
-    private long PERIOD = 3 * 3600 * 1000;
 
     private void insertData(String id) {
         int COUNT = 100;

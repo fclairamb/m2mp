@@ -23,7 +23,7 @@ public class RegistryTest {
 
     @BeforeClass
     public static void setUpClass() {
-        DB.keyspace("ks_test", true);
+        General.setUpClass();
         RegistryNode.dropTable();
         RegistryNode.prepareTable();
     }

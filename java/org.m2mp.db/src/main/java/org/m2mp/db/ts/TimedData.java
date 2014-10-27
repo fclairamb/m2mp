@@ -6,6 +6,7 @@ import org.json.simple.JSONValue;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
 /**
@@ -114,7 +115,16 @@ public class TimedData {
     }
 
     public Map<String, Object> getJsonMap() {
-        return (Map<String, Object>) getJsonObject();
+        final Object obj = getJsonObject();
+        if ((obj instanceof Map)) {
+            return (Map<String, Object>) obj;
+        } else {
+            return new TreeMap<String, Object>() {
+                {
+                    put("value", obj);
+                }
+            };
+        }
     }
 
     // </editor-fold>

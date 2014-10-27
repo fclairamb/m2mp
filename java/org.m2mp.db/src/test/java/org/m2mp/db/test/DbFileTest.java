@@ -57,6 +57,7 @@ public class DbFileTest {
 
     @BeforeClass
     public static void setUpClass() {
+        DB.setMode(DB.Mode.LocalOnly);
         DB.keyspace("ks_test", true);
         RegistryNode.dropTable();
         RegistryNode.prepareTable();

@@ -18,6 +18,14 @@ import java.util.UUID;
  */
 public abstract class Entity {
 
+    /**
+     * Property: Date of deletion.
+     * <p/>
+     * This property might be of importance when you want to remove the entities
+     * that haven't been used for quite some time first.
+     */
+    private static final String PROPERTY_DELETED_DATE = ".deleted_date";
+    private static final String PROP_VERSION = ".version";
     protected RegistryNode node;
 
     public Entity check() {
@@ -37,8 +45,16 @@ public abstract class Entity {
         node.setProperty(name, value);
     }
 
+    protected void setProperty(String name, long value, int ttl) {
+        node.setProperty(name, value, ttl);
+    }
+
     protected void setProperty(String name, Date value) {
         node.setProperty(name, value);
+    }
+
+    protected void setProperty(String name, Date value, int ttl) {
+        node.setProperty(name, value, ttl);
     }
 
     protected void setProperty(String name, boolean value) {
@@ -90,14 +106,6 @@ public abstract class Entity {
         return this;
     }
 
-    /**
-     * Property: Date of deletion.
-     * <p/>
-     * This property might be of importance when you want to remove the entities
-     * that haven't been used for quite some time first.
-     */
-    private static final String PROPERTY_DELETED_DATE = ".deleted_date";
-
     public void delete() {
         node.delete();
         setProperty(PROPERTY_DELETED_DATE, System.currentTimeMillis());
@@ -115,8 +123,6 @@ public abstract class Entity {
         node.check();
         delProperty(PROPERTY_DELETED_DATE);
     }
-
-    private static final String PROP_VERSION = ".version";
 
     protected abstract int getObjectVersion();
 

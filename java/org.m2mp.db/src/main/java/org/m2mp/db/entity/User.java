@@ -6,7 +6,11 @@ import org.m2mp.db.registry.RegistryNode;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * User data container.
@@ -20,6 +24,16 @@ public class User extends Entity {
 
     private static final String NODE_USER = "/user/";
     private static final String NODE_BY_NAME = NODE_USER + "by-name/";
+    private static final String NODE_SETTINGS = "settings";
+
+    private static final Pattern VALIDATION = Pattern.compile("^[a-z][a-z0-9\\.]{3,24}$");
+    private static final String PROPERTY_NAME = "name";
+    private static final String PROPERTY_DISPLAYNAME = "display_name";
+    private static final String PROPERTY_DOMAIN = "domain";
+    private static final String PROPERTY_CREATED_DATE = "created_date";
+    private static final String PROPERTY_PASSWORD = "password";
+    private UUID id;
+    private RegistryNode settings;
 
     public User(UUID userId) {
         node = new RegistryNode(NODE_USER + userId);
@@ -29,23 +43,19 @@ public class User extends Entity {
         this.node = node;
     }
 
-    private UUID id;
-    public UUID getId() {
-        if (id == null)
-            id = UUID.fromString(node.getName());
-        return id;
-    }
-
     public static User byName(String name, boolean create) {
         RegistryNode node = new RegistryNode(NODE_BY_NAME + name);
         if (node.exists()) {
             return new User(node.getPropertyUUID("id"));
         } else if (create) {
+            if (!VALIDATION.matcher(name).matches()) {
+                throw new RuntimeException("User \"" + name + "\" doesn't match the \"" + VALIDATION.pattern() + "\" pattern.");
+            }
             byte[] digest = new byte[20];
             try {
                 digest = MessageDigest.getInstance("SHA-1").digest(name.getBytes());
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
+            } catch (NoSuchAlgorithmException ex) {
+                Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
             }
             byte[] uuidRaw = new byte[16];
             System.arraycopy(digest, 0, uuidRaw, 0, 16);
@@ -54,10 +64,10 @@ public class User extends Entity {
 
             if (user.exists()) {
                 user = new User(UUID.randomUUID());
-            } else {
-                user.create();
             }
-            user.setProperty(PROP_CREATED_DATE, new Date());
+
+            user.create();
+            user.setProperty(PROPERTY_CREATED_DATE, new Date());
             user.setName(name);
             return user;
         } else {
@@ -65,11 +75,61 @@ public class User extends Entity {
         }
     }
 
-    private static final String PROP_NAME = "name";
-    private static final String PROP_DISPLAYNAME = "displayName";
-    private static final String PROP_DOMAIN = "domain";
-    private static final String PROP_CREATED_DATE = "created";
-    private static final String PROP_PASSWORD = "password";
+    public static User byName(String name) {
+        return byName(name, false);
+    }
+
+    public static Iterable<User> getAll() {
+        return new Iterable<User>() {
+            @Override
+            public Iterator<User> iterator() {
+                return new Iterator<User>() {
+
+                    private final Iterator<String> iter = new RegistryNode(NODE_USER).getChildrenNames().iterator();
+
+                    private UUID next;
+
+                    @Override
+                    public boolean hasNext() {
+                        while (iter.hasNext()) {
+                            String name = iter.next();
+                            if (name.equals("by-name")) {
+                                continue;
+                            }
+                            try {
+                                next = UUID.fromString(name);
+                            } catch (IllegalArgumentException ex) {
+                                continue;
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
+
+                    @Override
+                    public User next() {
+                        return new User(next);
+                    }
+
+                    @Override
+                    public void remove() {
+
+                    }
+                };
+            }
+        };
+    }
+
+    public UUID getId() {
+        if (id == null) {
+            id = UUID.fromString(node.getName());
+        }
+        return id;
+    }
+
+    public String getName() {
+        return getProperty(PROPERTY_NAME, null);
+    }
 
     /**
      * Set the username
@@ -77,33 +137,41 @@ public class User extends Entity {
      * @param name Username
      */
     public void setName(String name) {
-        String previousName = getProperty(PROP_NAME, null);
+        String previousName = getProperty(PROPERTY_NAME, null);
         if (previousName != null) {
             new RegistryNode(NODE_BY_NAME + previousName).delete(true);
         }
-        setProperty(PROP_NAME, name);
+        setProperty(PROPERTY_NAME, name);
         new RegistryNode(NODE_BY_NAME + name).check().setProperty("id", getId());
     }
 
-    public String getName() {
-        return getProperty(PROP_NAME, null);
+    public String getDisplayName() {
+        return getProperty(PROPERTY_DISPLAYNAME, "");
+    }
+
+    public void setDisplayName(String value) {
+        setProperty(PROPERTY_DISPLAYNAME, value);
     }
 
     public String getPassword() {
-        return getProperty(PROP_PASSWORD, null);
+        return getProperty(PROPERTY_PASSWORD, null);
     }
 
-    public static User authenticate(String username, String password) {
-        User user = User.byName(username, false);
-        return (user != null && password != null && password.equals(user.getPassword())) ? user : null;
-    }
-
+    /**
+     * Set the password.
+     * <p/>
+     * There is no password mechanism specified here. It has to be handled on
+     * the upper levels. It is wise to choose something like "[salt];[sha1 of
+     * password + salt]" but it's not the concern of this part.
+     *
+     * @param pass Password
+     */
     public void setPassword(String pass) {
-        setProperty(PROP_PASSWORD, pass);
+        setProperty(PROPERTY_PASSWORD, pass);
     }
 
     public UUID getDomainId() {
-        return getPropertyUUID(PROP_DOMAIN);
+        return getPropertyUUID(PROPERTY_DOMAIN);
     }
 
     public Domain getDomain() {
@@ -115,7 +183,7 @@ public class User extends Entity {
         if (previousDomain != null) {
             previousDomain.removeUser(getId());
         }
-        setProperty(PROP_DOMAIN, domain.getId());
+        setProperty(PROPERTY_DOMAIN, domain.getId());
         getDomain().addUser(getId());
     }
 
@@ -124,11 +192,9 @@ public class User extends Entity {
         return 1;
     }
 
-    private RegistryNode settings;
-
     public RegistryNode getSettings() {
         if (settings == null) {
-            settings = node.getChild("settings");
+            settings = node.getChild(NODE_SETTINGS);
         }
         return settings;
     }
@@ -147,8 +213,18 @@ public class User extends Entity {
         return getId().hashCode();
     }
 
+    @Override
     public User check() {
         super.check();
         return this;
+    }
+
+    /**
+     * Timeserie ID
+     *
+     * @return Timeserie ID
+     */
+    public String getTSId() {
+        return "usr-" + getId();
     }
 }

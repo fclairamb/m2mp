@@ -3,7 +3,6 @@ package org.m2mp.db.registry;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.m2mp.db.DB;
 import org.m2mp.db.common.GeneralSetting;
 import org.m2mp.db.common.TableCreation;
@@ -23,10 +22,24 @@ import java.util.*;
  */
 public class RegistryNode {
 
+    // <editor-fold defaultstate="collapsed" desc="Column family preparation">
+    public static final String TABLE_REGISTRY = "RegistryNode";
+    public static final String TABLE_REGISTRY_CHILDREN = TABLE_REGISTRY + "Children";
+    public static final String TABLE_REGISTRY_DATA = TABLE_REGISTRY + "Data";
+    public static final String PROPERTY_IS_FILE = ".is_file";
+    // </editor-fold>
+    // <editor-fold defaultstate="collapsed" desc="Status management">
+    private static final int STATUS_UNDEFINED = -1;
+    private static final int STATUS_DELETED = 5;
+    private static final int STATUS_CREATED = 100;
     /**
      * Path of the node
      */
     protected String path;
+    Integer status;
+    // </editor-fold>
+    // <editor-fold defaultstate="collapsed" desc="Properties management">
+    private Map<String, String> properties;
 
     /**
      * Constructor
@@ -38,6 +51,92 @@ public class RegistryNode {
             path += "/";
         }
         this.path = path;
+    }
+
+    /**
+     * Cleanup all the old values.
+     */
+    public static void cleanup() {
+        for (Row row : DB.execute(DB.prepare("SELECT path FROM " + TABLE_REGISTRY + " WHERE status=?;").bind(STATUS_DELETED))) {
+            RegistryNode node = new RegistryNode(row.getString(0));
+            node.delete(true);
+        }
+    }
+
+    /**
+     * Get the base path from a path
+     *
+     * @param path Path to check
+     * @return Base path to getData
+     */
+    private static String convPathToBase(String path) {
+        int p = path.lastIndexOf('/');
+
+        // The "/" dir doesn't have a parent
+        if (p == 0) {
+            return null;
+        }
+
+        if (path.endsWith("/")) {
+            p = path.substring(0, p).lastIndexOf('/');
+        }
+        return path.substring(0, p + 1);
+    }
+
+    private static String convPathToName(String path) {
+        int p = path.lastIndexOf('/');
+
+        if (path.endsWith("/")) {
+            p = path.substring(0, p).lastIndexOf('/');
+        }
+
+        String name = path.substring(p + 1);
+
+        if (name.endsWith("/")) {
+            name = name.substring(0, name.length() - 1);
+        }
+
+        return name;
+    }
+
+    public static void prepareTable() {
+        GeneralSetting.prepareTable();
+        TableCreation.checkTable(new TableIncrementalDefinition() {
+            @Override
+            public String getTableDefName() {
+                return TABLE_REGISTRY;
+            }
+
+            @Override
+            public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
+                List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
+                list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_REGISTRY + " ( path text PRIMARY KEY, values map<text,text>, status int );"));
+                list.add(new TableIncrementalDefinition.TableChange(2, "CREATE TABLE " + TABLE_REGISTRY_CHILDREN + " ( path text, name text, PRIMARY KEY( path, name ) ) WITH CLUSTERING ORDER BY ( name ASC );"));
+                list.add(new TableIncrementalDefinition.TableChange(3, "CREATE INDEX ON " + TABLE_REGISTRY + " (status);"));
+                return list;
+            }
+
+            @Override
+            public int getTableDefVersion() {
+                return 3;
+            }
+        });
+        DbFile.prepareTable();
+    }
+
+    public static void dropTable() {
+        final String[] queries = new String[]{
+                "DROP TABLE registrynode;",
+                "DROP TABLE registrynodechildren",
+                "DROP TABLE registrynodedata"
+        };
+        for (String query : queries) {
+            try {
+                DB.execute(query);
+            } catch (Exception ex) {
+
+            }
+        }
     }
 
     /**
@@ -91,6 +190,8 @@ public class RegistryNode {
     public boolean isFile() {
         return getProperty(RegistryNode.PROPERTY_IS_FILE, false);
     }
+    // </editor-fold>
+    // <editor-fold defaultstate="collapsed" desc="Children management">
 
     /**
      * Delete the node.
@@ -106,8 +207,10 @@ public class RegistryNode {
         }
         if (forReal) {
             DB.execute(DB.prepare("DELETE FROM " + TABLE_REGISTRY + " WHERE path=?;").bind(path));
-            DB.execute(DB.prepare("DELETE FROM " + TABLE_REGISTRY + "Data WHERE path=?;").bind(path));
+            DB.execute(DB.prepare("DELETE FROM " + TABLE_REGISTRY_DATA + " WHERE path=?;").bind(path));
             properties = null;
+            // We obviously don't save the deleted status
+            status = STATUS_DELETED;
         } else {
             // We're just marking this as requiring a deletion
             setStatus(STATUS_DELETED);
@@ -115,16 +218,6 @@ public class RegistryNode {
         RegistryNode parent = getParentNode();
         if (parent != null) {
             parent.removeChild(getName());
-        }
-    }
-
-    /**
-     * Cleanup all the old values.
-     */
-    public static void cleanup() {
-        for (Row row : DB.execute(DB.prepare("SELECT path FROM " + TABLE_REGISTRY + " WHERE status=?;").bind(STATUS_DELETED))) {
-            RegistryNode node = new RegistryNode(row.getString(0));
-            node.delete(true);
         }
     }
 
@@ -164,42 +257,6 @@ public class RegistryNode {
     }
 
     /**
-     * Get the base path from a path
-     *
-     * @param path Path to check
-     * @return Base path to getData
-     */
-    private static String convPathToBase(String path) {
-        int p = path.lastIndexOf('/');
-
-        // The "/" dir doesn't have a parent
-        if (p == 0) {
-            return null;
-        }
-
-        if (path.endsWith("/")) {
-            p = path.substring(0, p).lastIndexOf('/');
-        }
-        return path.substring(0, p + 1);
-    }
-
-    private static String convPathToName(String path) {
-        int p = path.lastIndexOf('/');
-
-        if (path.endsWith("/")) {
-            p = path.substring(0, p).lastIndexOf('/');
-        }
-
-        String name = path.substring(p + 1);
-
-        if (name.endsWith("/")) {
-            name = name.substring(0, name.length() - 1);
-        }
-
-        return name;
-    }
-
-    /**
      * Get the name of the node.
      * <p/>
      * Example: new RegistryNode("/path/of/my_file").getName() == "my_file"
@@ -210,57 +267,12 @@ public class RegistryNode {
         return convPathToName(path);
     }
 
-    // <editor-fold defaultstate="collapsed" desc="Column family preparation">
-    public static final String TABLE_REGISTRY = "RegistryNode";
-
-    public static void prepareTable() {
-        GeneralSetting.prepareTable();
-        TableCreation.checkTable(new TableIncrementalDefinition() {
-            @Override
-            public String getTableDefName() {
-                return TABLE_REGISTRY;
-            }
-
-            @Override
-            public List<TableIncrementalDefinition.TableChange> getTableDefChanges() {
-                List<TableIncrementalDefinition.TableChange> list = new ArrayList<>();
-                list.add(new TableIncrementalDefinition.TableChange(1, "CREATE TABLE " + TABLE_REGISTRY + " ( path text PRIMARY KEY, values map<text,text>, status int );"));
-                list.add(new TableIncrementalDefinition.TableChange(2, "CREATE TABLE " + TABLE_REGISTRY + "Children ( path text, name text, PRIMARY KEY( path, name ) ) WITH CLUSTERING ORDER BY ( name ASC );"));
-                list.add(new TableIncrementalDefinition.TableChange(3, "CREATE INDEX ON " + TABLE_REGISTRY + " (status);"));
-                return list;
-            }
-
-            @Override
-            public int getTableDefVersion() {
-                return 3;
-            }
-        });
-        DbFile.prepareTable();
-    }
-
-    public static void dropTable() {
-        final String[] queries = new String[]{
-                "DROP TABLE registrynode;",
-                "DROP TABLE registrynodechildren",
-                "DROP TABLE registrynodedata"
-        };
-        for (String query : queries) {
-            try {
-                DB.execute(query);
-            } catch (Exception ex) {
-
-            }
-        }
-    }
-    // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Children management">
-
     private void addChild(String name) {
-        DB.execute(DB.prepare("INSERT INTO " + TABLE_REGISTRY + "Children ( path, name ) VALUES ( ?, ? );").bind(path, name));
+        DB.execute(DB.prepare("INSERT INTO " + TABLE_REGISTRY_CHILDREN + " ( path, name ) VALUES ( ?, ? );").bind(path, name));
     }
 
     private void removeChild(String name) {
-        DB.execute(DB.prepare("DELETE FROM " + TABLE_REGISTRY + "Children WHERE path = ? AND name = ?;").bind(path, name));
+        DB.execute(DB.prepare("DELETE FROM " + TABLE_REGISTRY_CHILDREN + " WHERE path = ? AND name = ?;").bind(path, name));
     }
 
     public Iterable<String> getChildrenNames() {
@@ -268,7 +280,7 @@ public class RegistryNode {
             @Override
             public Iterator<String> iterator() {
 
-                final Iterator<Row> iter = DB.execute(DB.prepare("SELECT name FROM " + TABLE_REGISTRY + "Children WHERE path = ?;").bind(path)).iterator();
+                final Iterator<Row> iter = DB.execute(DB.prepare("SELECT name FROM " + TABLE_REGISTRY_CHILDREN + " WHERE path = ?;").bind(path)).iterator();
 
                 return new Iterator<String>() {
                     @Override
@@ -397,19 +409,6 @@ public class RegistryNode {
         return nb;
     }
 
-    // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Status management">
-    private static final int STATUS_UNDEFINED = -1;
-    private static final int STATUS_DELETED = 5;
-    private static final int STATUS_CREATED = 100;
-
-    protected void setStatus(int value) {
-        DB.execute(DB.prepare("UPDATE " + TABLE_REGISTRY + " SET status = ? WHERE path = ?;").bind(value, path));
-        status = value;
-    }
-
-    Integer status;
-
     protected int getStatus() {
         if (status == null) {
             ResultSet rs = DB.execute(DB.prepare("SELECT status FROM " + TABLE_REGISTRY + " WHERE path = ?;").bind(path));
@@ -420,10 +419,10 @@ public class RegistryNode {
         return status != null ? status : STATUS_UNDEFINED;
     }
 
-    // </editor-fold>
-    // <editor-fold defaultstate="collapsed" desc="Properties management">
-    private Map<String, String> properties;
-    public static final String PROPERTY_IS_FILE = ".is_file";
+    protected void setStatus(int value) {
+        DB.execute(DB.prepare("UPDATE " + TABLE_REGISTRY + " SET status = ? WHERE path = ?;").bind(value, path));
+        status = value;
+    }
 
     /**
      * Get a property
@@ -465,12 +464,6 @@ public class RegistryNode {
         return id != null ? UUID.fromString(id) : null;
     }
 
-    protected void setProperties(Map<String, String> properties) {
-        for (Map.Entry<String, String> prop : properties.entrySet()) {
-            setProperty(prop.getKey(), prop.getValue());
-        }
-    }
-
     public Map<String, String> getProperties() {
         if (properties == null) {
             ResultSet rs = DB.execute(DB.prepare("SELECT values FROM " + TABLE_REGISTRY + " WHERE path = ?;").bind(path));
@@ -481,6 +474,12 @@ public class RegistryNode {
             properties = new HashMap<>();
         }
         return properties;
+    }
+
+    protected void setProperties(Map<String, String> properties) {
+        for (Map.Entry<String, String> prop : properties.entrySet()) {
+            setProperty(prop.getKey(), prop.getValue());
+        }
     }
 
     public void delProperty(String name) {
@@ -520,6 +519,10 @@ public class RegistryNode {
         setProperty(name, date.getTime());
     }
 
+    public void setProperty(String name, Date value, int ttl) {
+        setProperty(name, value.getTime(), ttl);
+    }
+
     public void setProperty(String name, UUID id) {
         setProperty(name, id.toString());
     }
@@ -546,7 +549,7 @@ public class RegistryNode {
         JSONObject obj = new JSONObject();
 
         for (Map.Entry<String, String> me : getProperties().entrySet()) {
-            obj.put(me.getKey(), JSONValue.parse(me.getValue()));
+            obj.put(me.getKey(), me.getValue());
         }
 
         for (RegistryNode rn : getChildren()) {

@@ -8,29 +8,28 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * Domain. Domain is like NT domains, or google apps domain. It helps keep a
  * group of users and/or devices together.
  * <p/>
- * This is mostly a code sample but it can be applied to pretty much all projects.
+ * This is mostly a code sample but it can be applied to pretty much all
+ * projects.
  *
  * @author Florent Clairambault
  */
 public class Domain extends Entity {
 
-    public static Domain getDefault() {
-        return Domain.byName("default", true);
-    }
-
-    private UUID domainId;
+    private static final Pattern VALIDATION = Pattern.compile("^[a-z][a-z0-9\\-]{3,30}$");
     private static final String NODE_DOMAIN = "/domain/",
-            PROP_MASTER_ID = "master",
-            PROP_NAME = "name",
-            PROP_CREATED_DATE = "created_date",
+            PROPERTY_MASTER_ID = "master",
+            PROPERTY_NAME = "name",
+            PROPERTY_CREATED_DATE = "created_date",
             NODE_DEVICES = "devices",
             NODE_USERS = "users",
             NODE_BY_NAME = NODE_DOMAIN + "by-name/";
+    private UUID domainId;
 
     public Domain(UUID id) {
         domainId = id;
@@ -42,7 +41,18 @@ public class Domain extends Entity {
         this.node = node;
     }
 
+    public static Domain getDefault() {
+        return Domain.byName("default", true, true);
+    }
+
     public static Domain byName(String name, boolean create) {
+        return byName(name, create, true);
+    }
+
+    public static Domain byName(String name, boolean create, boolean validate) {
+        if (validate && !VALIDATION.matcher(name).matches()) {
+            throw new RuntimeException("Domain \"" + name + "\" doesn't match \"" + VALIDATION.pattern() + "\" matching pattern.");
+        }
         RegistryNode node = new RegistryNode(NODE_BY_NAME + name);
         if (node.exists()) {
             return new Domain(node.getPropertyUUID("id"));
@@ -58,12 +68,12 @@ public class Domain extends Entity {
             UUID deviceId = UUID.nameUUIDFromBytes(uuidRaw);
             Domain domain = new Domain(deviceId);
 
-            if (domain.exists()) {
+            if (domain.exists()) { // This can happen if a domain was created with the same name and then renamed
                 domain = new Domain(UUID.randomUUID());
-            } else {
-                domain.create();
             }
-            domain.setProperty(PROP_CREATED_DATE, new Date());
+
+            domain.create();
+            domain.setProperty(PROPERTY_CREATED_DATE, new Date());
             domain.setName(name);
             return domain;
         } else {
@@ -71,24 +81,68 @@ public class Domain extends Entity {
         }
     }
 
+    public static Iterable<Domain> getAll() {
+        return new Iterable<Domain>() {
+            @Override
+            public Iterator<Domain> iterator() {
+                return new Iterator<Domain>() {
+
+                    private final Iterator<String> iter;
+
+                    private UUID next;
+
+                    {
+                        iter = new RegistryNode(NODE_DOMAIN).getChildrenNames().iterator();
+                    }
+
+                    @Override
+                    public boolean hasNext() {
+                        while (iter.hasNext()) {
+                            String name = iter.next();
+                            if (name.equals("by-name")) {
+                                continue;
+                            }
+                            try {
+                                next = UUID.fromString(name);
+                            } catch (IllegalArgumentException ex) {
+                                continue;
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
+
+                    @Override
+                    public Domain next() {
+                        return new Domain(next);
+                    }
+
+                    @Override
+                    public void remove() {
+
+                    }
+                };
+            }
+        };
+    }
+
     public String getName() {
-        return getProperty(PROP_NAME, null);
+        return getProperty(PROPERTY_NAME, null);
     }
 
     public void setName(String name) {
-        if (byName(name, false) != null)
+        if (name != null && byName(name, false) != null) {
             throw new IllegalArgumentException("This domain name is already taken !");
+        }
         String previousName = getName();
         if (previousName != null) {
             new RegistryNode(NODE_BY_NAME + previousName).delete(true);
         }
         if (name != null) {
             new RegistryNode(NODE_BY_NAME + name).check().setProperty("id", getId());
-            setProperty(PROP_NAME, name);
+            setProperty(PROPERTY_NAME, name);
         }
     }
-
-    public static final String TABLE = "Domain";
 
     public UUID getId() {
         return domainId;
@@ -100,12 +154,12 @@ public class Domain extends Entity {
         return this;
     }
 
-    public void setMaster(User master) {
-        setProperty(PROP_MASTER_ID, master.getId());
-    }
-
     public User getMaster() {
         return getMaster();
+    }
+
+    public void setMaster(User master) {
+        setProperty(PROPERTY_MASTER_ID, master.getId());
     }
 
     @Override
@@ -123,35 +177,6 @@ public class Domain extends Entity {
         return domainId.hashCode();
     }
 
-    public Iterable<Domain> getAll() {
-        return new Iterable<Domain>() {
-
-            @Override
-            public Iterator<Domain> iterator() {
-                return new Iterator<Domain>() {
-
-
-                    @Override
-                    public boolean hasNext() {
-                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                    }
-
-                    @Override
-                    public Domain next() {
-                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                    }
-
-                    @Override
-                    public void remove() {
-                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                    }
-                };
-            }
-
-            ;
-        };
-    }
-
     private RegistryNode getDevicesNode() {
         return node.getChild(NODE_DEVICES).check();
     }
@@ -162,6 +187,52 @@ public class Domain extends Entity {
 
     public void removeDevice(UUID deviceId) {
         getDevicesNode().delProperty(deviceId.toString());
+    }
+
+    public Iterable<Device> getDevices() {
+        return new Iterable<Device>() {
+
+            @Override
+            public Iterator<Device> iterator() {
+                return new Iterator<Device>() {
+
+                    private final Iterator<String> iter;
+
+                    private UUID next;
+
+                    {
+                        iter = getNode().getChild(NODE_DEVICES).getChildrenNames().iterator();
+                    }
+
+                    @Override
+                    public boolean hasNext() {
+                        while (iter.hasNext()) {
+                            String name = iter.next();
+                            if (name.equals("by-name")) {
+                                continue;
+                            }
+                            try {
+                                next = UUID.fromString(name);
+                            } catch (IllegalArgumentException ex) {
+                                continue;
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
+
+                    @Override
+                    public Device next() {
+                        return new Device(next);
+                    }
+
+                    @Override
+                    public void remove() {
+
+                    }
+                };
+            }
+        };
     }
 
     private RegistryNode getUsersNode() {
@@ -176,8 +247,64 @@ public class Domain extends Entity {
         getUsersNode().delProperty(userId.toString());
     }
 
+    public Iterable<User> getUsers() {
+        return new Iterable<User>() {
+
+            @Override
+            public Iterator<User> iterator() {
+                return new Iterator<User>() {
+
+                    private final Iterator<String> iter;
+
+                    private UUID next;
+
+                    {
+                        iter = getNode().getChild(NODE_USERS).getChildrenNames().iterator();
+                    }
+
+                    @Override
+                    public boolean hasNext() {
+                        while (iter.hasNext()) {
+                            String name = iter.next();
+                            if (name.equals("by-name")) {
+                                continue;
+                            }
+                            try {
+                                next = UUID.fromString(name);
+                            } catch (IllegalArgumentException ex) {
+                                continue;
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
+
+                    @Override
+                    public User next() {
+                        return new User(next);
+                    }
+
+                    @Override
+                    public void remove() {
+
+                    }
+                };
+            }
+        };
+    }
+
+    @Override
     public void delete() {
         setName(null);
-        node.delete(false);
+        node.delete(true);
+    }
+
+    /**
+     * Timeserie ID
+     *
+     * @return Timeserie ID
+     */
+    public String getTSId() {
+        return "dom-" + getId();
     }
 }

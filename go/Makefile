@@ -1,40 +1,54 @@
+PACKAGE_VERSION=$(shell dpkg-parsechangelog | grep Version: | cut -d' ' -f2-)
+VERSION_FILE=m2mp-version/version.go
+
+ifeq "$(BUILD_NUMBER)" ""
+	VERSION=$(PACKAGE_VERSION)
+else
+	VERSION=$(PACKAGE_VERSION)-$(BUILD_NUMBER)
+endif
+
 all: binaries win-binaries
+
+create-version: $(VERSION_FILE)
+
+$(VERSION_FILE): $(shell find -not -path "*/m2mp-version/*" -name "*.go") Makefile
+	printf 'package m2mp_version\n\nconst VERSION = "$(VERSION)"\n' >$@
 
 binaries: dist/bin/client-m2mp dist/bin/receiver-m2mp dist/bin/m2mp-storage dist/bin/converter-m2mp dist/bin/receiver-alip dist/bin/client-alip
 
 win-binaries: dist/win/client-alip.exe
 
-dist/win/client-alip.exe: client-alip/*.go
+dist/win/client-alip.exe: create-version client-alip/*.go 
 	mkdir -p dist/win
 	cd client-alip && make client-alip.exe
 	cp client-alip/client-alip.exe dist/win
 
-dist/bin/client-m2mp: client-m2mp/*.go
+dist/bin/client-m2mp: create-version client-m2mp/*.go
 	cd client-m2mp ; go get -v ; go build -v
 	mkdir -p dist/bin
 	mv client-m2mp/client-m2mp dist/bin/client-m2mp
 
-dist/bin/receiver-m2mp: receiver-m2mp/*.go
+dist/bin/receiver-m2mp: create-version receiver-m2mp/*.go
 	cd receiver-m2mp; go get -v ; go build -v
 	mkdir -p dist/bin
 	mv receiver-m2mp/receiver-m2mp dist/bin/receiver-m2mp
 
-dist/bin/converter-m2mp: converter-m2mp/*.go
+dist/bin/converter-m2mp: create-version converter-m2mp/*.go
 	cd converter-m2mp; go get -v ; go build -v
 	mkdir -p dist/bin
 	mv converter-m2mp/converter-m2mp dist/bin/converter-m2mp
 
-dist/bin/client-alip: client-alip/*.go
+dist/bin/client-alip: create-version client-alip/*.go
 	cd client-alip ; go get -v ; go build -v
 	mkdir -p dist/bin
 	mv client-alip/client-alip dist/bin/client-alip
 
-dist/bin/receiver-alip: receiver-alip/*.go
+dist/bin/receiver-alip: create-version receiver-alip/*.go
 	cd receiver-alip; go get -v ; go build -v
 	mkdir -p dist/bin
 	mv receiver-alip/receiver-alip dist/bin/receiver-alip
 
-dist/bin/m2mp-storage: m2mp-storage/*.go
+dist/bin/m2mp-storage: create-version m2mp-storage/*.go
 	cd m2mp-storage; go get -v ; go build -v
 	mkdir -p dist/bin
 	mv m2mp-storage/m2mp-storage dist/bin/m2mp-storage

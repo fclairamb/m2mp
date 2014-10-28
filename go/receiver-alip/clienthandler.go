@@ -8,6 +8,7 @@ import (
 	db "github.com/fclairamb/m2mp/go/m2mp-db"
 	ent "github.com/fclairamb/m2mp/go/m2mp-db/entities"
 	mq "github.com/fclairamb/m2mp/go/m2mp-messaging"
+	version "github.com/fclairamb/m2mp/go/m2mp-version"
 	"net"
 	"regexp"
 	"strconv"
@@ -441,6 +442,8 @@ func (ch *ClientHandler) handleDebugRequest(request string) error {
 		} else {
 			ch.LogLevel = level
 		}
+	case "VERSION":
+		ch.Send("DB VERSION " + version.VERSION)
 	default:
 		return errors.New(fmt.Sprintf("Debug command \"%s\" is not understood !", cmd))
 	}

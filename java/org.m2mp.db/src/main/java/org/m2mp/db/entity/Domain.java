@@ -182,11 +182,11 @@ public class Domain extends Entity {
         return node.getChild(NODE_DEVICES).check();
     }
 
-    public void addDevice(UUID deviceId) {
+    protected void addDevice(UUID deviceId) {
         getDevicesNode().setProperty(deviceId.toString(), "");
     }
 
-    public void removeDevice(UUID deviceId) {
+    protected void removeDevice(UUID deviceId) {
         getDevicesNode().delProperty(deviceId.toString());
     }
 
@@ -197,13 +197,9 @@ public class Domain extends Entity {
             public Iterator<Device> iterator() {
                 return new Iterator<Device>() {
 
-                    private final Iterator<String> iter;
+                    private final Iterator<String> iter = getNode().getChild(NODE_DEVICES).getPropertyNames().iterator();
 
                     private UUID next;
-
-                    {
-                        iter = getNode().getChild(NODE_DEVICES).getChildrenNames().iterator();
-                    }
 
                     @Override
                     public boolean hasNext() {
@@ -255,13 +251,9 @@ public class Domain extends Entity {
             public Iterator<User> iterator() {
                 return new Iterator<User>() {
 
-                    private final Iterator<String> iter;
+                    private final Iterator<String> iter = getNode().getChild(NODE_USERS).getPropertyNames().iterator();
 
                     private UUID next;
-
-                    {
-                        iter = getNode().getChild(NODE_USERS).getChildrenNames().iterator();
-                    }
 
                     @Override
                     public boolean hasNext() {

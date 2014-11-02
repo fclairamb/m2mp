@@ -155,7 +155,8 @@ public class Domain extends Entity {
     }
 
     public User getMaster() {
-        return getMaster();
+        UUID userID = getPropertyUUID(PROPERTY_MASTER_ID);
+        return userID != null ? new User(userID) : null;
     }
 
     public void setMaster(User master) {

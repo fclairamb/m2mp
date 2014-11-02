@@ -13,8 +13,8 @@ import java.util.UUID;
 
 public class Device extends Entity {
 
-	private static final String DEVICE_NODE_PATH = "/device/",
-			DEVICE_BY_IDENT_NODE_PATH = DEVICE_NODE_PATH + "by-ident/",
+    protected static final String DEVICE_NODE_PATH = "/device/",
+            DEVICE_BY_IDENT_NODE_PATH = DEVICE_NODE_PATH + "by-ident/",
 			PROPERTY_ID = "id",
 			PROPERTY_DOMAIN = "domain",
 			PROPERTY_IDENT = "ident",

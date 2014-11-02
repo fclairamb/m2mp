@@ -8,7 +8,9 @@ import (
 	db "github.com/fclairamb/m2mp/go/m2mp-db"
 	ent "github.com/fclairamb/m2mp/go/m2mp-db/entities"
 	mq "github.com/fclairamb/m2mp/go/m2mp-messaging"
+	version "github.com/fclairamb/m2mp/go/m2mp-version"
 	"net"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -32,6 +34,10 @@ type ClientHandler struct {
 	cmdCounter              byte
 	cmdShort                map[int]string
 }
+
+const IDENTIFICATION_TIMEOUT = time.Duration(time.Second * 30)
+
+const MQ_CALL_DISCONNECT_IF_NOT_IDENTIFIED = "disconnect_if_not_identified"
 
 func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
 	now := time.Now().UTC()
@@ -66,6 +72,14 @@ func (ch *ClientHandler) Start() {
 		m.Set("connection_id", fmt.Sprint(ch.Id))
 		ch.SendMessage(m)
 	}
+
+	// We will check the connection soon
+	go func() {
+		time.Sleep(IDENTIFICATION_TIMEOUT)
+		m := mq.NewJsonWrapper()
+		m.SetCall(MQ_CALL_DISCONNECT_IF_NOT_IDENTIFIED)
+		ch.msgRecv <- m
+	}()
 }
 
 func (ch *ClientHandler) SendMessage(m *mq.JsonWrapper) {
@@ -179,6 +193,16 @@ func (this *ClientHandler) handleMQMessage(msg *mq.JsonWrapper) {
 		if err := this.sendCommands(); err != nil {
 			log.Warning("%s - Error while sending commands: %v", this, err)
 		}
+	case MQ_CALL_DISCONNECT_IF_NOT_IDENTIFIED:
+		log.Debug("%s - Check if we are not identified !", this)
+		this.disconnectIfNotIdentified()
+	}
+}
+
+func (this *ClientHandler) disconnectIfNotIdentified() {
+	if this.device == nil {
+		this.Send("QUIT It took you too long to identify yourself !")
+		this.Conn.Close()
 	}
 }
 
@@ -257,6 +281,8 @@ func (ch *ClientHandler) runCoreHandling() {
 	}
 }
 
+var IDENT_CONSTRAINT = regexp.MustCompile("[a-z][0-9a-z]{2,6}:[a-zA-Z0-9]{4,20}")
+
 func (ch *ClientHandler) handleIdentRequest(ident string) error {
 	var err error = nil
 
@@ -264,8 +290,8 @@ func (ch *ClientHandler) handleIdentRequest(ident string) error {
 		return errors.New("You already identified !")
 	}
 
-	if ident == "" {
-		return errors.New("You need to specify an ID")
+	if !IDENT_CONSTRAINT.MatchString(ident) {
+		return errors.New("Invalid identification !")
 	}
 
 	ch.device, err = ent.NewDeviceByIdentCreate(ident)
@@ -416,6 +442,8 @@ func (ch *ClientHandler) handleDebugRequest(request string) error {
 		} else {
 			ch.LogLevel = level
 		}
+	case "VERSION":
+		ch.Send("DB VERSION " + version.VERSION)
 	default:
 		return errors.New(fmt.Sprintf("Debug command \"%s\" is not understood !", cmd))
 	}

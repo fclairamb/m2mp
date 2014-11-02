@@ -1,3 +1,15 @@
+m2mp (0.1-16) unstable; urgency=low
+
+  * Added an identification timeout
+
+ -- Florent Clairambault <florent@xps>  Tue, 28 Oct 2014 00:44:34 +0100
+
+m2mp (0.1-15) unstable; urgency=low
+
+  * Added a constraint on the device identifier.
+
+ -- Florent Clairambault <florent@xps>  Mon, 27 Oct 2014 22:57:49 +0100
+
 m2mp (0.1-14) unstable; urgency=low
 
   * Added GPRMC's specific date parsing. This should make integration with low-cost trackers even easier.

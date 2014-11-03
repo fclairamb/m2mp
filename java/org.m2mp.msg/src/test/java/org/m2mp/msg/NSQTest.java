@@ -5,16 +5,19 @@
  */
 package org.m2mp.msg;
 
+import ly.bit.nsq.exceptions.NSQException;
+import org.junit.Test;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import ly.bit.nsq.exceptions.NSQException;
 
 public class NSQTest {
 
 	private boolean ok;
 
-	public void testTransmission() throws NSQException, InterruptedException {
-		final Client c1 = new Client("t1", "abc");
+    @Test
+    public void transmission() throws NSQException, InterruptedException {
+        final Client c1 = new Client("t1", "abc");
 
 		final Client c2 = new Client("t2", "abc");
 

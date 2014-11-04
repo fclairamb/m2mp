@@ -21,7 +21,7 @@ public class Device extends Entity {
 			PROPERTY_DISPLAYNAME = "display_name",
 			NODE_SETTINGS = "settings",
 			NODE_SETTINGS_TO_SEND = "settings-to-send",
-            NODE_SETTINGS_ACK_TIME = "ack-time",
+            NODE_SETTINGS_ACK_TIME = "settings-ack-time",
             NODE_COMMANDS = "commands",
 			NODE_COMMANDS_RESPONSE = "commands-response",
 			NODE_STATUS = "status",
@@ -158,12 +158,13 @@ public class Device extends Entity {
     }
 
     private RegistryNode getSettingsAckNode() {
-        return getSettings().getChild(NODE_SETTINGS_ACK_TIME).check();
+        return node.getChild(NODE_SETTINGS_ACK_TIME).check();
     }
 
     public void setSetting(String name, String value) {
         getSettings().setProperty(name, value);
         getSettingsToSend().setProperty(name, value);
+        getSettingsAckNode().delProperty(name);
     }
 
     public String getSetting(String name) {

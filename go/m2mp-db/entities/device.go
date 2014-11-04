@@ -126,6 +126,10 @@ func (d *Device) getSettingsToSendNode() *db.RegistryNode {
 	return d.Node.GetChild("settings-to-send").Check()
 }
 
+func (d *Device) getSettingsAckTimeNode() *db.RegistryNode {
+	return d.Node.GetChild("settings-ack-time").Check()
+}
+
 func (d *Device) getStatusNode() *db.RegistryNode {
 	return d.Node.GetChild("status").Check()
 }
@@ -169,6 +173,9 @@ func (d *Device) SetSetting(name, value string) (err error) {
 	if err == nil {
 		err = d.getSettingsToSendNode().SetValue(name, value)
 	}
+	if err == nil {
+		err = d.getSettingsAckTimeNode().DelValue(name)
+	}
 
 	return
 }
@@ -190,6 +197,10 @@ func (d *Device) AckSetting(name, ackedValue string) (err error) {
 		valueToSend := toSend.Value(name)
 		if ackedValue == valueToSend {
 			err = toSend.DelValue(name)
+
+			if err == nil {
+				d.getSettingsAckTimeNode().SetValue(name, value)
+			}
 		}
 	}
 

@@ -10,6 +10,7 @@ import (
 	mq "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	version "github.com/fclairamb/m2mp/go/m2mp-version"
 	"net"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -58,6 +59,8 @@ func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
 
 	return ch
 }
+
+const HOSTNAME, _ = os.Hostname()
 
 func (ch *ClientHandler) Start() {
 	if ch.LogLevel >= 3 {
@@ -112,6 +115,7 @@ func (ch *ClientHandler) end() {
 		if ch.device != nil {
 			m.Set("device_id", ch.device.Id())
 		}
+		m.Set("host", HOSTNAME)
 		ch.SendMessage(m)
 	}
 
@@ -128,6 +132,7 @@ func (ch *ClientHandler) end() {
 		}
 		m.Set("key", "dev-"+ch.device.Id())
 		m.Set("date_uuid", mq.UUIDFromTime(time.Now()))
+		m.Set("host", HOSTNAME)
 		m.Set("type", "_server")
 		ch.SendMessage(m)
 	}
@@ -657,6 +662,7 @@ func (ch *ClientHandler) justIdentified() error {
 		m.Set("source", ch.Conn.RemoteAddr().String())
 		m.Set("connection_id", fmt.Sprint(ch.Id))
 		m.Set("device_id", ch.device.Id())
+		m.Set("host", HOSTNAME)
 		ch.SendMessage(m)
 	}
 
@@ -672,6 +678,7 @@ func (ch *ClientHandler) justIdentified() error {
 		}
 		m.Set("key", "dev-"+ch.device.Id())
 		m.Set("date_uuid", mq.UUIDFromTime(time.Now()))
+		m.Set("host", HOSTNAME)
 		m.Set("type", "_server")
 		ch.SendMessage(m)
 	}
@@ -688,6 +695,7 @@ func (ch *ClientHandler) justIdentified() error {
 		}
 		m.Set("key", "dev-"+ch.device.Id())
 		m.Set("date_uuid", mq.UUIDFromTime(ch.connectionTime))
+		m.Set("host", HOSTNAME)
 		m.Set("type", "_server")
 		ch.SendMessage(m)
 	}

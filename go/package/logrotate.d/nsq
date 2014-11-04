@@ -1,7 +1,7 @@
 /var/log/nsq/*.log {
 	delaycompress
-	daily
-	rotate 365
+	weekly
+	rotate 60
 	missingok
 	su nsq
 
@@ -13,8 +13,8 @@
 
 /var/log/nsq/topics/*.log {
 	delaycompress
-	daily
-	rotate 365
+	weekly
+	rotate 60
 	missingok
 	su nsq
 

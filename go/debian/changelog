@@ -1,3 +1,10 @@
+m2mp (0.1-17) unstable; urgency=low
+
+  * Added a "host" information in the connection-related events
+  * Log rotation set to weekly
+
+ -- Florent Clairambault <florent@xps>  Tue, 04 Nov 2014 03:18:56 +0100
+
 m2mp (0.1-16) unstable; urgency=low
 
   * Added an identification timeout

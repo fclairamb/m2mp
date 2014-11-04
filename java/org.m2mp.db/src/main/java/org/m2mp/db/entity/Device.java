@@ -40,7 +40,7 @@ public class Device extends Entity {
         RegistryNode node = new RegistryNode(DEVICE_BY_IDENT_NODE_PATH + ident);
         if (node.exists()) {
             UUID id = UUID.fromString(node.getPropertyString(PROPERTY_ID));
-            return new Device(id);
+            return new Device(id).check();
         } else if (create) {
             byte[] digest = new byte[0];
             try {
@@ -54,11 +54,15 @@ public class Device extends Entity {
             Device device = new Device(deviceId);
 
             if (device.exists()) {
-                device = new Device(UUID.randomUUID());
-            } else {
-                device.create();
+                deviceId = UUID.randomUUID();
+                device = new Device(deviceId);
             }
 
+            // We register the device with an ident
+            node.create().setProperty(PROPERTY_ID, deviceId);
+
+            // We create the device
+            device.create();
             device.setDomain(Domain.getDefault());
             device.setProperty(PROPERTY_IDENT, ident);
 
@@ -123,8 +127,10 @@ public class Device extends Entity {
         if (previousDomain != null) {
             previousDomain.removeDevice(getId());
         }
-        setProperty(PROPERTY_DOMAIN, domain.getId());
-        domain.addDevice(getId());
+        if (domain != null) {
+            setProperty(PROPERTY_DOMAIN, domain.getId());
+            domain.addDevice(getId());
+        }
     }
 
     public UUID getId() {
@@ -223,6 +229,13 @@ public class Device extends Entity {
 		return 1;
 	}
 
+
+    @Override
+    public void delete() {
+        // We have to unregister this device from the domain it belongs to
+        setDomain(null);
+        super.delete();
+    }
 
     /**
      * Timeserie ID

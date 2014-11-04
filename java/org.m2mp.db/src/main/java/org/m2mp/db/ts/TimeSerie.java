@@ -22,6 +22,11 @@ import java.util.concurrent.ConcurrentSkipListSet;
  */
 public class TimeSerie {
 
+    public static final String TABLE_TIMESERIES = "timeseries";
+    public static final String TABLE_TIMESERIES_INDEX = "timeseries_index";
+    static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd", TimeZone.getTimeZone("UTC"));
+    private static final ConcurrentSkipListSet index = new ConcurrentSkipListSet();
+
     /**
      * Prepare the time serie table
      */
@@ -61,6 +66,12 @@ public class TimeSerie {
         });
     }
 
+    /*
+    public static String periodToMonth(int period) {
+        return new SimpleDateFormat("yyyy-MM").format(date10ToCalendar(period).getTime());
+    }
+    */
+
     public static void dropTable() {
         DB.prepare("drop table " + TABLE_TIMESERIES + ";");
         DB.prepare("drop table " + TABLE_TIMESERIES_INDEX + ";");
@@ -76,8 +87,6 @@ public class TimeSerie {
         return DATE_FORMAT.format(UUIDs.unixTimestamp(date));
     }
 
-    static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd", TimeZone.getTimeZone("UTC"));
-
     private static Calendar date10ToCalendar(String date) {
         try {
             Date d = new SimpleDateFormat("yyyy-MM-dd").parse(date);
@@ -92,12 +101,6 @@ public class TimeSerie {
         }
         return null;
     }
-
-    /*
-    public static String periodToMonth(int period) {
-        return new SimpleDateFormat("yyyy-MM").format(date10ToCalendar(period).getTime());
-    }
-    */
 
     /**
      * Save a timed data
@@ -116,8 +119,6 @@ public class TimeSerie {
     public static void save(TimedDataWrapper tdw) {
         save(tdw.getId(), tdw.getType(), tdw.getDateUUID(), tdw.getJson());
     }
-
-    private static final ConcurrentSkipListSet index = new ConcurrentSkipListSet();
 
     private static void saveIndex(String id, String type, String date10) {
         if (type == null) {
@@ -147,7 +148,6 @@ public class TimeSerie {
         if (type != null) {
             DB.execute(reqInsert.bind(id + "!" + type, date10, date, null, data));
             saveIndex(id, type, date10);
-            ;
         }
     }
 
@@ -345,10 +345,6 @@ public class TimeSerie {
         }
         return null;
     }
-
-
-    public static final String TABLE_TIMESERIES = "timeseries";
-    public static final String TABLE_TIMESERIES_INDEX = "timeseries_index";
 
 
 }

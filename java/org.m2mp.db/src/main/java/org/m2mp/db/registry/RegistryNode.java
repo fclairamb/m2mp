@@ -29,7 +29,7 @@ public class RegistryNode {
     public static final String PROPERTY_IS_FILE = ".is_file";
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc="Status management">
-    private static final int STATUS_UNDEFINED = -1;
+    private static final int STATUS_UNDEFINED = 0;
     private static final int STATUS_DELETED = 5;
     private static final int STATUS_CREATED = 100;
     /**

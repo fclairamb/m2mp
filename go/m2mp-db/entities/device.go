@@ -3,6 +3,7 @@ package entities
 import (
 	"crypto/sha1"
 	"errors"
+	"fmt"
 	db "github.com/fclairamb/m2mp/go/m2mp-db"
 	"github.com/gocql/gocql"
 	"log"
@@ -199,7 +200,7 @@ func (d *Device) AckSetting(name, ackedValue string) (err error) {
 			err = toSend.DelValue(name)
 
 			if err == nil {
-				d.getSettingsAckTimeNode().SetValue(name, value)
+				d.getSettingsAckTimeNode().SetValue(name, fmt.Sprintf("%d", time.Now().UnixNano()%1e6/1e3))
 			}
 		}
 	}

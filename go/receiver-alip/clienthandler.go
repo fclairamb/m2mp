@@ -60,7 +60,7 @@ func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
 	return ch
 }
 
-const HOSTNAME, _ = os.Hostname()
+var HOSTNAME, _ = os.Hostname()
 
 func (ch *ClientHandler) Start() {
 	if ch.LogLevel >= 3 {

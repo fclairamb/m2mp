@@ -15,26 +15,26 @@ public class Device extends Entity {
 
     protected static final String DEVICE_NODE_PATH = "/device/",
             DEVICE_BY_IDENT_NODE_PATH = DEVICE_NODE_PATH + "by-ident/",
-			PROPERTY_ID = "id",
-			PROPERTY_DOMAIN = "domain",
-			PROPERTY_IDENT = "ident",
-			PROPERTY_DISPLAYNAME = "display_name",
-			NODE_SETTINGS = "settings",
-			NODE_SETTINGS_TO_SEND = "settings-to-send",
+            PROPERTY_ID = "id",
+            PROPERTY_DOMAIN = "domain",
+            PROPERTY_IDENT = "ident",
+            PROPERTY_DISPLAYNAME = "display_name",
+            NODE_SETTINGS = "settings",
+            NODE_SETTINGS_TO_SEND = "settings-to-send",
             NODE_SETTINGS_ACK_TIME = "settings-ack-time",
             NODE_COMMANDS = "commands",
-			NODE_COMMANDS_RESPONSE = "commands-response",
-			NODE_STATUS = "status",
-			NODE_SERVER_SETTINGS = "server-settings",
-			NODE_SERVER_SETTINGS_PUBLIC = "server-settings-public";
+            NODE_COMMANDS_RESPONSE = "commands-response",
+            NODE_STATUS = "status",
+            NODE_SERVER_SETTINGS = "server-settings",
+            NODE_SERVER_SETTINGS_PUBLIC = "server-settings-public";
 
-	public Device(RegistryNode node) {
-		this.node = node;
-	}
+    public Device(RegistryNode node) {
+        this.node = node;
+    }
 
-	public Device(UUID deviceId) {
-		this.node = new RegistryNode(DEVICE_NODE_PATH + deviceId);
-	}
+    public Device(UUID deviceId) {
+        this.node = new RegistryNode(DEVICE_NODE_PATH + deviceId);
+    }
 
     public static Device byIdent(String ident, boolean create) {
         RegistryNode node = new RegistryNode(DEVICE_BY_IDENT_NODE_PATH + ident);
@@ -70,7 +70,7 @@ public class Device extends Entity {
         } else {
             return null;
         }
-	}
+    }
 
     public static Iterable<Device> getAll() {
         return new Iterable<Device>() {
@@ -199,7 +199,7 @@ public class Device extends Entity {
         getCommands().delProperty(id);
     }
 
-	@Override
+    @Override
     public Device check() {
         super.check();
         return this;
@@ -222,13 +222,17 @@ public class Device extends Entity {
 
     public String getDataLastString(String type) {
         TimedData dataLast = getDataLast(type);
-        return dataLast != null ? dataLast.getData() : null;
+        String data = dataLast != null ? dataLast.getData() : null;
+        if (data != null && data.startsWith("\"")) {
+            data = data.substring(1, data.length() - 2);
+        }
+        return data;
     }
 
     @Override
     protected int getObjectVersion() {
-		return 1;
-	}
+        return 1;
+    }
 
 
     @Override

@@ -9,6 +9,7 @@ import (
 	mq "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	pr "github.com/fclairamb/m2mp/go/m2mp-protocol"
 	"net"
+	"os"
 	"strings"
 	"time"
 )
@@ -48,6 +49,8 @@ func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
 	return ch
 }
 
+var HOSTNAME, _ = os.Hostname()
+
 func (ch *ClientHandler) Start() {
 	if ch.LogLevel >= 3 {
 		log.Debug("Added %s", ch)
@@ -59,6 +62,7 @@ func (ch *ClientHandler) Start() {
 		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_connected")
 		m.Set("source", ch.Conn.Conn.RemoteAddr().String())
 		m.Set("connection_id", fmt.Sprint(ch.Id))
+		m.Set("host", HOSTNAME)
 		ch.SendMessage(m)
 	}
 }
@@ -103,6 +107,7 @@ func (ch *ClientHandler) end() {
 			m.Set("data", data)
 
 			data.Set("type", "device_disconnected")
+			data.Set("host", HOSTNAME)
 			data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 			data.Set("connection_id", fmt.Sprint(ch.Id))
 			data.Set("connection_duration", connectionDuration)
@@ -284,9 +289,11 @@ func (ch *ClientHandler) justIdentified() error {
 			data := sjson.New()
 			m.Set("data", data)
 
+			data.Set("host", HOSTNAME)
 			data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 			data.Set("connection_id", fmt.Sprint(ch.Id))
 			data.Set("type", "device_identified")
+
 		}
 		m.Set("key", "dev-"+ch.device.Id())
 		m.Set("date_uuid", mq.UUIDFromTime(time.Now()))
@@ -300,6 +307,7 @@ func (ch *ClientHandler) justIdentified() error {
 			data := sjson.New()
 			m.Set("data", data)
 
+			data.Set("host", HOSTNAME)
 			data.Set("source", ch.Conn.Conn.RemoteAddr().String())
 			data.Set("connection_id", fmt.Sprint(ch.Id))
 			data.Set("type", "device_connected")

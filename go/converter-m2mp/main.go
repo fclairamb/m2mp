@@ -55,8 +55,6 @@ func (this *ConverterService) convertMessageSpecial(src, store *mq.JsonWrapper, 
 }
 
 func (this *ConverterService) convertMessageLoc(src, store *mq.JsonWrapper, raw []byte) error {
-	log.Warning("Reached ?")
-
 	rawlen := len(raw)
 	buf := bytes.NewReader(raw)
 
@@ -74,7 +72,7 @@ func (this *ConverterService) convertMessageLoc(src, store *mq.JsonWrapper, raw 
 		binary.Read(buf, binary.BigEndian, &sat)
 		data.Set("sat", sat)
 	}
-	if rawlen >= 8 {
+	if rawlen >= 8 { // 8 bytes or more means we have a location
 		rawlen -= 8
 		var lat, lon float32
 		binary.Read(buf, binary.BigEndian, &lat)
@@ -82,13 +80,13 @@ func (this *ConverterService) convertMessageLoc(src, store *mq.JsonWrapper, raw 
 		data.Set("lat", lat)
 		data.Set("lon", lon)
 	}
-	if rawlen >= 2 {
+	if rawlen >= 2 { // additional 2 bytes means we have the speed
 		rawlen -= 2
 		var spd uint16
 		binary.Read(buf, binary.BigEndian, &spd)
 		data.Set("spd", spd)
 	}
-	if rawlen >= 2 {
+	if rawlen >= 2 { // additionnal 2 bytes means we have the altitude
 		rawlen -= 2
 		var alt uint16
 		binary.Read(buf, binary.BigEndian, &alt)

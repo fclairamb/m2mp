@@ -115,7 +115,6 @@ func (ch *ClientHandler) end() {
 		if ch.device != nil {
 			m.Set("device_id", ch.device.Id())
 		}
-		m.Set("host", HOSTNAME)
 		ch.SendMessage(m)
 	}
 
@@ -126,13 +125,13 @@ func (ch *ClientHandler) end() {
 			m.Set("data", data)
 
 			data.Set("type", "device_disconnected")
+			data.Set("host", HOSTNAME)
 			data.Set("source", ch.Conn.RemoteAddr().String())
 			data.Set("connection_id", fmt.Sprint(ch.Id))
 			data.Set("connection_duration", connectionDuration)
 		}
 		m.Set("key", "dev-"+ch.device.Id())
 		m.Set("date_uuid", mq.UUIDFromTime(time.Now()))
-		m.Set("host", HOSTNAME)
 		m.Set("type", "_server")
 		ch.SendMessage(m)
 	}
@@ -662,7 +661,6 @@ func (ch *ClientHandler) justIdentified() error {
 		m.Set("source", ch.Conn.RemoteAddr().String())
 		m.Set("connection_id", fmt.Sprint(ch.Id))
 		m.Set("device_id", ch.device.Id())
-		m.Set("host", HOSTNAME)
 		ch.SendMessage(m)
 	}
 
@@ -672,13 +670,13 @@ func (ch *ClientHandler) justIdentified() error {
 			data := sjson.New()
 			m.Set("data", data)
 
+			data.Set("host", HOSTNAME)
 			data.Set("source", ch.Conn.RemoteAddr().String())
 			data.Set("connection_id", fmt.Sprint(ch.Id))
 			data.Set("type", "device_identified")
 		}
 		m.Set("key", "dev-"+ch.device.Id())
 		m.Set("date_uuid", mq.UUIDFromTime(time.Now()))
-		m.Set("host", HOSTNAME)
 		m.Set("type", "_server")
 		ch.SendMessage(m)
 	}
@@ -689,13 +687,13 @@ func (ch *ClientHandler) justIdentified() error {
 			data := sjson.New()
 			m.Set("data", data)
 
+			data.Set("host", HOSTNAME)
 			data.Set("source", ch.Conn.RemoteAddr().String())
 			data.Set("connection_id", fmt.Sprint(ch.Id))
 			data.Set("type", "device_connected")
 		}
 		m.Set("key", "dev-"+ch.device.Id())
 		m.Set("date_uuid", mq.UUIDFromTime(ch.connectionTime))
-		m.Set("host", HOSTNAME)
 		m.Set("type", "_server")
 		ch.SendMessage(m)
 	}

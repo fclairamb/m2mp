@@ -244,7 +244,7 @@ func (ch *ClientHandler) runCoreHandling() {
 					case "E":
 						err = ch.handleTimedDataRequest(content)
 					case "A":
-						ch.Send("B " + content)
+						err = ch.handleAckRequest(content)
 					case "T":
 						t := time.Now().UTC().Unix()
 						ch.Send(fmt.Sprintf("T %d", t))
@@ -598,6 +598,14 @@ func (ch *ClientHandler) processDataRequest(dataTime time.Time, dataType, conten
 
 	ch.SendMessage(store)
 	return nil
+}
+
+func (this *ClientHandler) handleAckRequest(content string) error {
+	if this.device == nil {
+		return errors.New("You must be identified !")
+	} else {
+		return this.Send("B " + content)
+	}
 }
 
 func (ch *ClientHandler) handleDataRequest(content string) error {

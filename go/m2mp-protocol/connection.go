@@ -117,7 +117,7 @@ func (pt *ProtoHandler) getSendChannel(channel string) (channelId int, err error
 		pt.sendChannels[channel] = channelId
 
 		if pt.LogLevel >= 8 {
-			log.Debug("%s <-- Channel \"%s\" created with id %d", pt, channel, channelId)
+			log.Debug("%s --> Channel \"%s\" created with id %d", pt, channel, channelId)
 		}
 
 		_, err = pt.Conn.Write(frame)
@@ -370,7 +370,7 @@ func (pt *ProtoHandler) actualRecv() interface{} {
 				channelName := string(buffer[1:size])
 				pt.recvChannels[channelId] = channelName
 				if pt.LogLevel >= 7 {
-					log.Debug("%s --> Channel \"%s\" created with id %d", pt, channelName, channelId)
+					log.Debug("%s <-- Channel \"%s\" created with id %d", pt, channelName, channelId)
 				}
 			}
 			// All the data messages
@@ -395,6 +395,13 @@ func (pt *ProtoHandler) actualRecv() interface{} {
 				{
 					s, _ := UvarintBE(buffer[1 : sizeLength+1])
 					size = int(s)
+				}
+
+				if size > 1024*1024 { // Anything over 1MB is not reasonnable
+					msg := fmt.Sprintf("Unreasonnable message size: %d", size)
+					log.Warning(msg)
+					pt.Conn.Close()
+					return &EventDisconnected{Error: errors.New(msg)}
 				}
 
 				// We might have to increase the buffer size

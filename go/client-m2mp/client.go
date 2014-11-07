@@ -109,7 +109,8 @@ func (c *Client) runRecv() {
 			} else if m.Channel == "_cmd" { // If we are on the command channel, we will *try* to handle things directly
 				requestType := string(m.Data[0])
 				if requestType == "e" {
-					response, err := c.handleCommand(m.Data[2:])
+					command := m.Data[2:]
+					response, err := c.handleCommand(command)
 
 					if err == nil { // If we could actually handle this...
 						responseMsg := pr.NewMessageDataArray(m.Channel)
@@ -120,7 +121,11 @@ func (c *Client) runRecv() {
 						}
 						c.Conn.Send(responseMsg)
 						break
+					} else {
+						log.Warning("Error processing command \"%s\"", command)
 					}
+				} else {
+					log.Warning("Unknow request type: %s", requestType)
 				}
 			}
 		}
@@ -128,11 +133,23 @@ func (c *Client) runRecv() {
 	}
 }
 
+func (this *Client) sendAllSettings() {
+	msg := pr.NewMessageDataArray("_set")
+	msg.AddString("g")
+	for name, value := range this.settings {
+		msg.AddString(fmt.Sprintf("%s=%s", name, value))
+	}
+	this.Send <- msg
+}
+
 func (c *Client) handleCommand(array [][]byte) ([][]byte, error) {
 	cmd := string(array[0])
 	if cmd == "reset" {
 		c.settings = make(map[string]string)
 		return nil, c.saveSettings()
+	} else if cmd == "settings" {
+		c.sendAllSettings()
+		return nil, nil
 	}
 	return nil, errors.New(fmt.Sprintf("Unknow command \"%s\"", cmd))
 }

@@ -1,3 +1,13 @@
+m2mp (0.1-18) unstable; urgency=medium
+
+  * m2mp-protocol: Choosing a generic channel name when the received channel id is unknown
+  * receiver-m2mp & receiver-alip: Added ability to list connected devices
+  * receiver-alip: Acknowledge logic change
+  * receiver-m2mp: Reporting unknown channels as '__channel_<id>'
+  * storage: Not storing time event that are more than 1 minute in the future.
+
+ -- Florent Clairambault <florent@xps>  Sat, 08 Nov 2014 23:41:43 +0100
+
 m2mp (0.1-17) unstable; urgency=low
 
   * Added a "host" information in the connection-related events

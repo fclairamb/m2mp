@@ -59,13 +59,25 @@ func (this *StorageService) handleMessaging(m *mq.JsonWrapper) {
 				}
 			}
 
-			log.Debug("Saving key=%s, type=%s, time=%s, data=%s", key, dataType, date_uuid.Time(), data)
+			{ // We check if the data isn't in the future
+				dataTime := date_uuid.Time()
+				currentTime := time.Now().UTC()
 
-			for c := 0; c < 3; c++ {
-				if err = db.SaveTSUUID(key, dataType, &date_uuid, data); err != nil {
-					log.Warning("Problem storing data: %v", err)
+				log.Debug("Saving key=%s, type=%s, time=%s, data=%s", key, dataType, dataTime, data)
+
+				diff := dataTime.Sub(currentTime)
+
+				if diff > time.Minute {
+					log.Warning("Data is %v in the future. We can't save it !", diff)
+				}
+			}
+
+			for c := 0; c < 10; c++ { // We try to save it up to 10 times
+				if err = db.SaveTSUUID(key, dataType, &date_uuid, data); err == nil {
+					return
 				} else {
-
+					log.Warning("Problem storing data: %v, attempt %d", err, c)
+					time.Sleep(time.Millisecond * 500)
 				}
 			}
 		}

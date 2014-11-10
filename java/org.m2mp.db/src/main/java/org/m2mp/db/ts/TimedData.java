@@ -114,6 +114,15 @@ public class TimedData {
         return JSONValue.parse(getData());
     }
 
+    public String getJsonString() {
+        Object obj = getJsonObject();
+        if (obj instanceof String) {
+            return String.format("\"%s\"", obj.toString());
+        } else {
+            return obj.toString();
+        }
+    }
+
     public Map<String, Object> getJsonMap() {
         final Object obj = getJsonObject();
         if ((obj instanceof Map)) {

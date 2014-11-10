@@ -224,7 +224,7 @@ public class Device extends Entity {
         TimedData dataLast = getDataLast(type);
         String data = dataLast != null ? dataLast.getData() : null;
         if (data != null && data.startsWith("\"")) {
-            data = data.substring(1, data.length() - 2);
+            data = data.substring(1, data.length() - 1);
         }
         return data;
     }

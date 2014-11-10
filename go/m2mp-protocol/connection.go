@@ -417,7 +417,13 @@ func (pt *ProtoHandler) actualRecv() interface{} {
 
 				// We get the channel id
 				channelId := int(buffer[0])
+				// And the corresponding channel name
 				channelName := pt.recvChannels[channelId]
+
+				if channelName == "" { // When the channel is unknow,
+					// we put a generic channel name
+					channelName = fmt.Sprintf("__channel_%d", channelId)
+				}
 
 				switch ft {
 

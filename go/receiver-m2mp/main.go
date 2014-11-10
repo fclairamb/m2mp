@@ -42,6 +42,10 @@ func handleSimpleCommand(line string) string {
 		runtime.GC()
 		return getMemStats()
 
+	case "list":
+		server.handleListConnections()
+		return "OK"
+
 	case "pp":
 		if len(tokens) < 2 {
 			return ""

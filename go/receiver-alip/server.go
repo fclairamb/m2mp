@@ -6,6 +6,7 @@ import (
 	m2log "github.com/fclairamb/m2mp/go/m2mp-log"
 	msg "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -105,6 +106,10 @@ func (s *Server) handleMessageForDeviceId(m *msg.JsonWrapper, deviceId string) {
 	}
 }
 
+func (this *Server) handleListConnections() {
+	this.clients.Dump(os.Stdout)
+}
+
 func (s *Server) handleMessage(m *msg.JsonWrapper) {
 	log.Debug("Handling %s", m.String())
 
@@ -142,6 +147,10 @@ func (s *Server) handleMessage(m *msg.JsonWrapper) {
 		case "quit":
 			{
 				log.Warning("Quit received! Not handling it right now!")
+			}
+		case "list_connections":
+			{
+				s.handleListConnections()
 			}
 		}
 	}

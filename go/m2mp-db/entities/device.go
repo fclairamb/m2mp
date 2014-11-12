@@ -104,11 +104,11 @@ func (d *Device) Id() string {
 }
 
 func (d *Device) Name() string {
-	return d.Node.Value("name")
+	return d.GetServerSettingsPublicNode().Value("name")
 }
 
 func (d *Device) SetName(name string) error {
-	return d.Node.SetValue("name", name)
+	return d.GetServerSettingsPublicNode().SetValue("name", name)
 }
 
 func (d *Device) getCommandsNode() *db.RegistryNode {
@@ -139,7 +139,7 @@ func (d *Device) getServerSettingsNode() *db.RegistryNode {
 	return d.Node.GetChild("server-settings").Check()
 }
 
-func (d *Device) getServerSettingsPublicNode() *db.RegistryNode {
+func (d *Device) GetServerSettingsPublicNode() *db.RegistryNode {
 	return d.Node.GetChild("server-settings-public").Check()
 }
 

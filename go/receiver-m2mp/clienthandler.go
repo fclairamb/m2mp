@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	sjson "github.com/bitly/go-simplejson"
 	ent "github.com/fclairamb/m2mp/go/m2mp-db/entities"
@@ -326,6 +327,10 @@ func (ch *ClientHandler) handleData(msg *pr.MessageDataSimple) error {
 	//	log.Print(ch, " --> \"", msg.Channel, "\" : ", msg.Data)
 	//}
 
+	if ch.device == nil {
+		return errors.New(fmt.Sprintf("%v - Device not identified !", ch))
+	}
+
 	tokens := strings.SplitN(msg.Channel, ":", 2)
 
 	switch tokens[0] {
@@ -355,7 +360,6 @@ func (ch *ClientHandler) handleData(msg *pr.MessageDataSimple) error {
 			}
 		}
 	}
-
 	return nil
 }
 

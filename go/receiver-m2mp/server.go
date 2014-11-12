@@ -197,6 +197,7 @@ func (s *Server) Start() error {
 		m := msg.NewMessage(msg.TOPIC_GENERAL_EVENTS, "new_receiver")
 		m.Set("tcp_port", par.Net.ListenPort)
 		s.SendMessage(m)
+		log.Info("Listening ::%d", par.Net.ListenPort)
 	}
 
 	if err != nil {

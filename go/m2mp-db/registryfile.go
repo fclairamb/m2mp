@@ -121,7 +121,7 @@ type RegistryFileWriter struct {
 	size      int
 }
 
-const debug_registryfile = true
+const debug_registryfile = false
 
 // Writer interface
 // At this stage, it completely erases any existing data

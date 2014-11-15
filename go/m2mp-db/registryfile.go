@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"strconv"
 )
 
@@ -104,28 +105,86 @@ func (this *RegistryFile) Ok() bool {
 	return this.Node.Value(prop_ok) == "1"
 }
 
-func (this *RegistryFile) Writer() *RegistryFileWriter {
-	this.Create()
-	return &RegistryFileWriter{file: this, blockSize: this.BlockSize(), size: this.Size()}
-}
+const (
+	mode_read  = os.O_RDONLY
+	mode_write = os.O_WRONLY
+)
 
-func (this *RegistryFile) Reader() *RegistryFileReader {
-	return &RegistryFileReader{file: this, blockSize: this.BlockSize(), size: this.Size()}
-}
-
-type RegistryFileWriter struct {
+type RegistryFilePointer struct {
 	file      *RegistryFile
 	buffer    []byte
 	blockSize int
 	offset    int
 	size      int
+	mode      int
+}
+
+func (this *RegistryFile) Writer() *RegistryFilePointer {
+	this.Create()
+	return &RegistryFilePointer{file: this, blockSize: this.BlockSize(), mode: mode_write}
+}
+
+func (this *RegistryFile) WriterEdit() *RegistryFilePointer {
+	this.Create()
+	return &RegistryFilePointer{file: this, blockSize: this.BlockSize(), size: this.Size(), mode: mode_write}
+}
+
+func (this *RegistryFile) Reader() *RegistryFilePointer {
+	return &RegistryFilePointer{file: this, blockSize: this.BlockSize(), size: this.Size(), mode: mode_read}
+}
+
+func (this *RegistryFile) Truncate(size int) error {
+
+	fileSize := this.Size()
+	blockSize := this.BlockSize()
+
+	// We cannot truncate to more than the file size
+	if size > fileSize {
+		size = fileSize
+	}
+
+	offset := size
+	for offset < fileSize {
+		// Current block
+		currentBlock := offset / blockSize
+
+		// Current block offset
+		blockOffset := offset - (currentBlock * blockSize)
+
+		if blockOffset == 0 {
+			this.DelBlock(currentBlock)
+		} else {
+			// This part isn't mandatory. It's to avoid confusion with useless data.
+			if data, err := this.Block(currentBlock); err == nil {
+				if err := this.SetBlock(currentBlock, data[0:blockOffset]); err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
+		}
+
+		// We increment the offset
+		offset += blockSize
+	}
+
+	// In the end we save this as the final size
+	this.SetSize(size)
+	return nil
+}
+
+func (this *RegistryFile) Delete(forReal bool) {
+	if forReal {
+		this.Truncate(0)
+	}
+
+	this.Node.Delete(forReal)
 }
 
 const debug_registryfile = false
 
 // Writer interface
-// At this stage, it completely erases any existing data
-func (this *RegistryFileWriter) Write(data []byte) (int, error) {
+func (this *RegistryFilePointer) Write(data []byte) (int, error) {
 	dataSize := len(data)
 	inputOffset := 0
 
@@ -162,7 +221,11 @@ func (this *RegistryFileWriter) Write(data []byte) (int, error) {
 			if this.buffer, err = this.file.Block(currentBlock); err != nil && err.Error() != "not found" {
 				break
 			} else if len(this.buffer) != this.blockSize {
-				this.buffer = make([]byte, this.blockSize)
+				// We might need to create a bigger buffer as the last block might not
+				// reach its full size
+				newBuffer := make([]byte, this.blockSize)
+				copy(newBuffer, this.buffer)
+				this.buffer = newBuffer
 			}
 		}
 
@@ -190,15 +253,34 @@ func (this *RegistryFileWriter) Write(data []byte) (int, error) {
 	return inputOffset, err
 }
 
-type RegistryFileReader struct {
-	file      *RegistryFile
-	buffer    []byte
-	blockSize int
-	offset    int
-	size      int
+func (this *RegistryFilePointer) Seek(offset int, whence int) {
+	previousBlockNb := this.offset / this.blockSize
+
+	switch whence {
+	case 0:
+		this.offset = offset
+	case 1:
+		this.offset += offset
+	case 2:
+		this.offset = this.size - offset
+	}
+
+	if this.offset < 0 {
+		this.offset = 0
+	} else if this.mode == mode_read && this.offset > this.size {
+		this.offset = this.size
+	}
+
+	blockNb := this.offset / this.blockSize
+
+	if previousBlockNb != blockNb {
+		this.buffer = nil
+	}
+
 }
 
-func (this *RegistryFileReader) Read(data []byte) (int, error) {
+// Reader interface
+func (this *RegistryFilePointer) Read(data []byte) (int, error) {
 	dataSize := len(data)
 
 	// We might not have enough data to fill the buffer

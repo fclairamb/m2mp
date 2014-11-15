@@ -107,7 +107,7 @@ func (node *RegistryNode) Delete(forReal bool) error {
 		if err2 := shared.session.Query("delete from registrynode where path=?;", node.Path).Exec(); err2 != nil {
 			err = err2
 		}
-		// shared.session.Query("delete from registrynodedata where path=?;", path).Exec()
+		shared.session.Query("delete from registrynodedata where path=?;", node.Path).Exec()
 		node.status = RN_STATUS_UNDEFINED
 	} else {
 		node.setStatus(RN_STATUS_DELETED)

@@ -256,8 +256,17 @@ func (dev *Device) SetDomain(d *Domain) error {
 	return nil
 }
 
+func (this *Device) Owner() *User {
+	sUserId := this.Node.Value("owner")
+	userId, err := gocql.ParseUUID(sUserId)
+	if err != nil {
+		return nil
+	}
+	return NewUserById(userId)
+}
+
 func (dev *Device) Domain() *Domain {
-	sDomainId := dev.Node.Values()["domain"]
+	sDomainId := dev.Node.Value("domain")
 	domainId, err := gocql.ParseUUID(sDomainId)
 
 	if err != nil {

@@ -107,6 +107,10 @@ func (d *Device) Name() string {
 	return d.GetServerSettingsPublicNode().Value("name")
 }
 
+func (d *Device) Ident() string {
+	return d.Node.Value("ident")
+}
+
 func (d *Device) SetName(name string) error {
 	return d.GetServerSettingsPublicNode().SetValue("name", name)
 }

@@ -44,6 +44,10 @@ public class User extends Entity {
     }
 
     public static User byName(String name, boolean create) {
+        if (!VALIDATION.matcher(name).matches()) {
+            return null;
+        }
+
         {// We check the named reference
             RegistryNode namedNode = new RegistryNode(NODE_BY_NAME + name);
             if (namedNode.exists()) {
@@ -60,9 +64,6 @@ public class User extends Entity {
         }
 
         if (create) {
-            if (!VALIDATION.matcher(name).matches()) {
-                throw new RuntimeException("User \"" + name + "\" doesn't match the \"" + VALIDATION.pattern() + "\" pattern.");
-            }
             byte[] digest = new byte[20];
             try {
                 digest = MessageDigest.getInstance("SHA-1").digest(name.getBytes());

@@ -10,6 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class Device extends Entity {
 
@@ -28,6 +29,8 @@ public class Device extends Entity {
             NODE_SERVER_SETTINGS = "server-settings",
             NODE_SERVER_SETTINGS_PUBLIC = "server-settings-public";
 
+    private static final Pattern VALIDATION = Pattern.compile("^[a-z][0-9a-z]{2,6}:[a-zA-Z0-9]{4,20}$");
+
     public Device(RegistryNode node) {
         this.node = node;
     }
@@ -37,6 +40,9 @@ public class Device extends Entity {
     }
 
     public static Device byIdent(String ident, boolean create) {
+        if (!VALIDATION.matcher(ident).matches()) {
+            return null;
+        }
         RegistryNode node = new RegistryNode(DEVICE_BY_IDENT_NODE_PATH + ident);
         if (node.exists()) {
             UUID id = UUID.fromString(node.getPropertyString(PROPERTY_ID));

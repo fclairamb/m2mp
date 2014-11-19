@@ -107,8 +107,14 @@ public abstract class Entity {
     }
 
     public void delete() {
-        node.delete();
-        setProperty(PROPERTY_DELETED_DATE, System.currentTimeMillis());
+        delete(false);
+    }
+
+    public void delete(boolean forReal) {
+        if (!forReal) {
+            setProperty(PROPERTY_DELETED_DATE, System.currentTimeMillis());
+        }
+        node.delete(forReal);
     }
 
     public boolean deleted() {

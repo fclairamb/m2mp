@@ -215,6 +215,8 @@ public class RegistryNode {
             // We're just marking this as requiring a deletion
             setStatus(STATUS_DELETED);
         }
+
+        // Whether the deletion is real or not, we make this node an orphan
         RegistryNode parent = getParentNode();
         if (parent != null) {
             parent.removeChild(getName());

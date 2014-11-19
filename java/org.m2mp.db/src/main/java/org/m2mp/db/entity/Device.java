@@ -240,12 +240,20 @@ public class Device extends Entity {
         return 1;
     }
 
+    public void delete() {
+        // By default we don't actually want to delete the device
+        delete(false);
+    }
 
     @Override
-    public void delete() {
+    public void delete(boolean forReal) {
+        // We have to unregister the device from its ident
+        new RegistryNode(DEVICE_BY_IDENT_NODE_PATH + getIdent()).delete(forReal);
+
         // We have to unregister this device from the domain it belongs to
         setDomain(null);
-        super.delete();
+
+        super.delete(forReal);
     }
 
     /**

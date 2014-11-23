@@ -42,15 +42,16 @@ type labelTranslation struct {
 }
 
 var channelConversion = map[string]string{
-
-	"A1": "sen:adc:1", // ADC:
-	"A2": "sen:adc:2",
-	"A3": "sen:adc:3",
-	"I1": "sen:input:1", // GPIO Input:
-	"I2": "sen:input:2",
-	"L":  "sen:loc", // Location:
-	"G":  "sen:loc",
-	"T":  "sen:temp", // Temperature
+	"A1":  "sen:adc:1",
+	"A2":  "sen:adc:2",
+	"A3":  "sen:adc:3",
+	"I1":  "sen:input:1",
+	"I2":  "sen:input:2",
+	"L":   "sen:loc",
+	"G":   "sen:loc",
+	"T":   "sen:temp",
+	"V":   "sen:volt",
+	"SMS": "sen:sms_received",
 }
 
 const IDENTIFICATION_TIMEOUT = time.Duration(time.Second * 30)

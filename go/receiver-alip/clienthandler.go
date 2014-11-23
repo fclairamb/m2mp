@@ -36,6 +36,23 @@ type ClientHandler struct {
 	cmdShort                map[int]string
 }
 
+type labelTranslation struct {
+	short string
+	long  string
+}
+
+var channelConversion = map[string]string{
+
+	"A1": "sen:adc:1", // ADC:
+	"A2": "sen:adc:2",
+	"A3": "sen:adc:3",
+	"I1": "sen:input:1", // GPIO Input:
+	"I2": "sen:input:2",
+	"L":  "sen:loc", // Location:
+	"G":  "sen:loc",
+	"T":  "sen:temp", // Temperature
+}
+
 const IDENTIFICATION_TIMEOUT = time.Duration(time.Second * 30)
 
 const MQ_CALL_DISCONNECT_IF_NOT_IDENTIFIED = "disconnect_if_not_identified"
@@ -253,7 +270,7 @@ func (ch *ClientHandler) runCoreHandling() {
 						ch.Send("QUIT bye !")
 						err = ch.Conn.Close()
 					default:
-						err = errors.New(fmt.Sprintf("Command \"%s\" not understood ! - See http://bit.ly/WqnmB1 for help", cmd))
+						err = errors.New(fmt.Sprintf("Command \"%s\" not understood ! - See http://bit.ly/m2mp-alip for help", cmd))
 					}
 				} else {
 					log.Warning("%s - We got disconnected !", ch)
@@ -454,29 +471,37 @@ func (ch *ClientHandler) handleDebugRequest(request string) error {
 	return nil
 }
 
+func (this *ClientHandler) convertTypeShortToLong(input string) string {
+	output := channelConversion[input]
+	if output == "" {
+		output = input
+	}
+	return output
+}
+
 func (ch *ClientHandler) processDataRequestL(store *mq.JsonWrapper, content string) error {
-	store.Set("type", "sen:loc")
+	//store.Set("type", "sen:loc")
 	tokens := strings.Split(content, ",")
 	data := sjson.New()
 	store.Set("data", data)
 	// lat,lon
 	if len(tokens) >= 2 {
 		if lat, err := strconv.ParseFloat(tokens[0], 64); err != nil {
-			return errors.New(fmt.Sprintf("Invalid latitude: %v", err))
+			return errors.New(fmt.Sprintf("Invalid latitude \"%s\": %v", tokens[0], err))
 		} else {
 			data.Set("lat", lat)
 		}
 
 		lon, err := strconv.ParseFloat(tokens[1], 64)
 		if err != nil {
-			return errors.New(fmt.Sprintf("Invalid longitude: %v", err))
+			return errors.New(fmt.Sprintf("Invalid longitude \"%s\": %v", tokens[1], err))
 		} else {
 			data.Set("lon", lon)
 		}
 
 		if len(tokens) >= 3 {
 			if spd, err := strconv.ParseFloat(tokens[2], 64); err != nil {
-				return errors.New(fmt.Sprintf("Invalid speed \"%s\" : %v", tokens[2]))
+				return errors.New(fmt.Sprintf("Invalid speed \"%s\": %v", tokens[2], err))
 			} else {
 				data.Set("spd", spd)
 			}
@@ -484,7 +509,7 @@ func (ch *ClientHandler) processDataRequestL(store *mq.JsonWrapper, content stri
 
 		if len(tokens) >= 4 {
 			if alt, err := strconv.ParseFloat(tokens[3], 64); err != nil {
-				return errors.New(fmt.Sprintf("Invalid altitude \"%s\" : %v", tokens[3]))
+				return errors.New(fmt.Sprintf("Invalid altitude \"%s\": %v", tokens[3], err))
 			} else {
 				data.Set("alt", alt)
 			}
@@ -511,7 +536,7 @@ func convertRMC(deg float64) float64 {
 }
 
 func (ch *ClientHandler) processDataRequestG(store *mq.JsonWrapper, content string) error {
-	store.Set("type", "sen:loc")
+	//store.Set("type", "sen:loc")
 	tokens := strings.Split(content, ",")
 	data := sjson.New()
 	store.Set("data", data)
@@ -577,7 +602,7 @@ func (ch *ClientHandler) processDataRequest(dataTime time.Time, dataType, conten
 	store := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
 	store.Set("date_uuid", mq.UUIDFromTime(dataTime))
 	store.Set("key", "dev-"+ch.device.Id())
-	store.Set("type", dataType)
+	store.Set("type", ch.convertTypeShortToLong(dataType))
 
 	switch dataType {
 	case "echo":
@@ -631,16 +656,19 @@ func (ch *ClientHandler) handleTimedDataRequest(content string) error {
 func doYourBestWithTime(input string) (time.Time, error) {
 	length := len(input)
 	switch {
+	// Unix timestamp
 	case length >= 10 && length < 12:
 		if value, err := strconv.ParseInt(input, 10, 64); err == nil {
 			return time.Unix(int64(value), 0), nil
 		}
+	// Format: YYmmddDDHHMMSS
 	case length == 12:
 		if t, err := time.Parse("060102150405", input); err == nil {
 			return t, nil
 		} else {
 			return time.Unix(0, 0), errors.New(fmt.Sprintf("GPS1 time: %v", err))
 		}
+	// Format: YYYYmmddHHMMSS
 	case length >= 14:
 		if t, err := time.Parse("20060102150405", input); err == nil {
 			return t, nil

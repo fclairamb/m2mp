@@ -1,3 +1,11 @@
+m2mp (0.1-19) unstable; urgency=low
+
+  * receiver-alip: 
+    * Added generic short type to actual type conversion
+    * Added some documentation
+
+ -- Florent Clairambault <florent@xps>  Sun, 23 Nov 2014 19:31:57 +0100
+
 m2mp (0.1-18) unstable; urgency=medium
 
   * m2mp-protocol: Choosing a generic channel name when the received channel id is unknown

@@ -57,7 +57,12 @@ var channelConversion = map[string]string{
 
 const IDENTIFICATION_TIMEOUT = time.Duration(time.Second * 30)
 
-const MQ_CALL_DISCONNECT_IF_NOT_IDENTIFIED = "disconnect_if_not_identified"
+const (
+	MQ_CALL_DISCONNECT                   = "disconnect"
+	MQ_CALL_SEND_SETTINGS                = "send_settings"
+	MQ_CALL_SEND_COMMANDS                = "send_commands"
+	MQ_CALL_DISCONNECT_IF_NOT_IDENTIFIED = "disconnect_if_not_identified"
+)
 
 func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
 	now := time.Now().UTC()
@@ -203,15 +208,15 @@ func (ch *ClientHandler) considerCurrentStatus() {
 
 func (this *ClientHandler) handleMQMessage(msg *mq.JsonWrapper) {
 	switch msg.Call() {
-	case "disconnect":
+	case MQ_CALL_DISCONNECT:
 		log.Warning("%s - Server requesting to close the connection !", this)
 		this.Close()
-	case "send_settings":
+	case MQ_CALL_SEND_SETTINGS:
 		log.Debug("%s - Sending settings", this)
 		if err := this.sendSettingsToSend(); err != nil {
 			log.Warning("%s - Error while sending settings: %v", this, err)
 		}
-	case "send_commands":
+	case MQ_CALL_SEND_COMMANDS:
 		log.Debug("%s - Sending commands", this)
 		if err := this.sendCommands(); err != nil {
 			log.Warning("%s - Error while sending commands: %v", this, err)

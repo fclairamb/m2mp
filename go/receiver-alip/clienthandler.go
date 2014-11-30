@@ -42,16 +42,17 @@ type labelTranslation struct {
 }
 
 var channelConversion = map[string]string{
-	"A1":  "sen:adc:1",
-	"A2":  "sen:adc:2",
-	"A3":  "sen:adc:3",
-	"I1":  "sen:input:1",
-	"I2":  "sen:input:2",
-	"L":   "sen:loc",
-	"G":   "sen:loc",
-	"T":   "sen:temp",
-	"V":   "sen:volt",
-	"SMS": "sen:sms_received",
+	"A1":  "sen:adc:1",        // ADC input 1
+	"A2":  "sen:adc:2",        // ADC input 2
+	"A3":  "sen:adc:3",        // ADC input 3
+	"I1":  "sen:input:1",      // GPIO Input 1
+	"I2":  "sen:input:2",      // GPIO Input 2
+	"L":   "sen:loc",          // Location
+	"G":   "sen:loc",          // Location
+	"T":   "sen:temp",         // Device's temperature
+	"V":   "sen:volt",         // Device's input voltage
+	"D":   "sen:door",         // Door
+	"SMS": "sen:sms_received", // Received SMS
 }
 
 const IDENTIFICATION_TIMEOUT = time.Duration(time.Second * 30)

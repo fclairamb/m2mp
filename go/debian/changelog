@@ -1,4 +1,4 @@
-m2mp (0.1-20) UNRELEASED; urgency=medium
+m2mp (0.1-20) unstable; urgency=low
 
   * receiver-alip: Changing some short to actual conversions
 

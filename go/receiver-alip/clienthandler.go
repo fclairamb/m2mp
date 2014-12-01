@@ -53,6 +53,7 @@ var channelConversion = map[string]string{
 	"V":   "sen:volt",         // Device's input voltage
 	"D":   "sen:door",         // Door
 	"SMS": "sen:sms_received", // Received SMS
+	"ver": "sen:version",      // Application version
 }
 
 const IDENTIFICATION_TIMEOUT = time.Duration(time.Second * 30)

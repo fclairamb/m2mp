@@ -1,3 +1,9 @@
+m2mp (0.1-21) unstable; urgency=low
+
+  * receiver-alip: Adding channel conversion: ver --> sen:version
+
+ -- Florent Clairambault <florent@xps>  Mon, 01 Dec 2014 02:32:55 +0100
+
 m2mp (0.1-20) unstable; urgency=low
 
   * receiver-alip: Changing some short to actual conversions

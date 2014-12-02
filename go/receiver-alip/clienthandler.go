@@ -45,8 +45,12 @@ var channelConversion = map[string]string{
 	"A1":  "sen:adc:1",        // ADC input 1
 	"A2":  "sen:adc:2",        // ADC input 2
 	"A3":  "sen:adc:3",        // ADC input 3
-	"I1":  "sen:input:1",      // GPIO Input 1
-	"I2":  "sen:input:2",      // GPIO Input 2
+	"DI1": "sen:gpio:1",       // GPIO 1
+	"DI2": "sen:gpio:2",       // GPIO 2
+	"DI3": "sen:gpio:3",       // GPIO 3
+	"DI4": "sen:gpio:4",       // GPIO 4
+	"DI5": "sen:gpio:5",       // GPIO 5
+	"DI6": "sen:gpio:6",       // GPIO 6
 	"L":   "sen:loc",          // Location
 	"G":   "sen:loc",          // Location
 	"T":   "sen:temp",         // Device's temperature

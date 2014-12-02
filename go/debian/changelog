@@ -1,3 +1,9 @@
+m2mp (0.1-22) unstable; urgency=low
+
+  * receiver-alip: Adding channel conversions: DI<nb> --> sen:gpio:<nb> 
+
+ -- Florent Clairambault <florent@xps>  Tue, 02 Dec 2014 02:41:26 +0100
+
 m2mp (0.1-21) unstable; urgency=low
 
   * receiver-alip: Adding channel conversion: ver --> sen:version

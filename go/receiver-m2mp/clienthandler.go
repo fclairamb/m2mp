@@ -388,11 +388,18 @@ func (ch *ClientHandler) handleDataArraySettings(msg *pr.MessageDataArray) error
 
 	requestType := string(msg.Data[0])
 
-	if requestType == "ga" {
+	if requestType == "ga" { // "get all" settings
 		return ch.sendSettingsAll()
 	}
 
-	if strings.Contains(requestType, "g") {
+	if requestType == "u" { // unknown settings
+		for i := 1; i < len(msg.Data); i++ {
+			v := string(msg.Data[i])
+			ch.device.DelSetting(v)
+		}
+	}
+
+	if strings.Contains(requestType, "g") { // "get" settings
 		for i := 1; i < len(msg.Data); i++ {
 			v := string(msg.Data[i])
 			tokens := strings.SplitN(v, "=", 2)

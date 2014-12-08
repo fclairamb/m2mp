@@ -1,3 +1,11 @@
+m2mp (0.1-23) unstable; urgency=low
+
+  * M2MP: Added dated sensor support. It's already present in ALIP and it has been a long-missing feature.
+    * receiver-m2mp: Forwarding packets of array of byte arrays to allow convert to handle dated sensors
+    * converter-m2mp: Added dated sensor handling.
+
+ -- Florent Clairambault <florent@xps>  Mon, 08 Dec 2014 03:09:25 +0100
+
 m2mp (0.1-22) unstable; urgency=low
 
   * receiver-alip: Adding channel conversions: DI<nb> --> sen:gpio:<nb> 

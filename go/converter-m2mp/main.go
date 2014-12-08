@@ -8,8 +8,10 @@ import (
 	mq "github.com/fclairamb/m2mp/go/m2mp-messaging"
 	//	"github.com/gocql/gocql"
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -96,7 +98,7 @@ func (this *ConverterService) convertMessageLoc(src, store *mq.JsonWrapper, raw 
 	return nil
 }
 
-func (this *ConverterService) convertMessage(src *mq.JsonWrapper) {
+func (this *ConverterService) convertMessageSimple(src *mq.JsonWrapper) {
 	store := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
 	channel := src.Get("channel").MustString("")
 	store.Set("date_uuid", mq.UUIDFromTime(src.Time()))
@@ -126,13 +128,75 @@ func (this *ConverterService) convertMessage(src *mq.JsonWrapper) {
 	}
 }
 
+func (this *ConverterService) convertMessageArray(src *mq.JsonWrapper) {
+	store := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
+	channel := src.Get("channel").MustString("")
+	store.Set("date_uuid", mq.UUIDFromTime(src.Time()))
+	store.Set("key", "dev-"+src.Get("device_id").MustString(""))
+	store.Set("type", channel)
+
+	data, err := src.Get("data").Array()
+
+	if err == nil {
+		if strings.HasPrefix(channel, "sen:") { // dated sensor is a special thing
+			{ // We fetch the data
+				var raw []byte
+				raw, err = hex.DecodeString(data[1].(string))
+				if err == nil {
+					store.Set("data", string(raw))
+				}
+			}
+
+			if err == nil { // And we fetch the date
+				var timestamp uint32
+				var raw []byte
+				raw, err = hex.DecodeString(data[0].(string))
+				if err == nil {
+					buf := bytes.NewReader(raw)
+					binary.Read(buf, binary.BigEndian, &timestamp)
+					store.Set("date_uuid", mq.UUIDFromTime(time.Unix(int64(timestamp), 0)))
+				}
+			}
+		} else {
+			datas := make([]string, 0)
+		dataIteration:
+			for _, s := range data {
+				switch s.(type) {
+				case string: // We only accept strings here
+					var raw []byte
+					raw, err = hex.DecodeString(s.(string))
+					if err == nil {
+						datas = append(datas, string(raw))
+					} else {
+						err = errors.New(fmt.Sprintf("Wrong data: %v, could not hex-decode it !", s))
+						break dataIteration
+					}
+				default:
+					err = errors.New(fmt.Sprintf("Wrong type: %T for %v, could not hex-decode it !", s, s))
+					break dataIteration
+				}
+			}
+			store.Set("data", datas)
+		}
+	}
+
+	if err == nil {
+		this.mqClient.Publish(store)
+	} else {
+		log.Warning("Error: %v", err)
+	}
+}
+
 func (this *ConverterService) handleMessaging(m *mq.JsonWrapper) {
 	log.Debug("Handling %v", m)
 	call := m.Call()
 
 	switch call {
 	case "data_simple":
-		this.convertMessage(m)
+		this.convertMessageSimple(m)
+
+	case "data_array":
+		this.convertMessageArray(m)
 
 	case "quit":
 		this.quitRc <- 3 // It's not an error, and it's not 0 or 2 so that supervisor restarts it

@@ -369,12 +369,37 @@ func (ch *ClientHandler) handleDataArray(msg *pr.MessageDataArray) error {
 		log.Debug("%s --> \"%s\" : %s", ch, msg.Channel, msg.Data)
 	}
 
-	if msg.Channel == "_set" {
+	switch msg.Channel {
+	case "_set":
 		return ch.handleDataArraySettings(msg)
-	} else if msg.Channel == "_sta" {
+	case "_sta":
 		return ch.handleDataArrayStatus(msg)
-	} else if msg.Channel == "_cmd" {
+	case "_cmd":
 		return ch.handleDataArrayCommand(msg)
+	default:
+		{
+			target := "converter-m2mp"
+
+			if dct := ch.getDeviceChannelTranslator(); dct != nil {
+				if t := dct.GetTarget(msg.Channel); t != nil {
+					target = *t
+				}
+			}
+
+			{ // We send the data to the converter, and it has to deal with it...
+				m := mq.NewMessage(target, "data_array")
+				m.SetFrom(fmt.Sprintf(":connection_id:%d", ch.Id))
+				m.Set("connection_id", fmt.Sprint(ch.Id))
+				m.Set("device_id", ch.device.Id())
+				data := make([]string, 0)
+				for _, b := range msg.Data {
+					data = append(data, hex.EncodeToString(b))
+				}
+				m.Set("data", data)
+				m.Set("channel", msg.Channel)
+				ch.SendMessage(m)
+			}
+		}
 	}
 
 	return nil

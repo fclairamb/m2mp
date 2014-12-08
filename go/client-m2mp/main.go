@@ -32,7 +32,7 @@ func handleSendArrayText(channel, data string) {
 func handleSendArrayBin(channel, data string) error {
 	msg := pr.NewMessageDataArray(channel)
 	for _, v := range strings.Split(data, " ") {
-		if b, err := hex.DecodeString(v); err != nil {
+		if b, err := hex.DecodeString(v); err == nil {
 			msg.Add(b)
 		} else {
 			return err

@@ -16,6 +16,18 @@ import (
 
 const DATA_DIR = "client-alip-data"
 
+const (
+	SETTING_SERVERS    = "servers"
+	SETTING_MODE       = "mode"
+	SETTING_GPS_PERIOD = "gps.period"
+)
+
+var authorized_settings = []string{
+	SETTING_SERVERS,
+	SETTING_MODE,
+	SETTING_GPS_PERIOD,
+}
+
 type Core struct {
 	sync.RWMutex
 	waitForRc      chan int
@@ -78,7 +90,7 @@ func NewClient(id int) *Client {
 		File:     fmt.Sprintf("%s/c%d.json", DATA_DIR, id),
 		recvLine: make(chan string),
 		cmdLine:  make(chan string),
-		ticker:   time.NewTicker(time.Second * 15),
+		ticker:   time.NewTicker(time.Second * 5),
 	}
 	return clt
 }
@@ -107,26 +119,47 @@ func (this *Client) considerState() {
 		log.Info("%s - Sending identification request", this)
 		this.Send(fmt.Sprintf("ID %s", this.data.Ident))
 	} else {
+		mode := this.data.Settings[SETTING_MODE]
 		now := time.Now().UTC()
-		if now.Sub(this.lastLoc) > time.Minute {
-			this.lastLoc = now
-			switch this.lastLoc.Nanosecond() % 3 {
-			case 0:
-				log.Info("%s - Sending full location", this)
-				lat := 48.8 + rand.Float64()
-				lon := 2.5 + rand.Float64()
-				spd := 20 + rand.Int63()%20
-				alt := 400 + rand.Int63()%100
-				this.Send(fmt.Sprintf("D L %d,%6.5f,%6.5f,%d,%d", this.lastLoc.Unix(), lat, lon, spd, alt))
-			case 1:
-				log.Info("%s - Sending lat,lon only location", this)
-				lat := 48.8 + rand.Float64()
-				lon := 2.5 + rand.Float64()
-				this.Send(fmt.Sprintf("D L %v,%v,%v", this.lastLoc.Unix(), lat, lon))
-			case 2:
-				log.Info("%s - Sending satellites only", this)
-				sat := rand.Int() % 15
-				this.Send(fmt.Sprintf("D L %v,%v", this.lastLoc.Unix(), sat))
+
+		log.Debug("mode = %v", mode.Value)
+
+		if mode.Value == "tracker" {
+			if period, err := strconv.Atoi(this.data.Settings[SETTING_GPS_PERIOD].Value); err == nil {
+				if now.Sub(this.lastLoc) > time.Duration(period)*time.Second {
+					this.lastLoc = now
+					log.Info("%s - Sending full location", this)
+					lat := 48.8 + rand.Float64()
+					lon := 2.5 + rand.Float64()
+					spd := 20 + rand.Int63()%20
+					alt := 400 + rand.Int63()%100
+					this.Send(fmt.Sprintf("D L %6.5f,%6.5f,%d,%d", lat, lon, spd, alt))
+				}
+			} else {
+				this.data.Settings[SETTING_GPS_PERIOD] = Setting{Value: "15", Changed: true}
+				this.Save()
+			}
+		} else {
+			if now.Sub(this.lastLoc) > time.Minute {
+				this.lastLoc = now
+				switch this.lastLoc.Nanosecond() % 3 {
+				case 0:
+					log.Info("%s - Sending full location", this)
+					lat := 48.8 + rand.Float64()
+					lon := 2.5 + rand.Float64()
+					spd := 20 + rand.Int63()%20
+					alt := 400 + rand.Int63()%100
+					this.Send(fmt.Sprintf("E %d L %6.5f,%6.5f,%d,%d", this.lastLoc.Unix(), lat, lon, spd, alt))
+				case 1:
+					log.Info("%s - Sending lat,lon only location", this)
+					lat := 48.8 + rand.Float64()
+					lon := 2.5 + rand.Float64()
+					this.Send(fmt.Sprintf("E %v L %v,%v", this.lastLoc.Unix(), lat, lon))
+				case 2:
+					log.Info("%s - Sending satellites only", this)
+					sat := rand.Int() % 15
+					this.Send(fmt.Sprintf("E %v L %v", this.lastLoc.Unix(), sat))
+				}
 			}
 		}
 		if now.Sub(this.lastMem) > time.Minute*5 {
@@ -146,6 +179,16 @@ func (this *Client) sendAllSettings() {
 	}
 }
 
+func (this *Client) isAuthorizedSetting(name string) bool {
+	for _, n := range authorized_settings {
+		if name == n {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (this *Client) handleSettingsCmd(command string) {
 	tokens := strings.SplitN(command, " ", 2)
 
@@ -156,9 +199,17 @@ func (this *Client) handleSettingsCmd(command string) {
 	case "S":
 		tokens := strings.SplitN(tokens[1], " ", 2)
 		name := tokens[0]
+
+		if !this.isAuthorizedSetting(name) {
+			this.Send(fmt.Sprintf("S U %s", name))
+			return
+		}
+
 		value := tokens[1]
 		log.Info("%s - Server is setting \"%s\" to value \"%s\"", this, name, value)
 		this.data.Settings[name] = Setting{Value: value}
+		this.Save()
+		this.Send(fmt.Sprintf("S A %s %s", name, value))
 	}
 }
 
@@ -174,6 +225,8 @@ func (this *Client) handleCommandCmd(command string) {
 	case "quit":
 		log.Warning("%s - We're quitting !", this)
 		core.waitForRc <- 0
+	case "settings":
+		this.sendAllSettings()
 	}
 }
 
@@ -243,11 +296,11 @@ func (this *Client) Run() {
 		}
 	}
 	for {
-		if this.data.Settings["servers"].Value == "" {
-			this.data.Settings["servers"] = Setting{Value: "localhost:3050,ovh3.webingenia.com:3050"}
+		if this.data.Settings[SETTING_SERVERS].Value == "" {
+			this.data.Settings[SETTING_SERVERS] = Setting{Value: "localhost:3050,ovh3.webingenia.com:3050"}
 		}
 		this.Save()
-		for _, server := range strings.Split(this.data.Settings["servers"].Value, ",") {
+		for _, server := range strings.Split(this.data.Settings[SETTING_SERVERS].Value, ",") {
 			server = strings.Trim(server, " ")
 			log.Info("Connecting to %s", server)
 			if this.conn, err = net.Dial("tcp", server); err != nil {

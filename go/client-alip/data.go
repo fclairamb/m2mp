@@ -38,6 +38,10 @@ func NewData(file string) (*Data, error) {
 	}
 }
 
+func (this *Data) Init() {
+
+}
+
 func (this *Data) Save(file string) error {
 	if content, err := json.Marshal(this); err == nil {
 		if err := ioutil.WriteFile(file, content, 0644); err != nil {

@@ -374,29 +374,35 @@ func (ch *ClientHandler) handleSettingRequest(request string) error {
 	switch { // Sorted by their probability of usage
 
 	// Acknowledge a setting
+	// S A <name> <value>
 	case tokens[0] == "A" && len(tokens) == 3:
 		return ch.device.AckSetting(tokens[1] /* name */, tokens[2] /* value */)
 
 	// Define a new setting
+	// S S <name> <value>
 	case tokens[0] == "S" && len(tokens) == 3:
 		return ch.device.AckSetting(tokens[1] /* name */, tokens[2] /* value */)
 
 	// Get all the settings (even the one acknowledged)
+	// S GA
 	case tokens[0] == "GA" && len(tokens) == 1:
 		return ch.sendSettingsAll()
 
-		// Erasing a setting because it's undefined
+	// Erasing a setting because it's undefined
+	// S U <name>
 	case tokens[0] == "U" && len(tokens) == 2:
 		ch.device.DelSetting(tokens[1] /* name */)
 
 	// Get a particular setting
+	// S G <name>
 	case tokens[0] == "G" && len(tokens) == 2:
 		name := tokens[1]
 		value := ch.device.Setting(name)
 		ch.Send(fmt.Sprintf("S S %s %s", name, value))
 		return nil
 
-	// Get all settings that we need to send
+	// Get all settings that we need to send:
+	// S G
 	case tokens[0] == "G":
 		return ch.sendSettingsToSend()
 

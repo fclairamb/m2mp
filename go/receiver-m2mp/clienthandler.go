@@ -365,9 +365,9 @@ func (ch *ClientHandler) handleData(msg *pr.MessageDataSimple) error {
 
 func (ch *ClientHandler) handleDataArray(msg *pr.MessageDataArray) error {
 
-	if ch.LogLevel >= 7 {
-		log.Debug("%s --> \"%s\" : %s", ch, msg.Channel, msg.Data)
-	}
+	//if ch.LogLevel >= 7 {
+	//	log.Debug("%s --> \"%s\" : %s", ch, msg.Channel, msg.Data)
+	//}
 
 	switch msg.Channel {
 	case "_set":

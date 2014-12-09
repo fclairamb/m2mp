@@ -259,22 +259,10 @@ func (ch *ClientHandler) getDeviceChannelTranslator() *ent.DeviceChannelTrans {
 	return ch.deviceChannelTranslator
 }
 
+const WORKAROUND_AVOID_INSTANT_TRANSMISSION = true
+
 func (ch *ClientHandler) justIdentified() error {
 	ch.daddy.clientIdentified(ch)
-
-	err := ch.sendSettingsToSend()
-
-	if err == nil {
-		err = ch.sendCommands()
-	}
-
-	if err == nil {
-		err = ch.checkCapacities()
-	}
-
-	if err == nil {
-		err = ch.checkSettings()
-	}
 
 	{ // We report it in events
 		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_identified")
@@ -317,6 +305,25 @@ func (ch *ClientHandler) justIdentified() error {
 		m.Set("date_uuid", mq.UUIDFromTime(ch.connectionTime))
 		m.Set("type", "_server")
 		ch.SendMessage(m)
+	}
+
+	// On some devices, sending data instantly has proven to be an issue
+	if WORKAROUND_AVOID_INSTANT_TRANSMISSION {
+		time.Sleep(time.Second * 5)
+	}
+
+	err := ch.sendSettingsToSend()
+
+	if err == nil {
+		err = ch.sendCommands()
+	}
+
+	if err == nil {
+		err = ch.checkCapacities()
+	}
+
+	if err == nil {
+		err = ch.checkSettings()
 	}
 
 	return err

@@ -122,13 +122,18 @@ func (this *Client) considerState() {
 		mode := this.data.Settings[SETTING_MODE]
 		now := time.Now().UTC()
 
-		log.Debug("mode = %v", mode.Value)
+		if mode.Value == "" {
+			mode.Value = "default"
+			this.data.Settings[SETTING_MODE] = Setting{Value: mode.Value, Changed: true}
+			this.Save()
+			this.Send(fmt.Sprintf("S S %s %s", SETTING_MODE, mode.Value))
+		}
 
 		if mode.Value == "tracker" {
 			if period, err := strconv.Atoi(this.data.Settings[SETTING_GPS_PERIOD].Value); err == nil {
 				if now.Sub(this.lastLoc) > time.Duration(period)*time.Second {
 					this.lastLoc = now
-					log.Info("%s - Sending full location", this)
+					log.Info("%s - Tracker - Sending full location", this)
 					lat := 48.8 + rand.Float64()
 					lon := 2.5 + rand.Float64()
 					spd := 20 + rand.Int63()%20
@@ -138,25 +143,26 @@ func (this *Client) considerState() {
 			} else {
 				this.data.Settings[SETTING_GPS_PERIOD] = Setting{Value: "15", Changed: true}
 				this.Save()
+				this.Send(fmt.Sprintf("S S %s %s", SETTING_GPS_PERIOD, this.data.Settings[SETTING_GPS_PERIOD].Value))
 			}
 		} else {
 			if now.Sub(this.lastLoc) > time.Minute {
 				this.lastLoc = now
 				switch this.lastLoc.Nanosecond() % 3 {
 				case 0:
-					log.Info("%s - Sending full location", this)
+					log.Info("%s - Default - Sending full location", this)
 					lat := 48.8 + rand.Float64()
 					lon := 2.5 + rand.Float64()
 					spd := 20 + rand.Int63()%20
 					alt := 400 + rand.Int63()%100
 					this.Send(fmt.Sprintf("E %d L %6.5f,%6.5f,%d,%d", this.lastLoc.Unix(), lat, lon, spd, alt))
 				case 1:
-					log.Info("%s - Sending lat,lon only location", this)
+					log.Info("%s - Default - Sending lat,lon only location", this)
 					lat := 48.8 + rand.Float64()
 					lon := 2.5 + rand.Float64()
 					this.Send(fmt.Sprintf("E %v L %v,%v", this.lastLoc.Unix(), lat, lon))
 				case 2:
-					log.Info("%s - Sending satellites only", this)
+					log.Info("%s - Default - Sending satellites only", this)
 					sat := rand.Int() % 15
 					this.Send(fmt.Sprintf("E %v L %v", this.lastLoc.Unix(), sat))
 				}

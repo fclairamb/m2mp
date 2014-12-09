@@ -1,3 +1,9 @@
+m2mp (0.1-24) unstable; urgency=low
+
+  * receiver-m2mp: Added a workaround for old devices. This will be implemented better later.
+
+ -- Florent Clairambault <florent@xps>  Tue, 09 Dec 2014 03:26:16 +0100
+
 m2mp (0.1-23) unstable; urgency=low
 
   * M2MP: Added dated sensor support. It's already present in ALIP and it has been a long-missing feature.

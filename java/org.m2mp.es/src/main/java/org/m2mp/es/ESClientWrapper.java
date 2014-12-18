@@ -9,12 +9,13 @@ import io.searchbox.client.config.ClientConfig;
 import io.searchbox.core.Delete;
 import io.searchbox.core.Index;
 import io.searchbox.params.Parameters;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class ESClientWrapper {
 
@@ -51,12 +52,7 @@ public class ESClientWrapper {
 	private static Action entityToIndex(EsIndexable eib) {
 		JsonObject content = eib.getEsIndexableContent();
 		if (content == null) {
-			Delete.Builder builder = new Delete.Builder().id(eib.getEsDocId()).index(eib.getEsIndexName()).type(eib.getEsDocType());
-			String esRouting = eib.getEsRouting();
-			if (esRouting != null) {
-				builder = builder.setParameter(Parameters.ROUTING, esRouting);
-			}
-			return builder.build();
+			return entityToDelete(eib);
 		} else {
 			Index.Builder builder = new Index.Builder(content.toString()).id(eib.getEsDocId()).type(eib.getEsDocType()).index(eib.getEsIndexName());
 			String esRouting = eib.getEsRouting();
@@ -67,9 +63,26 @@ public class ESClientWrapper {
 		}
 	}
 
+	private static Action entityToDelete(EsIndexable eib) {
+		Delete.Builder builder = new Delete.Builder().id(eib.getEsDocId()).type(eib.getEsDocType());
+		String esRouting = eib.getEsRouting();
+		if (esRouting != null) {
+			builder = builder.setParameter(Parameters.ROUTING, esRouting);
+		}
+		return builder.build();
+	}
+
 	public static void index(EsIndexable entity) {
 		try {
 			ESClientWrapper.execute(entityToIndex(entity));
+		} catch (Exception ex) {
+			log.catching(ex);
+		}
+	}
+
+	public static void delete(EsIndexable entity) {
+		try {
+			ESClientWrapper.execute(entityToDelete(entity));
 		} catch (Exception ex) {
 			log.catching(ex);
 		}
@@ -80,6 +93,15 @@ public class ESClientWrapper {
 			@Override
 			public void run() {
 				index(entity);
+			}
+		});
+	}
+
+	public static void deleteLater(final EsIndexable entity) {
+		executor.submit(new Runnable() {
+			@Override
+			public void run() {
+				delete(entity);
 			}
 		});
 	}

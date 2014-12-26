@@ -484,6 +484,17 @@ public class RegistryNode {
         }
     }
 
+    /**
+     * Delete all properties.
+     */
+    public void delProperties() {
+        List<String> list = new ArrayList<>();
+        list.addAll(getPropertyNames());
+        for( String propertyName : list) {
+            delProperty(propertyName);
+        }
+    }
+
     public void delProperty(String name) {
         DB.execute(DB.prepare("DELETE values[ ? ] FROM " + TABLE_REGISTRY + " WHERE path = ?;").bind(name, path));
         if (properties != null) {
@@ -606,7 +617,7 @@ public class RegistryNode {
         }
     }
 
-    public Iterable<String> getPropertyNames() {
+    public Collection<String> getPropertyNames() {
         return getProperties().keySet();
     }
 

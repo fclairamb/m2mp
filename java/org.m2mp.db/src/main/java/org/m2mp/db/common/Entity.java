@@ -65,6 +65,10 @@ public abstract class Entity {
         node.setProperty(name, id);
     }
 
+    protected void setProperty(String name, double value) {
+        node.setProperty(name, value);
+    }
+
     protected String getProperty(String name, String value) {
         return node.getProperty(name, value);
     }
@@ -78,6 +82,10 @@ public abstract class Entity {
     }
 
     protected boolean getProperty(String name, boolean defaultValue) {
+        return node.getProperty(name, defaultValue);
+    }
+
+    protected double getProperty(String name, double defaultValue) {
         return node.getProperty(name, defaultValue);
     }
 

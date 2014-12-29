@@ -452,6 +452,11 @@ public class RegistryNode {
         return getProperty(name, defaultValue ? "1" : "0").equals("1");
     }
 
+    public double getProperty(String name, double defaultValue) {
+        String value = getProperty(name, (String) null );
+        return value != null ? Double.parseDouble(value) : defaultValue;
+    }
+
     public String getPropertyString(String name) {
         return getProperty(name, (String) null);
     }
@@ -521,7 +526,11 @@ public class RegistryNode {
     }
 
     public void setProperty(String name, long value) {
-        setProperty(name, "" + value);
+        setProperty(name, Long.toString(value));
+    }
+
+    public void setProperty(String name, double value) {
+        setProperty(name, Double.toString(value));
     }
 
     public void setProperty(String name, long value, int ttl) {
@@ -690,4 +699,6 @@ public class RegistryNode {
     public String getValue(String name) {
         return getPropertyString(name);
     }
+
+
 }

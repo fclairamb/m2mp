@@ -89,6 +89,10 @@ public abstract class Entity {
         return node.getProperty(name, defaultValue);
     }
 
+    protected String getPropertyString(String name) {
+        return node.getPropertyString(name);
+    }
+
     protected Date getPropertyDate(String name) {
         return node.getPropertyDate(name);
     }

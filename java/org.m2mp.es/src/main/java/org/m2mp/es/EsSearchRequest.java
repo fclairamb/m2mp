@@ -1,7 +1,5 @@
 package org.m2mp.es;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.facet.AbstractFacetBuilder;
@@ -9,6 +7,9 @@ import org.elasticsearch.search.facet.FacetBuilders;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -30,7 +31,7 @@ public class EsSearchRequest {
 	}
 
 	public EsSearchRequest addSort(String fieldName, boolean order) {
-		addSort(SortBuilders.fieldSort(fieldName).order(order ? SortOrder.ASC : SortOrder.DESC));
+		addSort(SortBuilders.fieldSort(fieldName).order(order ? SortOrder.ASC : SortOrder.DESC).ignoreUnmapped(true));
 		return this;
 	}
 

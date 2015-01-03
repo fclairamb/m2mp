@@ -461,6 +461,11 @@ public class RegistryNode {
         return getProperty(name, (String) null);
     }
 
+    public Boolean getPropertyBoolean(String name) {
+        String value = getPropertyString(name);
+        return value != null ? Boolean.parseBoolean(value) : null;
+    }
+
     public Date getPropertyDate(String name) {
         long time = getProperty(name, (long) 0);
         return time != 0 ? new Date(time) : null;

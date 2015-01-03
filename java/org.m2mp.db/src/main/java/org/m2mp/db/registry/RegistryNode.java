@@ -463,7 +463,7 @@ public class RegistryNode {
 
     public Boolean getPropertyBoolean(String name) {
         String value = getPropertyString(name);
-        return value != null ? Boolean.parseBoolean(value) : null;
+        return value != null ? value.equals("1") : null;
     }
 
     public Date getPropertyDate(String name) {

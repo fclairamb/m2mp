@@ -93,6 +93,10 @@ public abstract class Entity {
         return node.getPropertyString(name);
     }
 
+    protected Boolean getPropertyBoolean(String name) {
+        return node.getPropertyBoolean(name);
+    }
+
     protected Date getPropertyDate(String name) {
         return node.getPropertyDate(name);
     }

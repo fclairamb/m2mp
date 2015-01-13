@@ -13,8 +13,9 @@ type Setting struct {
 }
 
 type Data struct {
-	Ident    string
-	Settings map[string]Setting
+	Ident      string
+	Settings   map[string]Setting
+	ReplayFile string
 }
 
 func NewData(file string) (*Data, error) {

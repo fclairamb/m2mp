@@ -272,6 +272,8 @@ func (ch *ClientHandler) runCoreHandling() {
 						err = ch.handleDataRequest(content)
 					case "E":
 						err = ch.handleTimedDataRequest(content)
+					case "J":
+						err = ch.handleJsonDataRequest(content)
 					case "A":
 						err = ch.handleAckRequest(content)
 					case "T":
@@ -560,6 +562,7 @@ func (ch *ClientHandler) processDataRequestG(store *mq.JsonWrapper, content stri
 	store.Set("data", data)
 	// date,lat,lon
 	if len(tokens) >= 3 {
+		// Date
 		// We accept all time formats
 		if dataTime, err := doYourBestWithTime(tokens[0]); err == nil {
 			store.Set("date_uuid", mq.UUIDFromTime(dataTime))
@@ -567,6 +570,7 @@ func (ch *ClientHandler) processDataRequestG(store *mq.JsonWrapper, content stri
 			return errors.New(fmt.Sprintf("Invalid date: \"%s\": %v", tokens[0], err))
 		}
 
+		// Latitude
 		if lat, err := strconv.ParseFloat(tokens[1], 64); err != nil {
 			return errors.New(fmt.Sprintf("Invalid latitude: %v", err))
 		} else {
@@ -574,6 +578,7 @@ func (ch *ClientHandler) processDataRequestG(store *mq.JsonWrapper, content stri
 			data.Set("lat", lat)
 		}
 
+		// Longitude
 		lon, err := strconv.ParseFloat(tokens[2], 64)
 		if err != nil {
 			return errors.New(fmt.Sprintf("Invalid longitude: %v", err))
@@ -582,6 +587,7 @@ func (ch *ClientHandler) processDataRequestG(store *mq.JsonWrapper, content stri
 			data.Set("lon", lon)
 		}
 
+		// Speed
 		if len(tokens) >= 4 {
 			if spd, err := strconv.ParseFloat(tokens[3], 64); err != nil {
 				return errors.New(fmt.Sprintf("Invalid speed \"%s\" : %v", tokens[2]))
@@ -592,6 +598,7 @@ func (ch *ClientHandler) processDataRequestG(store *mq.JsonWrapper, content stri
 			}
 		}
 
+		// Altitude
 		if len(tokens) >= 5 {
 			if alt, err := strconv.ParseFloat(tokens[4], 64); err != nil {
 				return errors.New(fmt.Sprintf("Invalid altitude \"%s\" : %v", tokens[3]))
@@ -640,6 +647,45 @@ func (ch *ClientHandler) processDataRequest(dataTime time.Time, dataType, conten
 	}
 
 	ch.SendMessage(store)
+	return nil
+}
+
+func (ch *ClientHandler) handleJsonDataRequest(content string) error {
+	if ch.device == nil {
+		return errors.New("You must be identified !")
+	}
+
+	tokens := strings.SplitN(content, " ", 3)
+
+	if len(tokens) < 3 {
+		return errors.New("You need to specify a time, a time a content.")
+	}
+
+	var time time.Time
+	if t, err := doYourBestWithTime(tokens[0]); err == nil {
+		time = t
+	} else {
+		return err
+	}
+
+	dataType := tokens[1]
+	body := tokens[2]
+
+	if strings.HasPrefix(dataType, "_") {
+		return errors.New(fmt.Sprintf("Forbidden data type: %s", dataType))
+	}
+
+	if data, err := sjson.NewJson([]byte(body)); err == nil {
+		store := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
+		store.Set("date_uuid", mq.UUIDFromTime(time))
+		store.Set("key", "dev-"+ch.device.Id())
+		store.Set("type", dataType)
+		store.Set("data", data)
+		ch.SendMessage(store)
+	} else {
+		return errors.New(fmt.Sprintf("Invalid json: %s: %v", content, err))
+	}
+
 	return nil
 }
 

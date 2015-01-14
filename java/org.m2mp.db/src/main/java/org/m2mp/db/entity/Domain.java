@@ -32,6 +32,9 @@ public class Domain extends Entity {
     private UUID domainId;
 
     public Domain(UUID id) {
+        if ( id == null ) {
+            throw new IllegalArgumentException("domain id cannot be null !");
+        }
         domainId = id;
         node = new RegistryNode(NODE_DOMAIN + id);
     }

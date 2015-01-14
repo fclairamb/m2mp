@@ -29,6 +29,7 @@ type ClientHandler struct {
 	lastSentData            time.Time
 	ticker                  *time.Ticker
 	pingCounter             byte
+	settingLastTransmission map[string]time.Time
 }
 
 func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
@@ -259,8 +260,6 @@ func (ch *ClientHandler) getDeviceChannelTranslator() *ent.DeviceChannelTrans {
 	return ch.deviceChannelTranslator
 }
 
-const WORKAROUND_AVOID_INSTANT_TRANSMISSION = true
-
 func (ch *ClientHandler) justIdentified() error {
 	ch.daddy.clientIdentified(ch)
 
@@ -305,11 +304,6 @@ func (ch *ClientHandler) justIdentified() error {
 		m.Set("date_uuid", mq.UUIDFromTime(ch.connectionTime))
 		m.Set("type", "_server")
 		ch.SendMessage(m)
-	}
-
-	// On some devices, sending data instantly has proven to be an issue
-	if WORKAROUND_AVOID_INSTANT_TRANSMISSION {
-		time.Sleep(time.Second * 5)
 	}
 
 	err := ch.sendSettingsToSend()
@@ -495,8 +489,12 @@ func (ch *ClientHandler) sendSettings(settings map[string]string) error {
 	msg.AddString("sg")
 	c := 0
 	for k, v := range settings {
-		msg.AddString(fmt.Sprintf("%s=%s", k, v))
-		c += 1
+		value := fmt.Sprintf("%s=%s", k, v)
+		lastTransmission := ch.settingLastTransmission[value]
+		if time.Now().UTC().Sub(lastTransmission) > (time.Second * 10) {
+			msg.AddString(value)
+			c += 1
+		}
 	}
 	if c != 0 {
 		return ch.Send(msg)

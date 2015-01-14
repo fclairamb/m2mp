@@ -40,9 +40,15 @@ func ParseReplayData(line string) *ReplayData {
 		}
 		d.Type = array[1]
 		d.Content = array[2]
+
+		if strings.HasPrefix(d.Type, "_") {
+			//log.Info("Skipping type %s...", d.Type)
+			return nil
+		}
+
 		return d
 	} else {
-		log.Error("array.len = %d", len(array))
+		log.Error("array.len = %d / %s", len(array), line)
 	}
 	return nil
 }
@@ -111,16 +117,22 @@ func doYourBestWithTime(input string) (time.Time, error) {
 }
 
 func (this *Replayer) Run() {
+
+	maxTimeWithoutAnything := time.Duration(time.Second * 15)
+
 	if file, err := os.Open(this.Filename); err == nil {
 		log.Info("File start !")
 		for {
 			file.Seek(0, 0)
 			reader := bufio.NewReader(file)
-			//lineNb := 0
+
+			if s, err := strconv.Atoi(this.clt.data.Settings["max_time_without_anything"].Value); err == nil {
+				maxTimeWithoutAnything = time.Duration(time.Second.Nanoseconds() * int64(s))
+			} else {
+				this.clt.data.Settings["max_time_without_anything"] = Setting{Value: fmt.Sprintf("%d", maxTimeWithoutAnything.Seconds())}
+			}
 
 			this.Offset = time.Duration(time.Now().UTC().UnixNano() - this.Begin.UTC().UnixNano())
-
-			//log.Debug("offset = %d", this.Offset/time.Second)
 
 			for {
 				if line, err := reader.ReadString('\n'); err == nil {
@@ -132,15 +144,22 @@ func (this *Replayer) Run() {
 						continue
 					}
 
-					simulatedTime := time.Unix(0, (data.Date.UTC().UnixNano() + this.Offset.Nanoseconds()))
+					var simulatedTime time.Time
+
+					for {
+						simulatedTime = time.Unix(0, (data.Date.UTC().UnixNano() + this.Offset.Nanoseconds()))
+						diff := time.Duration(simulatedTime.UnixNano() - time.Now().UTC().UnixNano())
+						if diff > maxTimeWithoutAnything {
+							log.Info("Reducing time from %d seconds to %d.", diff/time.Second, maxTimeWithoutAnything/time.Second)
+							this.Offset = time.Duration(this.Offset.Nanoseconds() - diff.Nanoseconds() + maxTimeWithoutAnything.Nanoseconds())
+							diff = maxTimeWithoutAnything
+						} else {
+							time.Sleep(diff)
+							break
+						}
+					}
 
 					data.Date = simulatedTime
-
-					diff := time.Duration(simulatedTime.UnixNano() - time.Now().UTC().UnixNano())
-
-					//log.Debug("diff = %d", diff/time.Second)
-
-					time.Sleep(diff)
 
 					//log.Debug("[%d] \"%s\" --> %v", lineNb, line, data)
 					this.clt.Send(fmt.Sprintf("J %s %s %s", data.Date.Format("20060102150405"), data.Type, data.Content))

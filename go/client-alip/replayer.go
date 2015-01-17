@@ -132,7 +132,7 @@ func (this *Replayer) Run() {
 				this.clt.data.Settings["max_time_without_anything"] = Setting{Value: fmt.Sprintf("%d", maxTimeWithoutAnything.Seconds())}
 			}
 
-			this.Offset = time.Duration(time.Now().UTC().UnixNano() - this.Begin.UTC().UnixNano())
+			this.Offset = time.Duration(time.Now().UnixNano() - this.Begin.UnixNano())
 
 			for {
 				if line, err := reader.ReadString('\n'); err == nil {
@@ -147,8 +147,8 @@ func (this *Replayer) Run() {
 					var simulatedTime time.Time
 
 					for {
-						simulatedTime = time.Unix(0, (data.Date.UTC().UnixNano() + this.Offset.Nanoseconds()))
-						diff := time.Duration(simulatedTime.UnixNano() - time.Now().UTC().UnixNano())
+						simulatedTime = time.Unix(0, (data.Date.UnixNano() + this.Offset.Nanoseconds()))
+						diff := time.Duration(simulatedTime.UnixNano() - time.Now().UnixNano())
 						if diff > maxTimeWithoutAnything {
 							log.Info("Reducing time from %d seconds to %d.", diff/time.Second, maxTimeWithoutAnything/time.Second)
 							this.Offset = time.Duration(this.Offset.Nanoseconds() - diff.Nanoseconds() + maxTimeWithoutAnything.Nanoseconds())
@@ -162,7 +162,7 @@ func (this *Replayer) Run() {
 					data.Date = simulatedTime
 
 					//log.Debug("[%d] \"%s\" --> %v", lineNb, line, data)
-					this.clt.Send(fmt.Sprintf("J %s %s %s", data.Date.Format("20060102150405"), data.Type, data.Content))
+					this.clt.Send(fmt.Sprintf("J %s %s %s", data.Date.UTC().Format("20060102150405"), data.Type, data.Content))
 				} else {
 					if err == io.EOF {
 						//log.Info("End of file...")

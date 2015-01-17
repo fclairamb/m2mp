@@ -1,3 +1,9 @@
+m2mp (0.1-26) unstable; urgency=medium
+
+  *  client-alip: Fixed date handling in replayer (was reported in local time instead of UTC)
+
+ -- Florent Clairambault <florent@xps>  Sat, 17 Jan 2015 07:28:34 +0100
+
 m2mp (0.1-25) unstable; urgency=low
 
   * receiver-alip: Adding a "J" message to receive raw JSON data

@@ -22,14 +22,13 @@ import java.util.regex.Pattern;
  */
 public class User extends Entity {
 
+    protected static final String PROPERTY_NAME = "name";
+    protected static final String PROPERTY_DOMAIN = "domain";
     private static final String NODE_USER = "/user/";
     private static final String NODE_BY_NAME = NODE_USER + "by-name/";
     private static final String NODE_SETTINGS = "settings";
-
     private static final Pattern VALIDATION = Pattern.compile("^[a-z][a-z0-9\\.]{3,24}$");
-    private static final String PROPERTY_NAME = "name";
     private static final String PROPERTY_DISPLAYNAME = "display_name";
-    private static final String PROPERTY_DOMAIN = "domain";
     private static final String PROPERTY_CREATED_DATE = "created_date";
     private static final String PROPERTY_PASSWORD = "password";
     private UUID id;
@@ -194,7 +193,7 @@ public class User extends Entity {
     }
 
     public Domain getDomain() {
-        return new Domain(getDomainId());
+        return Domain.get(getDomainId());
     }
 
     public void setDomain(Domain domain) {

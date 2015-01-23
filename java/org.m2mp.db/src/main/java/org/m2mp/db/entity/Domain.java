@@ -44,6 +44,10 @@ public class Domain extends Entity {
         this.node = node;
     }
 
+    public static Domain get(UUID id) {
+        return id != null ? new Domain(id) : null;
+    }
+
     public static Domain getDefault() {
         return Domain.byName("default", true, true);
     }

@@ -35,16 +35,17 @@ type ClientHandler struct {
 func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
 	now := time.Now().UTC()
 	ch := &ClientHandler{
-		daddy:            daddy,
-		Id:               id,
-		Conn:             pr.NewProtoHandlerServer(conn),
-		connectionTime:   now,
-		LogLevel:         7,
-		connRecv:         make(chan interface{}, 3),
-		msgRecv:          make(chan *mq.JsonWrapper, 10),
-		ticker:           time.NewTicker(time.Minute),
-		lastReceivedData: now,
-		lastSentData:     now,
+		daddy:                   daddy,
+		Id:                      id,
+		Conn:                    pr.NewProtoHandlerServer(conn),
+		connectionTime:          now,
+		LogLevel:                7,
+		connRecv:                make(chan interface{}, 3),
+		msgRecv:                 make(chan *mq.JsonWrapper, 10),
+		ticker:                  time.NewTicker(time.Minute),
+		lastReceivedData:        now,
+		lastSentData:            now,
+		settingLastTransmission: make(map[string]time.Time),
 		//connSend:       make(chan interface{}, 3),
 	}
 
@@ -491,9 +492,13 @@ func (ch *ClientHandler) sendSettings(settings map[string]string) error {
 	for k, v := range settings {
 		value := fmt.Sprintf("%s=%s", k, v)
 		lastTransmission := ch.settingLastTransmission[value]
-		if time.Now().UTC().Sub(lastTransmission) > (time.Second * 10) {
+		diff := time.Now().UTC().Sub(lastTransmission) / time.Second
+		if diff > 40 {
+			ch.settingLastTransmission[value] = time.Now().UTC()
 			msg.AddString(value)
 			c += 1
+		} else {
+			log.Debug("%s - Setting %s transmitted %d seconds ago.", ch, value, diff)
 		}
 	}
 	if c != 0 {

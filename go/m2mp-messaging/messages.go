@@ -108,5 +108,5 @@ func NewMessage(to, call string) *JsonWrapper {
 }
 
 func UUIDFromTime(time time.Time) string {
-	return gocql.UUIDFromTime(time.UTC()).String()
+	return gocql.UUIDFromTime(time).String()
 }

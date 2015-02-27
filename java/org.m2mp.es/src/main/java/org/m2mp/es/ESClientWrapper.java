@@ -64,13 +64,21 @@ public class ESClientWrapper {
 	}
 
 	private static Action entityToDelete(EsIndexable eib) {
-		Delete.Builder builder = new Delete.Builder().id(eib.getEsDocId()).type(eib.getEsDocType());
+		Delete.Builder builder = new Delete.Builder().id(eib.getEsDocId()).type(eib.getEsDocType()).index(eib.getEsIndexName());
 		String esRouting = eib.getEsRouting();
 		if (esRouting != null) {
 			builder = builder.setParameter(Parameters.ROUTING, esRouting);
 		}
 		return builder.build();
 	}
+
+    private static Action entityToDelete(String docId, String type, String index, String routing) {
+        Delete.Builder builder = new Delete.Builder().id(docId).type(type).index(index);
+        if ( routing != null ) {
+            builder.setParameter(Parameters.ROUTING, routing);
+        }
+        return builder.build();
+    }
 
 	public static void index(EsIndexable entity) {
 		try {
@@ -87,6 +95,14 @@ public class ESClientWrapper {
 			log.catching(ex);
 		}
 	}
+
+    public static void delete(String docId, String type, String index, String routing) {
+        try {
+            ESClientWrapper.execute(entityToDelete(docId, type, index, routing));
+        } catch (Exception ex) {
+            log.catching(ex);
+        }
+    }
 
 	public static void indexLater(final EsIndexable entity) {
 		executor.submit(new Runnable() {

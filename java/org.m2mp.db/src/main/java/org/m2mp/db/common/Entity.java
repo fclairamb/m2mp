@@ -138,7 +138,7 @@ public abstract class Entity {
     }
 
     public long deletedTime() {
-        return getProperty(PROPERTY_DELETED_DATE, 0);
+        return getProperty(PROPERTY_DELETED_DATE, 0L);
     }
 
     public void undelete() {

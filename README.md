@@ -1,7 +1,11 @@
-[![Build Status](https://drone.io/github.com/fclairamb/m2mp/status.png)](https://drone.io/github.com/fclairamb/m2mp/latest)
+# Distributed M2M platform
 
-It's the database setup I have used for few projects on top of cassandra. It contains three parts:
+It relies on:
+* Some network receivers (two protocols: M2MP and ALIP)
+* A distributed database architecture (using cassandra)
+* An inter-component distributed communication infrastructure (using NSQ)
 
+The database is cut in three different kind of data:
 * Time series handling
 * A registry
 * Binary content storage on top of the registry (only in java)
@@ -11,6 +15,10 @@ Goals are:
 * Robust (to data corruption, cassandra servers desynchronization)
 * Evolutive
 
+Devices are all handled using simple concepts:
+* Time series per device and per device + type of data
+* Settings
+* Commands
 
 Time series
 -----------

@@ -204,7 +204,7 @@ func (d *Device) AckSetting(name, ackedValue string) (err error) {
 			err = toSend.DelValue(name)
 
 			if err == nil {
-				d.getSettingsAckTimeNode().SetValue(name, fmt.Sprintf("%d", time.Now().UnixNano()%1e6/1e3))
+				d.getSettingsAckTimeNode().SetValue(name, fmt.Sprintf("%d", time.Now().UnixNano()/int64(time.Second)))
 			}
 		}
 	}

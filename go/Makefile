@@ -1,6 +1,12 @@
 PACKAGE_VERSION=$(shell dpkg-parsechangelog | grep Version: | cut -d' ' -f2-)
 VERSION_FILE=m2mp-version/version.go
 
+ifeq "$(DEB_KEY)" ""
+  DPKG_BUILD_ARGS:=-us -uc
+else
+  DPKG_BUILD_ARGS:=-k$(DEB_KEY)
+endif
+
 ifeq "$(BUILD_NUMBER)" ""
 	VERSION=$(PACKAGE_VERSION)
 else
@@ -89,10 +95,9 @@ clean:
 	[ ! -d dist ] || rm -R dist
 
 package: binaries
-	dpkg-buildpackage -b -us -uc
+	dpkg-buildpackage -b $(DPKG_BUILD_ARGS)
 	mkdir -p dist/package
-	mv ../*.deb dist/package/
-	rm ../*.changes
+	mv ../*.deb ../*.changes dist/package/
 
 test_package_local:
 	make clean

@@ -17,6 +17,67 @@ import (
 	"time"
 )
 
+// General description
+type DataProcessor interface {
+	Match(string) bool
+	ProcessData(store *mq.JsonWrapper, content string) error
+}
+
+// Implementation
+type SimpleDataProcessor struct {
+	regexp     *regexp.Regexp
+	replace    string
+	processing func(store *mq.JsonWrapper, content string) error
+}
+
+func NewSimpleDataProcessor(match, replace string, processing func(store *mq.JsonWrapper, content string) error) *SimpleDataProcessor {
+	return &SimpleDataProcessor{regexp: regexp.MustCompile("^" + match + "$"), replace: replace, processing: processing}
+}
+
+func (this SimpleDataProcessor) Match(str string) bool {
+	return this.regexp.MatchString(str)
+}
+
+func (this SimpleDataProcessor) String() string {
+	return fmt.Sprintf("DataProcessor{%s --> %s}", this.regexp.String(), this.replace)
+}
+
+var storeAsIs = func(store *mq.JsonWrapper, content string) error {
+	store.Set("data", content)
+	return nil
+}
+
+var dataProcessors = []DataProcessor{
+	NewSimpleDataProcessor("L", "sen:loc", func(store *mq.JsonWrapper, content string) error {
+		return processDataRequestL(store, content)
+	}),
+	NewSimpleDataProcessor("G", "sen:loc", func(store *mq.JsonWrapper, content string) error {
+		return processDataRequestG(store, content)
+	}),
+	NewSimpleDataProcessor("A([0-9]+)", "sen:adc:$1", storeAsIs),   // ADC
+	NewSimpleDataProcessor("DI([0-9]+)", "sen:gpio:$1", storeAsIs), // Digital input
+	NewSimpleDataProcessor("T", "sen:temp", storeAsIs),             // Temperature
+	NewSimpleDataProcessor("V", "sen:volt", storeAsIs),             // Voltage
+	NewSimpleDataProcessor("D", "sen:door", storeAsIs),             // Door (an other digital input)
+	NewSimpleDataProcessor("SMS", "sen:sms_received", storeAsIs),   // Received SMS
+	NewSimpleDataProcessor("VER", "sen:version", storeAsIs),        // Program version
+	NewSimpleDataProcessor("LS:(.*)", "lsen:$1", storeAsIs),        // Any other listed sensor
+}
+
+func (this SimpleDataProcessor) ProcessData(store *mq.JsonWrapper, content string) error {
+	dataType, _ := store.Get("type").String()
+
+	dataType = this.regexp.ReplaceAllString(dataType, this.replace)
+
+	store.Set("type", dataType)
+
+	//if this.processing != nil {
+	return this.processing(store, content)
+	//}
+
+	return nil
+}
+
 type ClientHandler struct {
 	Id                      int
 	daddy                   *Server
@@ -34,30 +95,6 @@ type ClientHandler struct {
 	pingCounter             byte
 	cmdCounter              byte
 	cmdShort                map[int]string
-}
-
-type labelTranslation struct {
-	short string
-	long  string
-}
-
-var channelConversion = map[string]string{
-	"A1":  "sen:adc:1",        // ADC input 1
-	"A2":  "sen:adc:2",        // ADC input 2
-	"A3":  "sen:adc:3",        // ADC input 3
-	"DI1": "sen:gpio:1",       // GPIO 1
-	"DI2": "sen:gpio:2",       // GPIO 2
-	"DI3": "sen:gpio:3",       // GPIO 3
-	"DI4": "sen:gpio:4",       // GPIO 4
-	"DI5": "sen:gpio:5",       // GPIO 5
-	"DI6": "sen:gpio:6",       // GPIO 6
-	"L":   "sen:loc",          // Location
-	"G":   "sen:loc",          // Location
-	"T":   "sen:temp",         // Device's temperature
-	"V":   "sen:volt",         // Device's input voltage
-	"D":   "sen:door",         // Door
-	"SMS": "sen:sms_received", // Received SMS
-	"VER": "sen:version",      // Application version
 }
 
 const IDENTIFICATION_TIMEOUT = time.Duration(time.Second * 30)
@@ -280,6 +317,7 @@ func (ch *ClientHandler) runCoreHandling() {
 						t := time.Now().UTC().Unix()
 						ch.Send(fmt.Sprintf("T %d", t))
 					case "B": // Acknowledge response is not used at this point
+						break
 					case "QUIT":
 						ch.Send("QUIT bye !")
 						err = ch.Conn.Close()
@@ -287,7 +325,7 @@ func (ch *ClientHandler) runCoreHandling() {
 						err = errors.New(fmt.Sprintf("Command \"%s\" not understood ! - See http://bit.ly/m2mp-alip for help", cmd))
 					}
 				} else {
-					log.Warning("%s - We got disconnected !", ch)
+					log.Info("%s - We got disconnected !", ch)
 					return
 				}
 
@@ -491,15 +529,7 @@ func (ch *ClientHandler) handleDebugRequest(request string) error {
 	return nil
 }
 
-func (this *ClientHandler) convertTypeShortToLong(input string) string {
-	output := channelConversion[input]
-	if output == "" {
-		output = input
-	}
-	return output
-}
-
-func (ch *ClientHandler) processDataRequestL(store *mq.JsonWrapper, content string) error {
+func processDataRequestL(store *mq.JsonWrapper, content string) error {
 	//store.Set("type", "sen:loc")
 	tokens := strings.Split(content, ",")
 	data := sjson.New()
@@ -555,7 +585,7 @@ func convertRMC(deg float64) float64 {
 	return dec
 }
 
-func (ch *ClientHandler) processDataRequestG(store *mq.JsonWrapper, content string) error {
+func processDataRequestG(store *mq.JsonWrapper, content string) error {
 	//store.Set("type", "sen:loc")
 	tokens := strings.Split(content, ",")
 	data := sjson.New()
@@ -627,25 +657,31 @@ func (ch *ClientHandler) processDataRequest(dataTime time.Time, dataType, conten
 	store := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
 	store.Set("date_uuid", mq.UUIDFromTime(dataTime))
 	store.Set("key", "dev-"+ch.device.Id())
-	store.Set("type", ch.convertTypeShortToLong(dataType))
+	store.Set("type", dataType)
 
-	switch dataType {
-	case "echo":
-		ch.Send(fmt.Sprintf("D %s %s", dataType, content))
-		return nil
-
-	case "L":
-		if err := ch.processDataRequestL(store, content); err != nil {
-			return err
+	matched := false
+	for _, dp := range dataProcessors {
+		if dp.Match(dataType) {
+			log.Debug("We have a match with %v.", dp)
+			if err := dp.ProcessData(store, content); err != nil {
+				return err
+			}
+			matched = true
+			break
 		}
-	case "G":
-		if err := ch.processDataRequestG(store, content); err != nil {
-			return err
-		}
-	default:
-		store.Set("data", content)
 	}
 
+	if !matched {
+		switch dataType {
+		case "echo":
+			ch.Send(fmt.Sprintf("D %s %s", dataType, content))
+			return nil
+		default:
+			store.Set("data", content)
+		}
+	}
+
+	log.Debug("Sending for storage: %v", store)
 	ch.SendMessage(store)
 	return nil
 }

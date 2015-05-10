@@ -112,7 +112,7 @@ public class DB {
                     break;
                 }
                 case Nearest: {
-                    latencyPolicy = LatencyAwarePolicy.builder(new RoundRobinPolicy()).withRetryPeriod(15, TimeUnit.MINUTES).withScale(5, TimeUnit.SECONDS).withExclusionThreshold(1.5).build();
+                    latencyPolicy = LatencyAwarePolicy.builder(new RoundRobinPolicy()).withRetryPeriod(30, TimeUnit.MINUTES).withScale(1, TimeUnit.MINUTES).withExclusionThreshold(1.5).build();
                     break;
                 }
                 default:

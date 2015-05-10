@@ -1,4 +1,4 @@
-PACKAGE_VERSION=$(shell dpkg-parsechangelog | grep Version: | cut -d' ' -f2-)
+PACKAGE_VERSION=$(shell LANG=C dpkg-parsechangelog | grep Version: | cut -d' ' -f2-)
 VERSION_FILE=m2mp-version/version.go
 
 ifeq "$(DEB_KEY)" ""

@@ -147,6 +147,21 @@ func (d *Device) GetServerSettingsPublicNode() *db.RegistryNode {
 	return d.Node.GetChild("server-settings-public").Check()
 }
 
+func (d *Device) getListedSensorsNode() *db.RegistryNode {
+	return d.Node.GetChild("listed-sensors").Check()
+}
+
+func (d *Device) MarkListedSensor(id string) *db.RegistryNode {
+	listedSensor := d.getListedSensorsNode().GetChild(id)
+	if !listedSensor.Exists() {
+		listedSensor.Create()
+		listedSensor.SetValue("name", id)
+		listedSensor.Create().SetValue("date-create", fmt.Sprintf("%d", time.Now().UTC().Unix()))
+	}
+	listedSensor.SetValue("date-last", fmt.Sprintf("%d", time.Now().UTC().Unix()))
+	return listedSensor
+}
+
 // Add a command to send to the device
 func (d *Device) AddCommand(cmd string) (string, error) {
 	cmdId, err := gocql.RandomUUID()
@@ -204,7 +219,7 @@ func (d *Device) AckSetting(name, ackedValue string) (err error) {
 			err = toSend.DelValue(name)
 
 			if err == nil {
-				d.getSettingsAckTimeNode().SetValue(name, fmt.Sprintf("%d", time.Now().UnixNano()/int64(time.Second)))
+				d.getSettingsAckTimeNode().SetValue(name, fmt.Sprintf("%d", time.Now().UTC().Unix()))
 			}
 		}
 	}

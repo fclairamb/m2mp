@@ -114,3 +114,32 @@ func TestDeviceSetting(t *testing.T) {
 		}
 	}
 }
+
+func TestDeviceListedSensor(t *testing.T) {
+	if err := db.NewSessionSimple("ks_test"); err != nil {
+		t.Fatal(err)
+	}
+	db.WipeoutEverything("yes")
+	defer db.Close()
+	{ // We define settings
+		dev, err := NewDeviceByIdentCreate("imei:1234")
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		dev.MarkListedSensor("my-sensor")
+		sensors := dev.Node.GetChild("listed-sensors")
+		if !sensors.Exists() {
+			t.Fatalf("Node %s doesn't exist", sensors.Path)
+		}
+		sensor := sensors.GetChild("my-sensor")
+		if !sensor.Exists() {
+			t.Fatal("Sensor %s doesn't exist", sensor.Path)
+		}
+		name := sensor.Value("name")
+		if name != "my-sensor" {
+			t.Fatalf("Sensor doesn't have a correct name: %s", name)
+		}
+	}
+}

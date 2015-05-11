@@ -18,6 +18,7 @@ all: binaries win-binaries
 create-version: $(VERSION_FILE)
 
 $(VERSION_FILE): $(shell find -not -path "*/m2mp-version/*" -name "*.go") Makefile
+	mkdir -p m2mp-version
 	printf 'package m2mp_version\n\nconst VERSION = "$(VERSION)"\n' >$@
 
 binaries: dist/bin/client-m2mp dist/bin/receiver-m2mp dist/bin/m2mp-storage dist/bin/converter-m2mp dist/bin/receiver-alip dist/bin/client-alip

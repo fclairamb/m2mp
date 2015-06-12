@@ -13,24 +13,25 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 public class ESClientWrapper {
 
 	private static final JestClientFactory clientFactory = new JestClientFactory();
 	private static final ClientConfig clientConfig = new ClientConfig.Builder("http://localhost:9200").multiThreaded(true).build();
 	private static final Logger log = LogManager.getLogger(ESClientWrapper.class);
-	private static final ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactory() {
-		@Override
-		public Thread newThread(Runnable r) {
-			Thread t = new Thread(r, "ESClientWrapper_Thread");
-			t.setPriority(Thread.MIN_PRIORITY);
-			return t;
-		}
-	});
-	private static final JestClient client;
+    private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1, new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(r, "ESClientWrapper_Thread");
+            t.setPriority(Thread.MIN_PRIORITY);
+            return t;
+        }
+    });
+    private static final JestClient client;
 
 	static {
 		clientFactory.setClientConfig(clientConfig);
@@ -105,13 +106,13 @@ public class ESClientWrapper {
     }
 
 	public static void indexLater(final EsIndexable entity) {
-		executor.submit(new Runnable() {
-			@Override
+        executor.schedule(new Runnable() {
+            @Override
 			public void run() {
 				index(entity);
 			}
-		});
-	}
+        }, 10, TimeUnit.SECONDS);
+    }
 
 	public static void deleteLater(final EsIndexable entity) {
 		executor.submit(new Runnable() {

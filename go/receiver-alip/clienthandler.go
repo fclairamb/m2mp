@@ -369,7 +369,7 @@ func (ch *ClientHandler) runCoreHandling() {
 	}
 }
 
-var IDENT_CONSTRAINT = regexp.MustCompile("[a-z][0-9a-z]{2,6}:[a-zA-Z0-9]{4,20}")
+var IDENT_CONSTRAINT = regexp.MustCompile("^[a-z][0-9a-z]{2,6}:[a-zA-Z0-9]{4,20}$")
 
 func (ch *ClientHandler) handleIdentRequest(ident string) error {
 	var err error = nil

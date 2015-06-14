@@ -59,6 +59,7 @@ var dataProcessors = []DataProcessor{
 	NewSimpleDataProcessor("T", "sen:temp", storeAsIs),             // Temperature
 	NewSimpleDataProcessor("V", "sen:volt", storeAsIs),             // Voltage
 	NewSimpleDataProcessor("D", "sen:door", storeAsIs),             // Door (an other digital input)
+	NewSimpleDataProcessor("F", "sen:fuel", storeAsIs),             // Fuel
 	NewSimpleDataProcessor("SMS", "sen:sms_received", storeAsIs),   // Received SMS
 	NewSimpleDataProcessor("VER", "sen:version", storeAsIs),        // Program version
 	NewSimpleDataProcessor("LS:(.*)", "lsen:$1", storeAsIs),        // Any other listed sensor
@@ -79,22 +80,21 @@ func (this SimpleDataProcessor) ProcessData(store *mq.JsonWrapper, content strin
 }
 
 type ClientHandler struct {
-	Id                      int
-	daddy                   *Server
-	connectionTime          time.Time
-	device                  *ent.Device
-	deviceChannelTranslator *ent.DeviceChannelTrans
-	Conn                    net.Conn
-	reader                  *bufio.Reader
-	connRecv                chan *string
-	msgRecv                 chan *mq.JsonWrapper
-	LogLevel                int
-	lastReceivedData        time.Time
-	lastSentData            time.Time
-	ticker                  *time.Ticker
-	pingCounter             byte
-	cmdCounter              byte
-	cmdShort                map[int]string
+	Id               int                  // Client number
+	daddy            *Server              // Parent server
+	connectionTime   time.Time            // Client's connection time
+	device           *ent.Device          // Detected device
+	Conn             net.Conn             // TCP connection
+	reader           *bufio.Reader        // Text reader of the connection
+	connRecv         chan *string         // Channel to read strings
+	msgRecv          chan *mq.JsonWrapper // Channel to read server JSON messages
+	LogLevel         int                  // Logging level
+	lastReceivedData time.Time            // Last time some data was received
+	lastSentData     time.Time            // Last time some data was sent
+	ticker           *time.Ticker         // Ticker (every minute)
+	pingCounter      byte                 // Ping counter
+	cmdCounter       byte                 // Command counter
+	cmdShort         map[int]string       // Command id converter
 }
 
 const IDENTIFICATION_TIMEOUT = time.Duration(time.Second * 30)
@@ -104,6 +104,10 @@ const (
 	MQ_CALL_SEND_SETTINGS                = "send_settings"
 	MQ_CALL_SEND_COMMANDS                = "send_commands"
 	MQ_CALL_DISCONNECT_IF_NOT_IDENTIFIED = "disconnect_if_not_identified"
+	MQ_CALL_STORE_TS                     = "store_ts"
+	MQ_CALL_DEVICE_CONNECTED             = "device_connected"
+	MQ_CALL_DEVICE_IDENTIFIED            = "device_identified"
+	MQ_CALL_DEVICE_DISCONNECTED          = "device_disconnected"
 )
 
 func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
@@ -136,7 +140,7 @@ func (ch *ClientHandler) Start() {
 	go ch.runCoreHandling()
 
 	{ // We report it in events
-		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_connected")
+		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, MQ_CALL_DEVICE_CONNECTED)
 		m.Set("source", ch.Conn.RemoteAddr().String())
 		m.Set("connection_id", fmt.Sprint(ch.Id))
 		ch.SendMessage(m)
@@ -151,9 +155,12 @@ func (ch *ClientHandler) Start() {
 	}()
 }
 
-func (ch *ClientHandler) SendMessage(m *mq.JsonWrapper) {
+func (ch *ClientHandler) SendMessage(m *mq.JsonWrapper) error {
 	m.SetFrom(fmt.Sprintf(";connection_id=%d", ch.Id))
-	ch.daddy.SendMessage(m)
+	if ch.LogLevel >= 9 {
+		log.Info("%s - SendMessage( %s );", ch, m)
+	}
+	return ch.daddy.SendMessage(m)
 }
 
 func (ch *ClientHandler) Close() error {
@@ -174,7 +181,7 @@ func (ch *ClientHandler) end() {
 	connectionDuration := int64(time.Now().UTC().Sub(ch.connectionTime).Seconds())
 
 	{ // We save the event
-		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_disconnected")
+		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, MQ_CALL_DEVICE_DISCONNECTED)
 		m.Set("source", ch.Conn.RemoteAddr().String())
 		m.Set("connection_id", fmt.Sprint(ch.Id))
 		m.Set("connection_duration", connectionDuration)
@@ -185,7 +192,7 @@ func (ch *ClientHandler) end() {
 	}
 
 	if ch.device != nil { // We save it in storage
-		m := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
+		m := mq.NewMessage(mq.TOPIC_STORAGE, MQ_CALL_STORE_TS)
 		{
 			data := sjson.New()
 			m.Set("data", data)
@@ -233,22 +240,31 @@ func (ch *ClientHandler) receivedData() {
 func (ch *ClientHandler) considerCurrentStatus() {
 	now := time.Now().UTC()
 	if ch.LogLevel >= 7 {
-		log.Debug("%s - Considering current status", ch)
+		log.Info("%s - Considering current status / lastReceived=%s, lastSent=%s", ch, ch.lastReceivedData, ch.lastSentData)
 	}
 
 	// We don't actually disconnect connections, we let the TCP connection
 	// be killed by some routers.
 	if now.Sub(ch.lastReceivedData) > time.Duration(time.Minute*15) &&
 		now.Sub(ch.lastSentData) > time.Duration(time.Second*30) {
-		if ch.LogLevel >= 5 {
-			log.Debug("%s - Sending ping request", ch)
+		if now.Sub(ch.lastReceivedData) > time.Duration(time.Hour*12) {
+			log.Warning("%s - Disconnecting. No data transmitted for more than 12 hours !", ch)
+			ch.Send("QUIT No data transmitted for more than 12 hours !")
+			ch.Close()
+		} else {
+			if ch.LogLevel >= 5 {
+				log.Info("%s - Sending ping request / pingCounter=%d", ch, ch.pingCounter)
+			}
+			ch.Send(fmt.Sprintf("A %d", ch.pingCounter))
+			ch.pingCounter += 1
 		}
-		ch.Send(fmt.Sprintf("A %d", ch.pingCounter))
-		ch.pingCounter += 1
 	}
 }
 
 func (this *ClientHandler) handleMQMessage(msg *mq.JsonWrapper) {
+	if this.LogLevel >= 9 {
+		log.Info("%s - handleMQMessage( %s );", this, msg)
+	}
 	switch msg.Call() {
 	case MQ_CALL_DISCONNECT:
 		log.Warning("%s - Server requesting to close the connection !", this)
@@ -272,7 +288,7 @@ func (this *ClientHandler) handleMQMessage(msg *mq.JsonWrapper) {
 func (this *ClientHandler) disconnectIfNotIdentified() {
 	if this.device == nil {
 		this.Send("QUIT It took you too long to identify yourself !")
-		this.Conn.Close()
+		this.Close()
 	}
 }
 
@@ -339,7 +355,6 @@ func (ch *ClientHandler) runCoreHandling() {
 			}
 		case msg := <-ch.msgRecv:
 			{
-				log.Debug("MQ message: %s", msg.String())
 				ch.handleMQMessage(msg)
 			}
 		case <-ch.ticker.C:
@@ -511,18 +526,21 @@ func (ch *ClientHandler) handleDebugRequest(request string) error {
 		var td db.TimedData
 		ch.Send("BEGIN LAST")
 		for ; iter.Scan(&td) && nb > 0; nb-- {
-			ch.Send(fmt.Sprintf("%25s, %20s, %s", td.UTime.Time(), td.Type, td.Data))
+			ch.Send(fmt.Sprintf("%.22s, %10s, %s", td.UTime.Time(), td.Type, td.Data))
 		}
 		ch.Send("END")
 	case "LOGLEVEL":
 		tokens = strings.Split(request, " ")
-		if level, err := strconv.Atoi(tokens[2]); err != nil {
-			return errors.New(fmt.Sprintf("Bad loglevel \"%s\": %v", tokens[2], err))
-		} else {
-			ch.LogLevel = level
+		if len(tokens) == 2 {
+			if level, err := strconv.Atoi(tokens[1]); err != nil {
+				return errors.New(fmt.Sprintf("Bad loglevel: %v", err))
+			} else {
+				ch.LogLevel = level
+			}
 		}
+		ch.Send(fmt.Sprintf("DB LOGLEVEL %d", ch.LogLevel))
 	case "VERSION":
-		ch.Send("DB VERSION " + version.VERSION)
+		ch.Send(fmt.Sprintf("DB VERSION %s", version.VERSION))
 	default:
 		return errors.New(fmt.Sprintf("Debug command \"%s\" is not understood !", cmd))
 	}
@@ -537,21 +555,21 @@ func processDataRequestL(store *mq.JsonWrapper, content string) error {
 	// lat,lon
 	if len(tokens) >= 2 {
 		if lat, err := strconv.ParseFloat(tokens[0], 64); err != nil {
-			return errors.New(fmt.Sprintf("Invalid latitude \"%s\": %v", tokens[0], err))
+			return errors.New(fmt.Sprintf("Invalid latitude: %v", err))
 		} else {
 			data.Set("lat", lat)
 		}
 
 		lon, err := strconv.ParseFloat(tokens[1], 64)
 		if err != nil {
-			return errors.New(fmt.Sprintf("Invalid longitude \"%s\": %v", tokens[1], err))
+			return errors.New(fmt.Sprintf("Invalid longitude: %v", err))
 		} else {
 			data.Set("lon", lon)
 		}
 
 		if len(tokens) >= 3 {
 			if spd, err := strconv.ParseFloat(tokens[2], 64); err != nil {
-				return errors.New(fmt.Sprintf("Invalid speed \"%s\": %v", tokens[2], err))
+				return errors.New(fmt.Sprintf("Invalid speed: %v", err))
 			} else {
 				data.Set("spd", spd)
 			}
@@ -559,7 +577,7 @@ func processDataRequestL(store *mq.JsonWrapper, content string) error {
 
 		if len(tokens) >= 4 {
 			if alt, err := strconv.ParseFloat(tokens[3], 64); err != nil {
-				return errors.New(fmt.Sprintf("Invalid altitude \"%s\": %v", tokens[3], err))
+				return errors.New(fmt.Sprintf("Invalid altitude: %v", err))
 			} else {
 				data.Set("alt", alt)
 			}
@@ -567,7 +585,7 @@ func processDataRequestL(store *mq.JsonWrapper, content string) error {
 
 	} else if len(tokens) == 1 {
 		if sat, err := strconv.Atoi(tokens[0]); err != nil {
-			return errors.New(fmt.Sprintf("Invalid number of satellites \"%s\": %v", tokens[0], err))
+			return errors.New(fmt.Sprintf("Invalid number of satellites: %v", err))
 		} else {
 			data.Set("sat", sat)
 		}
@@ -586,12 +604,11 @@ func convertRMC(deg float64) float64 {
 }
 
 func processDataRequestG(store *mq.JsonWrapper, content string) error {
-	//store.Set("type", "sen:loc")
-	tokens := strings.Split(content, ",")
+	tokens := strings.SplitN(content, ",", 2)
 	data := sjson.New()
 	store.Set("data", data)
 	// date,lat,lon
-	if len(tokens) >= 3 {
+	if len(tokens) >= 1 {
 		// Date
 		// We accept all time formats
 		if dataTime, err := doYourBestWithTime(tokens[0]); err == nil {
@@ -599,50 +616,7 @@ func processDataRequestG(store *mq.JsonWrapper, content string) error {
 		} else {
 			return errors.New(fmt.Sprintf("Invalid date: \"%s\": %v", tokens[0], err))
 		}
-
-		// Latitude
-		if lat, err := strconv.ParseFloat(tokens[1], 64); err != nil {
-			return errors.New(fmt.Sprintf("Invalid latitude: %v", err))
-		} else {
-			lat = convertRMC(lat)
-			data.Set("lat", lat)
-		}
-
-		// Longitude
-		lon, err := strconv.ParseFloat(tokens[2], 64)
-		if err != nil {
-			return errors.New(fmt.Sprintf("Invalid longitude: %v", err))
-		} else {
-			lon = convertRMC(lon)
-			data.Set("lon", lon)
-		}
-
-		// Speed
-		if len(tokens) >= 4 {
-			if spd, err := strconv.ParseFloat(tokens[3], 64); err != nil {
-				return errors.New(fmt.Sprintf("Invalid speed \"%s\" : %v", tokens[2]))
-			} else {
-				// Speed is in knots here
-				spd *= 1.852
-				data.Set("spd", spd)
-			}
-		}
-
-		// Altitude
-		if len(tokens) >= 5 {
-			if alt, err := strconv.ParseFloat(tokens[4], 64); err != nil {
-				return errors.New(fmt.Sprintf("Invalid altitude \"%s\" : %v", tokens[3]))
-			} else {
-				data.Set("alt", alt)
-			}
-		}
-
-	} else if len(tokens) == 1 {
-		if sat, err := strconv.Atoi(tokens[0]); err != nil {
-			return errors.New(fmt.Sprintf("Invalid number of satellites \"%s\": %v", tokens[0], err))
-		} else {
-			data.Set("sat", sat)
-		}
+		return processDataRequestL(store, content[len(tokens[0])+1:])
 	} else {
 		return errors.New("Location: Not enough tokens")
 	}
@@ -654,7 +628,7 @@ func (ch *ClientHandler) processDataRequest(dataTime time.Time, dataType, conten
 		return errors.New("You must be identified !")
 	}
 
-	store := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
+	store := mq.NewMessage(mq.TOPIC_STORAGE, MQ_CALL_STORE_TS)
 	store.Set("date_uuid", mq.UUIDFromTime(dataTime))
 	store.Set("key", "dev-"+ch.device.Id())
 	store.Set("type", dataType)
@@ -662,7 +636,9 @@ func (ch *ClientHandler) processDataRequest(dataTime time.Time, dataType, conten
 	matched := false
 	for _, dp := range dataProcessors {
 		if dp.Match(dataType) {
-			log.Debug("We have a match with %v.", dp)
+			if ch.LogLevel >= 15 {
+				log.Info("We have a match with %v.", dp)
+			}
 			if err := dp.ProcessData(store, content); err != nil {
 				return err
 			}
@@ -681,8 +657,12 @@ func (ch *ClientHandler) processDataRequest(dataTime time.Time, dataType, conten
 		}
 	}
 
-	log.Debug("Sending for storage: %v", store)
-	ch.SendMessage(store)
+	if ch.LogLevel >= 9 {
+		log.Info("Sending for storage: %v", store)
+	}
+	if err := ch.SendMessage(store); err != nil {
+		return errors.New(fmt.Sprintf("Could not send data for storage: %v", err))
+	}
 	return nil
 }
 
@@ -712,7 +692,7 @@ func (ch *ClientHandler) handleJsonDataRequest(content string) error {
 	}
 
 	if data, err := sjson.NewJson([]byte(body)); err == nil {
-		store := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
+		store := mq.NewMessage(mq.TOPIC_STORAGE, MQ_CALL_STORE_TS)
 		store.Set("date_uuid", mq.UUIDFromTime(time))
 		store.Set("key", "dev-"+ch.device.Id())
 		store.Set("type", dataType)
@@ -793,7 +773,7 @@ func (ch *ClientHandler) justIdentified() error {
 	}
 
 	{ // We report it in events
-		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, "device_identified")
+		m := mq.NewMessage(mq.TOPIC_GENERAL_EVENTS, MQ_CALL_DEVICE_IDENTIFIED)
 		m.Set("source", ch.Conn.RemoteAddr().String())
 		m.Set("connection_id", fmt.Sprint(ch.Id))
 		m.Set("device_id", ch.device.Id())
@@ -801,7 +781,7 @@ func (ch *ClientHandler) justIdentified() error {
 	}
 
 	{ // We save it in storage
-		m := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
+		m := mq.NewMessage(mq.TOPIC_STORAGE, MQ_CALL_STORE_TS)
 		{
 			data := sjson.New()
 			m.Set("data", data)
@@ -818,7 +798,7 @@ func (ch *ClientHandler) justIdentified() error {
 	}
 
 	{ // And we also save the connection time
-		m := mq.NewMessage(mq.TOPIC_STORAGE, "store_ts")
+		m := mq.NewMessage(mq.TOPIC_STORAGE, MQ_CALL_STORE_TS)
 		{
 			data := sjson.New()
 			m.Set("data", data)

@@ -16,20 +16,19 @@ import (
 )
 
 type ClientHandler struct {
-	Id                      int
-	daddy                   *Server
-	connectionTime          time.Time
-	device                  *ent.Device
-	deviceChannelTranslator *ent.DeviceChannelTrans
-	Conn                    *pr.ProtoHandler
-	connRecv                chan interface{}
-	msgRecv                 chan *mq.JsonWrapper
-	LogLevel                int
-	lastReceivedData        time.Time
-	lastSentData            time.Time
-	ticker                  *time.Ticker
-	pingCounter             byte
-	settingLastTransmission map[string]time.Time
+	Id                      int                  // Connection id
+	daddy                   *Server              // Server's reference
+	connectionTime          time.Time            // Connection's time
+	device                  *ent.Device          // Device's object
+	Conn                    *pr.ProtoHandler     // Protocol handler
+	connRecv                chan interface{}     // Protocol messages channel
+	msgRecv                 chan *mq.JsonWrapper // Server messaging channel
+	LogLevel                int                  // Client log level
+	lastReceivedData        time.Time            // Last received's data time
+	lastSentData            time.Time            // Last sent's data time
+	ticker                  *time.Ticker         // Ticker
+	pingCounter             byte                 // Ping counter
+	settingLastTransmission map[string]time.Time // Settings last transmission
 }
 
 func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
@@ -46,7 +45,6 @@ func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
 		lastReceivedData:        now,
 		lastSentData:            now,
 		settingLastTransmission: make(map[string]time.Time),
-		//connSend:       make(chan interface{}, 3),
 	}
 
 	return ch

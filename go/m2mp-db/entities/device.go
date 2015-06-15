@@ -104,7 +104,12 @@ func (d *Device) Id() string {
 }
 
 func (d *Device) Name() string {
-	return d.GetServerSettingsPublicNode().Value("name")
+	name := d.GetServerSettingsPublicNode().Value("name")
+	if name == "" {
+		fmt.Println(d.GetServerSettingsPublicNode().Path)
+		fmt.Println(d.GetServerSettingsPublicNode().Values())
+	}
+	return name
 }
 
 func (d *Device) Ident() string {
@@ -272,22 +277,19 @@ func (dev *Device) SetDomain(d *Domain) error {
 }
 
 func (this *Device) Owner() *User {
-	sUserId := this.Node.Value("owner")
-	userId, err := gocql.ParseUUID(sUserId)
-	if err != nil {
+	if userId, err := gocql.ParseUUID(this.Node.Value("owner")); err == nil {
+		return NewUserById(userId)
+	} else {
 		return nil
 	}
-	return NewUserById(userId)
 }
 
 func (dev *Device) Domain() *Domain {
-	sDomainId := dev.Node.Value("domain")
-	domainId, err := gocql.ParseUUID(sDomainId)
-
-	if err != nil {
+	if domainId, err := gocql.ParseUUID(dev.Node.Value("domain")); err == nil {
+		return NewDomainById(domainId)
+	} else {
 		return nil
 	}
-	return NewDomainById(domainId)
 }
 
 func (d *Device) TSID() string {

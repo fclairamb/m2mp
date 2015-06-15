@@ -126,3 +126,11 @@ func (d *Domain) Users() []*User {
 
 	return users
 }
+
+func (this *Domain) Distributor() *User {
+	if userId, err := gocql.ParseUUID(this.Node.Value("distributor_user")); err == nil {
+		return NewUserById(userId)
+	} else {
+		return nil
+	}
+}

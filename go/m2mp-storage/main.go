@@ -23,8 +23,7 @@ type StorageService struct {
 }
 
 func NewStorageService() *StorageService {
-	svc := &StorageService{quitRc: make(chan int), par: LoadConfig()}
-	return svc
+	return &StorageService{quitRc: make(chan int), par: LoadConfig()}
 }
 
 func (this *StorageService) storeTs(m *mq.JsonWrapper) error {

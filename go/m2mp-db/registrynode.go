@@ -2,7 +2,9 @@ package m2mpdb
 
 import (
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type RegistryNode struct {
@@ -55,6 +57,26 @@ func (node *RegistryNode) Value(name string) string {
 func (node *RegistryNode) SetValue(name, value string) error {
 	node.values = nil
 	return shared.session.Query("update registrynode set values[ ? ] = ? where path = ?;", name, value, node.Path).Exec()
+}
+
+func (node *RegistryNode) ValueInt64(name string) (int64, error) {
+	return strconv.ParseInt(node.Value(name), 10, 64)
+}
+
+func (node *RegistryNode) SetValueInt64(name string, value int64) error {
+	return node.SetValue(name, strconv.FormatInt(value, 10))
+}
+
+func (node *RegistryNode) ValueTime(name string) (time.Time, error) {
+	if value, err := node.ValueInt64(name); err != nil {
+		return time.Unix(0, 0), err
+	} else {
+		return time.Unix(0, value*1000000), nil
+	}
+}
+
+func (node *RegistryNode) SetValueTime(name string, time time.Time) {
+	node.SetValueInt64(name, time.UnixNano()/1000000)
 }
 
 func (node *RegistryNode) DelValue(name string) error {

@@ -1,7 +1,9 @@
 package m2mpdb
 
 import (
+	"math"
 	"testing"
+	"time"
 )
 
 func TestRNValues(t *testing.T) {
@@ -13,6 +15,9 @@ func TestRNValues(t *testing.T) {
 		node := NewRegistryNode(path).Check()
 		node.SetValue("a", "bc")
 		node.SetValue("d", "ef")
+
+		// We check that the String function works (coverage)
+		node.String()
 	}
 
 	{ // We check them
@@ -32,6 +37,12 @@ func TestRNValues(t *testing.T) {
 		if node.Value("d") != "" {
 			t.Fatalf("%s:d != nil (%s)", node, node.Value("d"))
 		}
+	}
+
+	{ // We delete one after fetching all values (coverage)
+		node := NewRegistryNode(path)
+		node.Values()
+		node.DelValue("a")
 	}
 
 	{ // We check that we can't have it
@@ -61,6 +72,30 @@ func TestRNCreation(t *testing.T) {
 
 	if !n1.Exists() {
 		t.Fatalf("%s doesn't exist", n1)
+	}
+
+	n1 = NewRegistryNode("/dir1/dir2b").Check()
+
+	// Coverage
+	if children := NewRegistryNode("/dir1").Children(); len(children) != 2 {
+		t.Fatalf("We should have 2 children instead of %d", len(children))
+	}
+
+	// Coverage
+	if !NewRegistryNode("/dir1").GetChild("dir2").Exists() {
+		t.Fatalf("Node /dir1/dir2 cannot be fetched !")
+	}
+
+	{ // Coverage
+		NewRegistryNode("/dir1/dir2/dir3").Delete(false)
+
+		if !NewRegistryNode("/dir1/dir2/dir3").Deleted() {
+			t.Fatalf("/dir1/dir2/dir3 should be marked as deleted !")
+		}
+	}
+
+	{ // Coverage
+		NewRegistryNode("/dir1").Delete(true)
 	}
 }
 
@@ -151,5 +186,34 @@ func TestRNCleanup(t *testing.T) {
 
 	if n1.Existed() {
 		t.Fatalf("%s should not have existed !", n1)
+	}
+}
+
+func TestRNTime(t *testing.T) {
+	NewSessionSimple("ks_test")
+
+	now := time.Now()
+
+	{
+		n1 := NewRegistryNode("/dir1").Check()
+		n1.SetValueTime("time", now)
+		n1.SetValue("time2", "abc")
+	}
+
+	{
+		n1 := NewRegistryNode("/dir1")
+		// OK
+		if saved, err := n1.ValueTime("time"); err == nil {
+			if diff := time.Duration(math.Abs(float64(now.Sub(saved).Nanoseconds()))); diff >= time.Millisecond {
+				t.Fatalf("Diff %f > 1ms", diff)
+			}
+		} else {
+			t.Fatal(err)
+		}
+
+		// Failed
+		if _, err := n1.ValueTime("time2"); err == nil {
+			t.Fatal("This should have failed !")
+		}
 	}
 }

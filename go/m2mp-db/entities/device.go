@@ -104,12 +104,7 @@ func (d *Device) Id() string {
 }
 
 func (d *Device) Name() string {
-	name := d.GetServerSettingsPublicNode().Value("name")
-	if name == "" {
-		fmt.Println(d.GetServerSettingsPublicNode().Path)
-		fmt.Println(d.GetServerSettingsPublicNode().Values())
-	}
-	return name
+	return d.GetServerSettingsPublicNode().Value("name")
 }
 
 func (d *Device) Ident() string {

@@ -15,7 +15,7 @@ import java.util.*;
  * Registry node.
  *
  * @author Florent Clairambault
- *         <p/>
+ *         <p>
  *         The registry is organized to allow fast access to any node by its name. The
  *         trade-off is that we can't easily move nodes. Move can only be implemented by
  *         copy (thus should be avoid avoid).
@@ -57,10 +57,31 @@ public class RegistryNode {
      * Cleanup all the old values.
      */
     public static void cleanup() {
-        for (Row row : DB.execute(DB.prepare("SELECT path FROM " + TABLE_REGISTRY + " WHERE status=?;").bind(STATUS_DELETED))) {
-            RegistryNode node = new RegistryNode(row.getString(0));
+        for (RegistryNode node : nodesToCleanup()) {
             node.delete(true);
         }
+    }
+
+    public static Iterable<RegistryNode> nodesToCleanup() {
+        return new Iterable<RegistryNode>() {
+            @Override
+            public Iterator<RegistryNode> iterator() {
+                return new Iterator<RegistryNode>() {
+
+                    private Iterator<Row> iter = DB.execute(DB.prepare("SELECT path FROM " + TABLE_REGISTRY + " WHERE status=?;").bind(STATUS_DELETED)).iterator();
+
+                    @Override
+                    public boolean hasNext() {
+                        return iter.hasNext();
+                    }
+
+                    @Override
+                    public RegistryNode next() {
+                        return new RegistryNode(iter.next().getString(0));
+                    }
+                };
+            }
+        };
     }
 
     /**
@@ -195,7 +216,7 @@ public class RegistryNode {
 
     /**
      * Delete the node.
-     * <p/>
+     * <p>
      * If forReal is not applied, data is just *marked* as deleted. Which means
      * it's still very present but not connected to its parent
      *
@@ -260,7 +281,7 @@ public class RegistryNode {
 
     /**
      * Get the name of the node.
-     * <p/>
+     * <p>
      * Example: new RegistryNode("/path/of/my_file").getName() == "my_file"
      *
      * @return Name of the node
@@ -342,7 +363,7 @@ public class RegistryNode {
 
     /**
      * Get children nodes.
-     * <p/>
+     * <p>
      * There's no limit on the number of children nodes that we can read.
      *
      * @param includingHidden Include hidden children
@@ -453,7 +474,7 @@ public class RegistryNode {
     }
 
     public double getProperty(String name, double defaultValue) {
-        String value = getProperty(name, (String) null );
+        String value = getProperty(name, (String) null);
         return value != null ? Double.parseDouble(value) : defaultValue;
     }
 
@@ -500,7 +521,7 @@ public class RegistryNode {
     public void delProperties() {
         List<String> list = new ArrayList<>();
         list.addAll(getPropertyNames());
-        for( String propertyName : list) {
+        for (String propertyName : list) {
             delProperty(propertyName);
         }
     }
@@ -562,11 +583,11 @@ public class RegistryNode {
 
     /**
      * Convert to JSON object.
-     * <p/>
+     * <p>
      * This convert any node to a json object (with only string values). This
      * helps you serialize any kind of information you were previously storing
      * as a node.
-     * <p/>
+     * <p>
      * A good example a special command you will send to a device. You want to
      * store it and send it in JSON to the device "as-is".
      *

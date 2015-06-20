@@ -5,16 +5,14 @@ import org.m2mp.db.registry.RegistryNode;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
  * User data container.
- * <p/>
+ * <p>
  * This is mostly a code sample but it can be applied to pretty much all
  * projects.
  *
@@ -177,7 +175,7 @@ public class User extends Entity {
 
     /**
      * Set the password.
-     * <p/>
+     * <p>
      * There is no password mechanism specified here. It has to be handled on
      * the upper levels. It is wise to choose something like "[salt];[sha1 of
      * password + salt]" but it's not the concern of this part.
@@ -243,6 +241,19 @@ public class User extends Entity {
         RegistryNode node = new RegistryNode(NODE_BY_NAME + getName());
         if (node.exists())
             node.delete();
+
+        getDomain().removeUser(getId());
+
+        {
+            List<User> users = new ArrayList<>();
+            for (User u : getDomain().getUsers()) {
+                users.add(u);
+            }
+
+            if (users.isEmpty()) {
+                getDomain().delete();
+            }
+        }
 
         super.delete();
     }

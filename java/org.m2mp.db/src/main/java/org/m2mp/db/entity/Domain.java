@@ -296,7 +296,7 @@ public class Domain extends Entity {
     @Override
     public void delete() {
         setName(null);
-        node.delete(true);
+        super.delete();
     }
 
     /**

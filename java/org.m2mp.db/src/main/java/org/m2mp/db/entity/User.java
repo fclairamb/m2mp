@@ -199,8 +199,10 @@ public class User extends Entity {
         if (previousDomain != null) {
             previousDomain.removeUser(getId());
         }
-        setProperty(PROPERTY_DOMAIN, domain.getId());
-        getDomain().addUser(getId());
+        if (domain != null) {
+            setProperty(PROPERTY_DOMAIN, domain.getId());
+            domain.addUser(getId());
+        }
     }
 
     @Override

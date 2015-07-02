@@ -1,9 +1,15 @@
+m2mp (0.2.2) unstable; urgency=low
+
+  * receiver-alip: Added "E" / "sen:engine" conversion + tiny logging change
+
+ -- Florent Clairambault <florent@clairambault.fr>  Fri, 03 Jul 2015 00:30:03 +0200
+
 m2mp (0.2.1) unstable; urgency=low
 
   * receiver-alip: Added "F" / "sen:fuel" conversion + code cleanup + bugfix
   * m2mp-db/entities: Tiny changes
 
- -- Florent Clairambault <florent@calirambault.fr>  Tue, 16 Jun 2015 01:40:15 +0200
+ -- Florent Clairambault <florent@clairambault.fr>  Tue, 16 Jun 2015 01:40:15 +0200
 
 m2mp (0.2.0) unstable; urgency=low
 
@@ -23,32 +29,32 @@ m2mp (0.1-28) unstable; urgency=medium
 
   * Fixed a cast issue in m2mp-db/entities/device.go
 
- -- Florent Clairambault <florent@xps>  Mon, 02 Mar 2015 21:05:04 +0100
+ -- Florent Clairambault <florent@clairambault.fr>  Mon, 02 Mar 2015 21:05:04 +0100
 
 m2mp (0.1-27) unstable; urgency=medium
 
   * receiver-m2mp: Avoiding settings retransmission
 
- -- Florent Clairambault <florent@xps>  Sun, 15 Feb 2015 22:39:14 +0100
+ -- Florent Clairambault <florent@clairambault.fr>  Sun, 15 Feb 2015 22:39:14 +0100
 
 m2mp (0.1-26) unstable; urgency=medium
 
   *  client-alip: Fixed date handling in replayer (was reported in local time instead of UTC)
 
- -- Florent Clairambault <florent@xps>  Sat, 17 Jan 2015 07:28:34 +0100
+ -- Florent Clairambault <florent@clairambault.fr>  Sat, 17 Jan 2015 07:28:34 +0100
 
 m2mp (0.1-25) unstable; urgency=low
 
   * receiver-alip: Adding a "J" message to receive raw JSON data
   * client-alip: Adding a data replayer for testing and demonstration
 
- -- Florent Clairambault <florent@xps>  Tue, 13 Jan 2015 21:51:31 +0100
+ -- Florent Clairambault <florent@clairambault.fr>  Tue, 13 Jan 2015 21:51:31 +0100
 
 m2mp (0.1-24) unstable; urgency=low
 
   * receiver-m2mp: Added a workaround for old devices. This will be implemented better later.
 
- -- Florent Clairambault <florent@xps>  Tue, 09 Dec 2014 03:26:16 +0100
+ -- Florent Clairambault <florent@clairambault.fr>  Tue, 09 Dec 2014 03:26:16 +0100
 
 m2mp (0.1-23) unstable; urgency=low
 
@@ -56,25 +62,25 @@ m2mp (0.1-23) unstable; urgency=low
     * receiver-m2mp: Forwarding packets of array of byte arrays to allow convert to handle dated sensors
     * converter-m2mp: Added dated sensor handling.
 
- -- Florent Clairambault <florent@xps>  Mon, 08 Dec 2014 03:09:25 +0100
+ -- Florent Clairambault <florent@clairambault.fr>  Mon, 08 Dec 2014 03:09:25 +0100
 
 m2mp (0.1-22) unstable; urgency=low
 
   * receiver-alip: Adding channel conversions: DI<nb> --> sen:gpio:<nb> 
 
- -- Florent Clairambault <florent@xps>  Tue, 02 Dec 2014 02:41:26 +0100
+ -- Florent Clairambault <florent@clairambault.fr>  Tue, 02 Dec 2014 02:41:26 +0100
 
 m2mp (0.1-21) unstable; urgency=low
 
   * receiver-alip: Adding channel conversion: ver --> sen:version
 
- -- Florent Clairambault <florent@xps>  Mon, 01 Dec 2014 02:32:55 +0100
+ -- Florent Clairambault <florent@clairambault.fr>  Mon, 01 Dec 2014 02:32:55 +0100
 
 m2mp (0.1-20) unstable; urgency=low
 
   * receiver-alip: Changing some short to actual conversions
 
- -- Florent Clairambault <florent@xps>  Mon, 24 Nov 2014 00:22:55 +0100
+ -- Florent Clairambault <florent@clairambault.fr>  Mon, 24 Nov 2014 00:22:55 +0100
 
 m2mp (0.1-19) unstable; urgency=low
 
@@ -82,7 +88,7 @@ m2mp (0.1-19) unstable; urgency=low
     * Added generic short type to actual type conversion
     * Added some documentation
 
- -- Florent Clairambault <florent@xps>  Sun, 23 Nov 2014 19:31:57 +0100
+ -- Florent Clairambault <florent@clairambault.fr>  Sun, 23 Nov 2014 19:31:57 +0100
 
 m2mp (0.1-18) unstable; urgency=medium
 
@@ -92,44 +98,44 @@ m2mp (0.1-18) unstable; urgency=medium
   * receiver-m2mp: Reporting unknown channels as '__channel_<id>'
   * storage: Not storing time event that are more than 1 minute in the future.
 
- -- Florent Clairambault <florent@xps>  Sat, 08 Nov 2014 23:41:43 +0100
+ -- Florent Clairambault <florent@clairambault.fr>  Sat, 08 Nov 2014 23:41:43 +0100
 
 m2mp (0.1-17) unstable; urgency=low
 
   * Added a "host" information in the connection-related events
   * Log rotation set to weekly
 
- -- Florent Clairambault <florent@xps>  Tue, 04 Nov 2014 03:18:56 +0100
+ -- Florent Clairambault <florent@clairambault.fr>  Tue, 04 Nov 2014 03:18:56 +0100
 
 m2mp (0.1-16) unstable; urgency=low
 
   * Added an identification timeout
 
- -- Florent Clairambault <florent@xps>  Tue, 28 Oct 2014 00:44:34 +0100
+ -- Florent Clairambault <florent@clairambault.fr>  Tue, 28 Oct 2014 00:44:34 +0100
 
 m2mp (0.1-15) unstable; urgency=low
 
   * Added a constraint on the device identifier.
 
- -- Florent Clairambault <florent@xps>  Mon, 27 Oct 2014 22:57:49 +0100
+ -- Florent Clairambault <florent@clairambault.fr>  Mon, 27 Oct 2014 22:57:49 +0100
 
 m2mp (0.1-14) unstable; urgency=low
 
   * Added GPRMC's specific date parsing. This should make integration with low-cost trackers even easier.
 
- -- Florent Clairambault <florent@xps>  Mon, 22 Sep 2014 00:51:56 +0200
+ -- Florent Clairambault <florent@clairambault.fr>  Mon, 22 Sep 2014 00:51:56 +0200
 
 m2mp (0.1-13) unstable; urgency=low
 
   * Added ALIP's "S U" message handling.
 
- -- Florent Clairambault <florent@xps>  Fri, 19 Sep 2014 00:03:36 +0200
+ -- Florent Clairambault <florent@clairambault.fr>  Fri, 19 Sep 2014 00:03:36 +0200
 
 m2mp (0.1-12) unstable; urgency=low
 
   * Added ALIP's E message handling.
 
- -- Florent Clairambault <florent@xps>  Thu, 18 Sep 2014 01:41:22 +0200
+ -- Florent Clairambault <florent@clairambault.fr>  Thu, 18 Sep 2014 01:41:22 +0200
 
 m2mp (0.1-11) unstable; urgency=low
 
@@ -153,7 +159,7 @@ m2mp (0.1-8) unstable; urgency=low
 
   * Added ALIP protocol receiver
 
- -- Florent Clairambault <florent@xps>  Thu, 04 Sep 2014 00:09:10 +0200
+ -- Florent Clairambault <florent@clairambault.fr>  Thu, 04 Sep 2014 00:09:10 +0200
 
 m2mp (0.1-7) unstable; urgency=low
 

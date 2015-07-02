@@ -60,6 +60,7 @@ var dataProcessors = []DataProcessor{
 	NewSimpleDataProcessor("V", "sen:volt", storeAsIs),             // Voltage
 	NewSimpleDataProcessor("D", "sen:door", storeAsIs),             // Door (an other digital input)
 	NewSimpleDataProcessor("F", "sen:fuel", storeAsIs),             // Fuel
+	NewSimpleDataProcessor("E", "sen:engine", storeAsIs),           // Engine status
 	NewSimpleDataProcessor("SMS", "sen:sms_received", storeAsIs),   // Received SMS
 	NewSimpleDataProcessor("VER", "sen:version", storeAsIs),        // Program version
 	NewSimpleDataProcessor("LS:(.*)", "lsen:$1", storeAsIs),        // Any other listed sensor
@@ -252,7 +253,7 @@ func (ch *ClientHandler) considerCurrentStatus() {
 			ch.Send("QUIT No data transmitted for more than 12 hours !")
 			ch.Close()
 		} else {
-			if ch.LogLevel >= 5 {
+			if ch.LogLevel >= 6 {
 				log.Info("%s - Sending ping request / pingCounter=%d", ch, ch.pingCounter)
 			}
 			ch.Send(fmt.Sprintf("A %d", ch.pingCounter))

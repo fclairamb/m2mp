@@ -202,6 +202,8 @@ public class User extends Entity {
         if (domain != null) {
             setProperty(PROPERTY_DOMAIN, domain.getId());
             domain.addUser(getId());
+        } else {
+            delProperty(PROPERTY_DOMAIN);
         }
     }
 

@@ -1,5 +1,6 @@
 package org.m2mp.db.entity;
 
+import com.datastax.driver.core.utils.UUIDs;
 import org.m2mp.db.common.Entity;
 import org.m2mp.db.registry.RegistryNode;
 import org.m2mp.db.ts.TimeSerie;
@@ -213,6 +214,14 @@ public class Device extends Entity {
 
     private final String getTSID() {
         return "dev-" + getId();
+    }
+
+    public void saveData(String type, UUID date, String data) {
+        TimeSerie.save(getTSId(), type, date, data);
+    }
+
+    public void saveData(String type, Date date, String data) {
+        saveData(type, UUIDs.startOf(date.getTime()), data);
     }
 
     public Iterable<TimedData> getData(String type, Date dateBegin, Date dateEnd, boolean reverse) {

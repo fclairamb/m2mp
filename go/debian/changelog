@@ -1,3 +1,9 @@
+m2mp (0.3.1) unstable; urgency=low
+
+  * receiver-alip: Fixing a crash (triggered by "F G 0 -1")
+
+ -- Florent Clairambault <florent@clairambault.fr>  Wed, 29 Jul 2015 02:54:44 +0200
+
 m2mp (0.3.0) unstable; urgency=low
 
   * receiver-alip: Added "F" command for file fetching.

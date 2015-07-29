@@ -762,6 +762,10 @@ func (this *ClientHandler) handleFileRequest(content string) error {
 				if err != nil {
 					return this.Send(fmt.Sprintf("ERR Invalid size: %v", err))
 				}
+
+				if offset < 0 || size < 0 {
+					return this.Send("ERR Invalid size or offset values.")
+				}
 			}
 
 			name := this.sessionData["file"]

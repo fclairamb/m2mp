@@ -748,7 +748,7 @@ func (this *ClientHandler) handleFileRequest(content string) error {
 				return this.Send("ERR no file selected")
 			}
 		}
-	case tokens[0] == "D" && len(tokens) == 3:
+	case tokens[0] == "G" && len(tokens) == 3: // G <offset> <size>
 		{
 			var offset, size int
 			{

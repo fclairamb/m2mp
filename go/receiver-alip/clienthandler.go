@@ -774,7 +774,7 @@ func (this *ClientHandler) handleFileRequest(content string) error {
 				if err != nil {
 					return this.Send(fmt.Sprintf("ERR Could not read: %v", err))
 				}
-				return this.Send(fmt.Sprintf("F D %d %s", offset, hex.EncodeToString(data)))
+				return this.Send(fmt.Sprintf("F G %d %s", offset, hex.EncodeToString(data)))
 			} else {
 				return this.Send("ERR no file selected")
 			}

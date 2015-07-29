@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	sjson "github.com/bitly/go-simplejson"
@@ -96,6 +97,7 @@ type ClientHandler struct {
 	pingCounter      byte                 // Ping counter
 	cmdCounter       byte                 // Command counter
 	cmdShort         map[int]string       // Command id converter
+	sessionData      map[string]string    // Session data
 }
 
 const IDENTIFICATION_TIMEOUT = time.Duration(time.Second * 30)
@@ -126,6 +128,7 @@ func NewClientHandler(daddy *Server, id int, conn net.Conn) *ClientHandler {
 		lastReceivedData: now,
 		lastSentData:     now,
 		cmdShort:         make(map[int]string),
+		sessionData:      make(map[string]string),
 	}
 
 	return ch
@@ -333,6 +336,8 @@ func (ch *ClientHandler) runCoreHandling() {
 					case "T":
 						t := time.Now().UTC().Unix()
 						ch.Send(fmt.Sprintf("T %d", t))
+					case "F":
+						err = ch.handleFileRequest(content)
 					case "B": // Acknowledge response is not used at this point
 						break
 					case "QUIT":
@@ -712,6 +717,72 @@ func (this *ClientHandler) handleAckRequest(content string) error {
 	} else {
 		return this.Send("B " + content)
 	}
+}
+
+func (this *ClientHandler) handleFileRequest(content string) error {
+	if this.device == nil {
+		return errors.New("You must be identified !")
+	}
+
+	tokens := strings.SplitN(content, " ", 4)
+	switch {
+	case tokens[0] == "N" && len(tokens) == 2: // N <file>
+		{
+			name := tokens[1]
+			file := ent.GetFirmwareFile(name)
+			if file != nil {
+				this.sessionData["file"] = name
+				return this.Send("F N 1")
+			} else {
+				this.sessionData["file"] = ""
+				return this.Send("F N 0")
+			}
+		}
+	case tokens[0] == "S" && len(tokens) == 1: // S
+		{
+			name := this.sessionData["file"]
+			if name != "" {
+				file := ent.GetFirmwareFile(name)
+				return this.Send(fmt.Sprintf("F S %d", file.Size()))
+			} else {
+				return this.Send("ERR no file selected")
+			}
+		}
+	case tokens[0] == "D" && len(tokens) == 3:
+		{
+			var offset, size int
+			{
+				var err error
+
+				offset, err = strconv.Atoi(tokens[1])
+				if err != nil {
+					return this.Send(fmt.Sprintf("ERR Invalid offset: %v", err))
+				}
+				size, err = strconv.Atoi(tokens[2])
+				if err != nil {
+					return this.Send(fmt.Sprintf("ERR Invalid size: %v", err))
+				}
+			}
+
+			name := this.sessionData["file"]
+			if name != "" {
+				reader := ent.GetFirmwareFile(name).Reader()
+				reader.Seek(offset, 0)
+				data := make([]byte, size)
+				n, err := reader.Read(data)
+				data = data[0:n]
+				if err != nil {
+					return this.Send(fmt.Sprintf("ERR Could not read: %v", err))
+				}
+				return this.Send(fmt.Sprintf("F D %d %s", offset, hex.EncodeToString(data)))
+			} else {
+				return this.Send("ERR no file selected")
+			}
+		}
+	default:
+		return this.Send(fmt.Sprintf("ERR Invalid command: %s (%d)", tokens[0], len(tokens)))
+	}
+	return nil
 }
 
 func (ch *ClientHandler) handleDataRequest(content string) error {

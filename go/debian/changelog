@@ -1,3 +1,10 @@
+m2mp (0.4.0) unstable; urgency=low
+
+  * db: Added a device entity API to fetch the latest data in the timeseries
+  * es-sync: Added an elasticsearch synchronization module
+
+ -- Florent Clairambault <florent@clairambault.fr>  Sun, 13 Sep 2015 22:34:48 +0200
+
 m2mp (0.3.1) unstable; urgency=low
 
   * receiver-alip: Fixing a crash (triggered by "F G 0 -1")

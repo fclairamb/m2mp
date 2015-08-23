@@ -178,3 +178,14 @@ func (this *TSDataIterator) Scan(td *TimedData) bool {
 		}
 	}
 }
+
+func GetTSLast(id string, dataType string, begin, end *time.Time, inverted bool) *TimedData {
+	iter := NewTSDataIterator(id, "", nil, nil, inverted)
+	defer iter.Close()
+
+	var td TimedData
+	for iter.Scan(&td) {
+		return &td
+	}
+	return nil
+}

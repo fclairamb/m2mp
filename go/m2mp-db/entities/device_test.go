@@ -3,6 +3,7 @@ package entities
 import (
 	db "github.com/fclairamb/m2mp/go/m2mp-db"
 	"testing"
+	"time"
 )
 
 func TestDeviceCreation(t *testing.T) {
@@ -119,8 +120,9 @@ func TestDeviceListedSensor(t *testing.T) {
 	if err := db.NewSessionSimple("ks_test"); err != nil {
 		t.Fatal(err)
 	}
-	db.WipeoutEverything("yes")
 	defer db.Close()
+	db.WipeoutEverything("yes")
+
 	{ // We define settings
 		dev, err := NewDeviceByIdentCreate("imei:1234")
 
@@ -141,5 +143,30 @@ func TestDeviceListedSensor(t *testing.T) {
 		if name != "my-sensor" {
 			t.Fatalf("Sensor doesn't have a correct name: %s", name)
 		}
+	}
+}
+
+func TestDeviceDataAccess(t *testing.T) {
+	if err := db.NewSessionSimple("ks_test"); err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	db.WipeoutEverything("yes")
+
+	dev, err := NewDeviceByIdentCreate("imei:1234")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dev.SaveTSTime("test", time.Now().UTC(), "data1")
+	dev.SaveTSTime("test", time.Now().UTC(), "data2")
+
+	last := dev.LastData("test")
+	if last == nil {
+		t.Fatal("No last data")
+	}
+	if last.Data != "data2" {
+		t.Fatalf("Got %s instead of data2.", last.Data)
 	}
 }

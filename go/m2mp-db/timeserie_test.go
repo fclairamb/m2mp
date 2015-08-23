@@ -82,6 +82,18 @@ func TestTimeSerieReading(t *testing.T) {
 	}
 }
 
+func TestTimeSerieReadingSimple(t *testing.T) {
+	NewSessionSimple("ks_test")
+	defer Close()
+
+	id := "dev-" + getUUID()
+
+	SaveTSTime(id, "test", time.Now().UTC(), "Hello you !")
+	if GetTSLast(id, "test", nil, nil, true) == nil {
+		t.Error("Could not fetch anything !")
+	}
+}
+
 func getUUID() string {
 	f, err := os.Open("/dev/urandom")
 	if err != nil {
@@ -90,5 +102,5 @@ func getUUID() string {
 	defer f.Close()
 	b := make([]byte, 16)
 	f.Read(b)
-	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
 }

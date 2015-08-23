@@ -26,6 +26,7 @@ public class TimeSerie {
     public static final String TABLE_TIMESERIES_INDEX = "timeseries_index";
     static final FastDateFormat DATE_FORMAT = FastDateFormat.getInstance("yyyy-MM-dd", TimeZone.getTimeZone("UTC"));
     private static final ConcurrentSkipListSet index = new ConcurrentSkipListSet();
+    static final int MAX_TTL = 20 * 365 * 24 * 60 * 60; // 20 years in second
 
     /**
      * Prepare the time serie table
@@ -137,16 +138,31 @@ public class TimeSerie {
     }
 
     public static void save(String id, String type, UUID date, String data) {
+        save(id, type, date, data, MAX_TTL);
+    }
+
+    /**
+     * Save data within a time serie.
+     * @param id Id of the time serie.
+     * @param type Type of the data (sub-type of the id)
+     * @param date Date of data
+     * @param data Data
+     * @param ttl Time before expiration (in seconds)
+     *
+     * TTL allows to store data in the time serie as a cache. It is used at this stage for some calculation that might
+     * change in the future (because new data might come) but still need to be saved temporarily.
+     */
+    public static void save(String id, String type, UUID date, String data, int ttl) {
         String date10 = dateToDate10(date);
-        PreparedStatement reqInsert = DB.prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, date, time, type, data ) VALUES ( ?, ?, ?, ?, ? );");
+        PreparedStatement reqInsert = DB.prepare("INSERT INTO " + TABLE_TIMESERIES + " ( id, date, time, type, data ) VALUES ( ?, ?, ?, ?, ? ) USING TTL ?;");
 
         // We insert the data + its index
-        DB.execute(reqInsert.bind(id, date10, date, type, data));
+        DB.execute(reqInsert.bind(id, date10, date, type, data, ttl));
         saveIndex(id, null, date10);
 
         // And we do it again if we have a type
         if (type != null) {
-            DB.execute(reqInsert.bind(id + "!" + type, date10, date, null, data));
+            DB.execute(reqInsert.bind(id + "!" + type, date10, date, null, data, ttl));
             saveIndex(id, type, date10);
         }
     }

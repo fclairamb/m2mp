@@ -220,6 +220,10 @@ public class Device extends Entity {
         TimeSerie.save(getTSId(), type, date, data);
     }
 
+    public void saveData(String type, UUID date, String data, int ttl) {
+        TimeSerie.save(getTSId(), type, date, data, ttl);
+    }
+
     public void saveData(String type, Date date, String data) {
         saveData(type, UUIDs.startOf(date.getTime()), data);
     }

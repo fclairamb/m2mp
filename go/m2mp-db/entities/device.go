@@ -298,3 +298,7 @@ func (d *Device) SaveTSTime(dataType string, time time.Time, data string) error 
 func (d *Device) SaveTSTimeObj(dataType string, time time.Time, obj interface{}) error {
 	return db.SaveTSTimeObj(d.TSID(), dataType, time, obj)
 }
+
+func (this *Device) LastData(dataType string) *db.TimedData {
+	return db.GetTSLast(this.TSID(), dataType, nil, nil, true)
+}

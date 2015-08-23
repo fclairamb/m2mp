@@ -556,7 +556,7 @@ public class RegistryNode {
     }
 
     public void setProperty(String name, double value) {
-        setProperty(name, Double.toString(value));
+        setProperty(name, String.format("%f",value));
     }
 
     public void setProperty(String name, long value, int ttl) {

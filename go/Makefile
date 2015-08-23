@@ -21,7 +21,7 @@ $(VERSION_FILE): $(shell find -not -path "*/m2mp-version/*" -name "*.go") Makefi
 	mkdir -p m2mp-version
 	printf 'package m2mp_version\n\nconst VERSION = "$(VERSION)"\n' >$@
 
-binaries: dist/bin/client-m2mp dist/bin/receiver-m2mp dist/bin/m2mp-storage dist/bin/converter-m2mp dist/bin/receiver-alip dist/bin/client-alip
+binaries: dist/bin/client-m2mp dist/bin/receiver-m2mp dist/bin/m2mp-storage dist/bin/converter-m2mp dist/bin/receiver-alip dist/bin/client-alip dist/bin/m2mp-es-sync
 
 win-binaries: dist/win/client-alip.exe
 
@@ -51,14 +51,19 @@ dist/bin/client-alip: create-version client-alip/*.go
 	mv client-alip/client-alip dist/bin/client-alip
 
 dist/bin/receiver-alip: create-version receiver-alip/*.go
-	cd receiver-alip; go get -v ; go build -v
+	cd receiver-alip ; go get -v ; go build -v
 	mkdir -p dist/bin
 	mv receiver-alip/receiver-alip dist/bin/receiver-alip
 
 dist/bin/m2mp-storage: create-version m2mp-storage/*.go
-	cd m2mp-storage; go get -v ; go build -v
+	cd m2mp-storage ; go get -v ; go build -v
 	mkdir -p dist/bin
 	mv m2mp-storage/m2mp-storage dist/bin/m2mp-storage
+
+dist/bin/m2mp-es-sync: create-version m2mp-es-sync/*.go
+	cd m2mp-es-sync ; go get -v ; go build -v
+	mkdir -p dist/bin
+	mv m2mp-es-sync/m2mp-es-sync dist/bin/m2mp-es-sync
 
 install: binaries
 	# Binaries
@@ -73,6 +78,7 @@ install: binaries
 	cp receiver-m2mp/receiver-m2mp.conf $(DESTDIR)/etc/m2mp
 	cp converter-m2mp/converter-m2mp.conf $(DESTDIR)/etc/m2mp
 	cp receiver-alip/receiver-alip.conf $(DESTDIR)/etc/m2mp
+	cp m2mp-es-sync/es-sync.conf $(DESTDIR)/etc/m2mp
 
 	# Data dir
 	mkdir -p $(DESTDIR)/var/lib/m2mp
